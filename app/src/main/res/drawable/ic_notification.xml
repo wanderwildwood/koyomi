@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The status-bar mark: the launcher's page and rings, drawn heavier to survive 24dp. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000"
+        android:pathData="M4,6h16v14h-16z M4,10h16" />
+    <path
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M8.5,3.5v4 M15.5,3.5v4" />
+    <path android:fillColor="#FFFFFFFF" android:pathData="M14,14h3v3h-3z" />
+</vector>

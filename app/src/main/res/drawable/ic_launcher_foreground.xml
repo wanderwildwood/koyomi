@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The adaptive foreground: ic_launcher.xml without its white square. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- the page: one line, not quite square, the right side leaning a touch -->
+    <path
+        android:strokeColor="#000000"
+        android:strokeWidth="3.0"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000"
+        android:pathData="M33.2,38.6 C46.0,37.9 62.4,38.1 75.6,38.9 C76.3,51.2 76.1,63.8 75.2,76.1 C61.8,76.8 46.3,76.6 33.6,75.8 C32.8,63.4 32.7,50.8 33.2,38.6 Z" />
+
+    <!-- the head of the page, where the month is written -->
+    <path
+        android:strokeColor="#000000"
+        android:strokeWidth="3.0"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M33.6,48.4 C47.2,47.8 61.6,48.0 75.5,48.6" />
+
+    <!-- the two rings it hangs from -->
+    <path
+        android:strokeColor="#000000"
+        android:strokeWidth="3.0"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M45.2,33.0 C45.1,35.6 45.3,38.4 45.4,42.6" />
+    <path
+        android:strokeColor="#000000"
+        android:strokeWidth="3.0"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M63.4,33.2 C63.6,36.0 63.5,38.9 63.3,42.8" />
+
+    <!-- one day marked: a droplet, the one fill a page of thin lines can carry -->
+    <path android:fillColor="#000000"
+        android:pathData="M58.9,62.4 A3.4,3.3 0 1 0 59.0,62.4 Z" />
+</vector>

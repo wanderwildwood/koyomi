@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Calendar</string>
+
+    <!-- ============================================================ -->
+    <!-- Words used in many places -->
+
+    <!-- Shown in place of an event's name when it has none -->
+    <string name="untitled">(No title)</string>
+    <string name="all_day">All day</string>
+    <string name="today">Today</string>
+    <!-- Buttons (verbs) -->
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="done">Done</string>
+
+    <!-- Top bar and foot buttons, read aloud by a screen reader -->
+    <string name="cd_search">Search</string>
+    <string name="cd_settings">Settings</string>
+    <string name="cd_about">About</string>
+    <string name="cd_close">Close</string>
+    <string name="cd_discard">Discard</string>
+    <string name="cd_edit">Edit</string>
+    <string name="cd_add">New event</string>
+    <string name="cd_previous">Previous</string>
+    <string name="cd_next">Next</string>
+
+    <!-- ============================================================ -->
+    <!-- The four views -->
+
+    <string name="view_month">Month</string>
+    <string name="view_week">Week</string>
+    <string name="view_day">Day</string>
+    <string name="view_agenda">Agenda</string>
+    <!-- Agenda top bar. %1$s is a short date, e.g. Fri 25 Sep -->
+    <string name="agenda_from">From %1$s</string>
+    <string name="agenda_empty">Nothing in the next six months.</string>
+    <!-- Under the all-day events of a day, when there are more than fit. %1$d is how many more -->
+    <string name="more_all_day">and %1$d more</string>
+
+    <!-- ============================================================ -->
+    <!-- One event -->
+
+    <string name="event_title">Event</string>
+    <!-- %1$s is the date or dates, e.g. Fri 25 Sep -->
+    <string name="event_all_day">%1$s, all day</string>
+    <string name="event_repeats">Repeats</string>
+    <string name="event_where">Where</string>
+    <string name="event_reminders">Reminders</string>
+    <string name="event_calendar">Calendar</string>
+    <string name="event_notes">Notes</string>
+    <string name="event_gone">This event is no longer in the calendar.</string>
+    <string name="event_not_deleted">The calendar did not accept the delete.</string>
+
+    <!-- Delete rows. The first press shows the second wording, and a second press does it -->
+    <string name="delete">Delete</string>
+    <string name="delete_armed">Delete — tap again</string>
+    <string name="delete_one">Delete this one</string>
+    <string name="delete_one_armed">Delete this one — tap again</string>
+    <string name="delete_following">Delete this one and every later one</string>
+    <string name="delete_following_armed">Delete this and later ones — tap again</string>
+    <string name="delete_all">Delete every one</string>
+    <string name="delete_all_armed">Delete every one — tap again</string>
+
+    <!-- Asked before editing an event that repeats -->
+    <string name="edit_which">Change which?</string>
+    <string name="edit_this_one">Only this one</string>
+    <string name="edit_every_one">Every one</string>
+
+    <!-- ============================================================ -->
+    <!-- Editing -->
+
+    <string name="edit_new">New event</string>
+    <string name="edit_title">Edit event</string>
+    <string name="edit_one">Edit this one</string>
+    <!-- Label of the name field -->
+    <string name="edit_what">What</string>
+    <string name="edit_starts">Starts</string>
+    <string name="edit_ends">Ends</string>
+    <string name="edit_reminders">Reminders</string>
+    <string name="edit_no_calendar">There is no calendar here that can be written to. Add one in DAVx5, or in the phone\'s accounts, first.</string>
+    <string name="edit_no_calendar_short">None that can be written to</string>
+    <string name="edit_not_saved">The calendar did not accept the change.</string>
+
+    <!-- Reminders. For an event with a time -->
+    <string name="reminder_none">None</string>
+    <string name="reminder_at_start">When it starts</string>
+    <plurals name="reminder_minutes">
+        <item quantity="one">%1$d minute before</item>
+        <item quantity="other">%1$d minutes before</item>
+    </plurals>
+    <plurals name="reminder_hours">
+        <item quantity="one">%1$d hour before</item>
+        <item quantity="other">%1$d hours before</item>
+    </plurals>
+    <plurals name="reminder_days">
+        <item quantity="one">%1$d day before</item>
+        <item quantity="other">%1$d days before</item>
+    </plurals>
+    <plurals name="reminder_weeks">
+        <item quantity="one">%1$d week before</item>
+        <item quantity="other">%1$d weeks before</item>
+    </plurals>
+    <!-- For an all-day event. %1$s is a time of day, e.g. 09:00 -->
+    <string name="reminder_on_day">On the day at %1$s</string>
+    <string name="reminder_day_before">The day before at %1$s</string>
+    <!-- %1$d is a number of days, %2$s a time of day -->
+    <plurals name="reminder_days_before_at">
+        <item quantity="one">%1$d day before at %2$s</item>
+        <item quantity="other">%1$d days before at %2$s</item>
+    </plurals>
+
+    <!-- ============================================================ -->
+    <!-- Repeats: the rule said in words -->
+
+    <string name="repeat_never">Does not repeat</string>
+    <!-- A rule from elsewhere that this app shows but does not edit -->
+    <string name="repeat_custom">Repeats by a rule set elsewhere</string>
+    <string name="repeat_cannot_edit">Change it where it was made; it is kept as it is here.</string>
+    <plurals name="repeat_daily">
+        <item quantity="one">Every day</item>
+        <item quantity="other">Every %1$d days</item>
+    </plurals>
+    <string name="repeat_weekdays">Every weekday</string>
+    <!-- %1$d is the interval, %2$s the day or days, e.g. Monday, or Mon, Wed and Fri -->
+    <plurals name="repeat_weekly">
+        <item quantity="one">Every week on %2$s</item>
+        <item quantity="other">Every %1$d weeks on %2$s</item>
+    </plurals>
+    <!-- %1$d is the interval, %2$s is repeat_on_day or repeat_on_nth -->
+    <plurals name="repeat_monthly">
+        <item quantity="one">Every month on %2$s</item>
+        <item quantity="other">Every %1$d months on %2$s</item>
+    </plurals>
+    <plurals name="repeat_yearly">
+        <item quantity="one">Every year</item>
+        <item quantity="other">Every %1$d years</item>
+    </plurals>
+    <!-- %1$d is a day of the month, e.g. 25 -->
+    <string name="repeat_on_day">day %1$d</string>
+    <!-- %1$s is from repeat_ordinals, %2$s a weekday, e.g. the fourth Friday -->
+    <string name="repeat_on_nth">the %1$s %2$s</string>
+    <string-array name="repeat_ordinals">
+        <item>first</item>
+        <item>second</item>
+        <item>third</item>
+        <item>fourth</item>
+        <item>fifth</item>
+        <item>last</item>
+    </string-array>
+    <!-- Joins the last day of a list, e.g. Mon, Wed and Fri. %1$s is the list before it -->
+    <string name="repeat_and">%1$s and %2$s</string>
+    <!-- %1$s is the rule, %2$s a date -->
+    <string name="repeat_until">%1$s, until %2$s</string>
+    <!-- %1$s is the rule, %2$d how many times in all -->
+    <plurals name="repeat_times">
+        <item quantity="one">%1$s, once</item>
+        <item quantity="other">%1$s, %2$d times</item>
+    </plurals>
+
+    <!-- The repeat screen -->
+    <string name="repeat_pick_daily">Every day</string>
+    <string name="repeat_pick_weekly">Every week</string>
+    <string name="repeat_pick_monthly">Every month</string>
+    <string name="repeat_pick_yearly">Every year</string>
+    <string name="repeat_how_often">How often</string>
+    <plurals name="unit_days">
+        <item quantity="one">Every day</item>
+        <item quantity="other">Every %1$d days</item>
+    </plurals>
+    <plurals name="unit_weeks">
+        <item quantity="one">Every week</item>
+        <item quantity="other">Every %1$d weeks</item>
+    </plurals>
+    <plurals name="unit_months">
+        <item quantity="one">Every month</item>
+        <item quantity="other">Every %1$d months</item>
+    </plurals>
+    <plurals name="unit_years">
+        <item quantity="one">Every year</item>
+        <item quantity="other">Every %1$d years</item>
+    </plurals>
+    <string name="repeat_on_days">On</string>
+    <string name="repeat_which_day">Which day</string>
+    <!-- %1$d is a day of the month -->
+    <string name="repeat_on_day_long">On day %1$d</string>
+    <!-- %1$s is e.g. the fourth Friday -->
+    <string name="repeat_on">On %1$s</string>
+    <string name="repeat_ends">Ends</string>
+    <string name="repeat_end_never">Never</string>
+    <!-- %1$s is a date -->
+    <string name="repeat_end_on">On %1$s</string>
+    <string name="repeat_end_after">After a number of times</string>
+    <plurals name="unit_times">
+        <item quantity="one">Once</item>
+        <item quantity="other">%1$d times</item>
+    </plurals>
+
+    <!-- ============================================================ -->
+    <!-- Search -->
+
+    <string name="search_title">Search</string>
+    <string name="search_hint">Name, place or notes</string>
+    <string name="search_none">Nothing found between a year ago and two years ahead.</string>
+
+    <!-- ============================================================ -->
+    <!-- Settings -->
+
+    <string name="settings_title">Settings</string>
+    <string name="settings_calendars">Calendars</string>
+    <string name="settings_default_calendar">New events go in</string>
+    <string name="settings_first_calendar">The first that can be written to</string>
+    <string name="settings_default_reminder">New events remind</string>
+    <string name="settings_open_on">Opens on</string>
+    <string name="settings_week_starts">Week starts on</string>
+    <string name="settings_week_numbers">Week numbers</string>
+    <string name="settings_wake">Reminders fill the screen</string>
+    <!-- Rows shown only when something the reminders need is switched off -->
+    <string name="settings_notifications_off">Notifications are off, so reminders cannot show</string>
+    <string name="settings_alarms_off">Exact alarms are off, so reminders may come late</string>
+    <string name="settings_full_screen_off">Full-screen reminders are not allowed</string>
+    <string name="settings_fix">Open the phone\'s setting</string>
+    <string name="calendars_none">There are no calendars on this phone yet. DAVx5 puts a CalDAV account\'s calendars here once it has synced.</string>
+
+    <!-- ============================================================ -->
+    <!-- First run, before calendar access -->
+
+    <string name="permission_why">This app shows and changes the calendars already on the phone, so it needs to be let into them.</string>
+    <string name="permission_davx5">To have a Nextcloud or other CalDAV calendar here, set it up in DAVx5 first. DAVx5 does the syncing; this app never reaches the network.</string>
+    <string name="permission_allow">Allow calendar access</string>
+
+    <!-- ============================================================ -->
+    <!-- Reminders -->
+
+    <!-- The notification channel's name, shown in the phone's settings -->
+    <string name="alert_channel">Reminders</string>
+    <!-- %1$d is minutes -->
+    <string name="alert_snooze">Again in %1$d minutes</string>
+    <string name="alert_dismiss">Dismiss</string>
+    <string name="alert_open">Open the event</string>
+
+    <!-- ============================================================ -->
+    <!-- About dialog. Keep the names of the app, people, projects and licences as they are -->
+
+    <!-- Heading. %1$s is the version number, e.g. 0.1.0 -->
+    <string name="about_title">Calendar %1$s</string>
+    <string name="about_privacy">It reads and writes the calendars already on the phone and never reaches the network. DAVx5, or the account the calendar came from, does the syncing.</string>
+    <string name="about_sources">Reminders come from the phone\'s calendar store, so the ones set in Nextcloud ring here too.</string>
+    <string name="about_after">After KompaktCalendar by David Anderlohr, GPL 3.0, and Etar, GPL 3.0, whose repeat rules and ways of saving a changed occurrence this follows. The repeat-rule parser is the Android Open Source Project\'s, Apache 2.0.</string>
+    <!-- The name of the app's licence -->
+    <string name="about_licence">GNU General Public License v3</string>
+    <string name="about_icons">Icons from Material Symbols, Apache 2.0</string>
+    <!-- The donation link label, beside a drawing of a llama. A fixed phrase: a verb and an object, so the reader knows what pressing it does -->
+    <string name="about_feed_the_llamas">feed the llamas</string>
+    <!-- Toast when the donation link cannot be opened -->
+    <string name="about_no_browser">There is no browser on this phone to open that with.</string>
+    <!-- Button that closes the About dialog -->
+    <string name="about_close">Close</string>
+</resources>
