@@ -169,25 +169,10 @@ private fun MonthView(model: AppModel) {
     val month = YearMonth.from(model.anchor)
     val showWeeks = model.settings.weekNumbers
     val today = LocalDate.now()
-    // Only the weeks the month needs: most months fit in five, and a sixth row of other
-    // months' blank days would take a title line from every day that has one.
+    // Only the weeks the month needs: most months fit in five, and a sixth row costs every
+    // day a line. The days either side that share those weeks are shown with their events,
+    // as Etar does, so the end of one month still says what the start of the next holds.
     val weeks = ((ChronoUnit.DAYS.between(first, month.atDay(1)) + month.lengthOfMonth() + 6) / 7).toInt()
-    val byDay = remember(model.occurrences, first) {
-        val map = HashMap<LocalDate, MutableList<Occurrence>>()
-        for (o in model.occurrences) {
-            var d = maxOf(o.firstDay, first)
-            val last = minOf(o.lastDay, first.plusDays(41))
-            while (!d.isAfter(last)) {
-                map.getOrPut(d) { mutableListOf() } += o
-                d = d.plusDays(1)
-            }
-        }
-        // All-day and multi-day first, as a paper calendar writes them across the top.
-        map.values.forEach { list ->
-            list.sortWith(compareBy({ !(it.allDay || it.firstDay != it.lastDay) }, { it.start }))
-        }
-        map
-    }
 
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxWidth().padding(top = 6.dp, bottom = 4.dp)) {
@@ -214,19 +199,15 @@ private fun MonthView(model: AppModel) {
                         )
                     }
                 }
-                for (i in 0..6) {
-                    val date = weekStart.plusDays(i.toLong())
-                    DayCell(
-                        date = date,
-                        inMonth = YearMonth.from(date) == month,
-                        isToday = date == today,
-                        events = byDay[date].orEmpty(),
-                        lastInRow = i == 6,
-                        onOpen = { model.openDay(date) },
-                        onAdd = { model.newEvent(date) },
-                        modifier = Modifier.weight(1f).fillMaxHeight(),
-                    )
-                }
+                MonthWeek(
+                    weekStart = weekStart,
+                    month = month,
+                    today = today,
+                    occurrences = model.occurrences,
+                    onOpen = { model.openDay(it) },
+                    onAdd = { model.newEvent(it) },
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                )
             }
         }
     }
@@ -234,72 +215,155 @@ private fun MonthView(model: AppModel) {
 
 private val WEEK_COLUMN = 28.dp
 
-/** The height of one title line in a day cell, at the house floor of 14sp. */
-private val TITLE_LINE = 17.dp
+/** One line of a day cell: 14sp type, the house floor, and room for a bar around it. */
+private val LINE = 18.dp
+
+/** The day's number at the top of its cell. */
+private val NUMBER_ROW = 24.dp
+
+/** An all-day or multi-day event laid across a week: first and last column, and its lane. */
+internal data class Bar(val occurrence: Occurrence, val from: Int, val to: Int, val lane: Int)
 
 /**
- * A day: its number, then as many of its events' titles as fit, one clipped line each, and
- * "+N" for the rest. Seven columns leave about six letters a title, which is enough to tell
- * the dentist from choir, and the day view is a tap away for the rest.
+ * Lays a week's all-day and multi-day events out as bars, the way Etar's month does: each in
+ * the first lane free across every day it covers, earliest first and longest first, so a
+ * bar never changes lane partway along and two never overlap.
+ */
+internal fun layBars(spanning: List<Occurrence>, weekStart: LocalDate): List<Bar> {
+    val weekEnd = weekStart.plusDays(6)
+    val laneEnds = mutableListOf<Int>() // the last column each lane is taken to
+    return spanning
+        .sortedWith(compareBy({ maxOf(it.firstDay, weekStart) }, { -ChronoUnit.DAYS.between(it.firstDay, it.lastDay) }, { it.title }))
+        .map { o ->
+            val from = ChronoUnit.DAYS.between(weekStart, maxOf(o.firstDay, weekStart)).toInt()
+            val to = ChronoUnit.DAYS.between(weekStart, minOf(o.lastDay, weekEnd)).toInt()
+            var lane = laneEnds.indexOfFirst { it < from }
+            if (lane == -1) {
+                laneEnds += to
+                lane = laneEnds.lastIndex
+            } else {
+                laneEnds[lane] = to
+            }
+            Bar(o, from, to, lane)
+        }
+}
+
+/**
+ * A week of the month: each day's number, the week's all-day and multi-day events as black
+ * bars running across the days they cover, and under them each day's own events by name,
+ * one clipped line each, with "+N" for whatever does not fit.
  */
 @Composable
-private fun DayCell(
-    date: LocalDate,
-    inMonth: Boolean,
-    isToday: Boolean,
-    events: List<Occurrence>,
-    lastInRow: Boolean,
-    onOpen: () -> Unit,
-    onAdd: () -> Unit,
+private fun MonthWeek(
+    weekStart: LocalDate,
+    month: YearMonth,
+    today: LocalDate,
+    occurrences: List<Occurrence>,
+    onOpen: (LocalDate) -> Unit,
+    onAdd: (LocalDate) -> Unit,
     modifier: Modifier,
 ) {
-    val lineStyle = MaterialTheme.typography.labelSmall.copy(lineHeight = 16.sp)
-    BoxWithConstraints(
-        modifier = modifier
-            .drawBehind {
-                // A hairline between days, so a clipped title reads as ending at its own edge.
-                if (!lastInRow) {
-                    drawLine(Color.Black, Offset(size.width, 0f), Offset(size.width, size.height), strokeWidth = 0.5.dp.toPx())
+    val days = (0..6).map { weekStart.plusDays(it.toLong()) }
+    val touching = remember(occurrences, weekStart) { occurrences.filter { o -> days.any { o.touches(it) } } }
+    val bars = remember(touching, weekStart) {
+        layBars(touching.filter { it.allDay || it.firstDay != it.lastDay }, weekStart)
+    }
+    val lineStyle = MaterialTheme.typography.labelSmall.copy(lineHeight = 15.sp)
+
+    BoxWithConstraints(modifier) {
+        val cell = maxWidth / 7
+        val room = ((maxHeight - NUMBER_ROW) / LINE).toInt().coerceAtLeast(0)
+        val laneCount = (bars.maxOfOrNull { it.lane } ?: -1) + 1
+        // Bars keep their lane all the way across. If the week has more lanes than a day has
+        // lines, the last line is kept back for "+N".
+        val barLimit = if (laneCount > room) (room - 1).coerceAtLeast(0) else laneCount
+
+        Row(Modifier.fillMaxSize()) {
+            days.forEachIndexed { col, date ->
+                val inMonth = YearMonth.from(date) == month
+                val timed = touching.filter { !it.allDay && it.firstDay == it.lastDay && it.firstDay == date }
+                    .sortedBy { it.start }
+                val barLanes = bars.filter { col in it.from..it.to }.map { it.lane }
+                val hiddenBars = barLanes.count { it >= barLimit }
+                // A day's own events take whatever lines its bars leave free, above, between
+                // or below them, as Etar packs them — not only the lines under the lowest bar.
+                val free = (0 until room).filter { slot -> slot !in barLanes || slot >= barLimit }
+                val overflow = timed.size + hiddenBars > free.size
+                val shown = if (overflow) (free.size - 1).coerceAtLeast(0) else timed.size
+                val hidden = timed.size - shown + hiddenBars
+                Box(
+                    modifier = Modifier
+                        .width(cell)
+                        .fillMaxHeight()
+                        .drawBehind {
+                            // A hairline between days, so a clipped title reads as ending at
+                            // its own day's edge.
+                            if (col < 6) {
+                                drawLine(Color.Black, Offset(size.width, 0f), Offset(size.width, size.height), strokeWidth = 0.5.dp.toPx())
+                            }
+                        }
+                        .pointerInput(date) {
+                            detectTapGestures(onTap = { onOpen(date) }, onLongPress = { onAdd(date) })
+                        }
+                        .padding(horizontal = 2.dp),
+                ) {
+                    Box(Modifier.height(NUMBER_ROW), contentAlignment = Alignment.CenterStart) {
+                        Box(
+                            modifier = Modifier
+                                .background(if (date == today) Color.Black else Color.White, RoundedCornerShape(5.dp))
+                                .padding(horizontal = 4.dp, vertical = 1.dp),
+                        ) {
+                            TextMMD(
+                                text = date.dayOfMonth.toString(),
+                                style = MaterialTheme.typography.labelSmall,
+                                // The month's own days in bold; the neighbours' plain, since
+                                // there is no grey to set them back with.
+                                fontWeight = if (inMonth || date == today) FontWeight.Bold else FontWeight.Normal,
+                                color = if (date == today) Color.White else Color.Black,
+                            )
+                        }
+                    }
+                    timed.take(shown).forEachIndexed { i, o ->
+                        TextMMD(
+                            text = o.title.ifBlank { stringResource(R.string.untitled) },
+                            style = lineStyle,
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Clip,
+                            modifier = Modifier.offset(y = NUMBER_ROW + LINE * free[i]).height(LINE),
+                        )
+                    }
+                    if (hidden > 0 && free.isNotEmpty()) {
+                        TextMMD(
+                            text = "+$hidden",
+                            style = lineStyle,
+                            modifier = Modifier.offset(y = NUMBER_ROW + LINE * free[shown]).height(LINE),
+                        )
+                    }
                 }
             }
-            .pointerInput(date) {
-                detectTapGestures(onTap = { onOpen() }, onLongPress = { onAdd() })
-            },
-    ) {
-        // A day outside the month is left blank rather than greyed: there is no grey here.
-        if (!inMonth) return@BoxWithConstraints
-        val room = ((maxHeight - 25.dp) / TITLE_LINE).toInt().coerceAtLeast(0)
-        val shown = if (events.size > room) (room - 1).coerceAtLeast(0) else events.size
-        Column(Modifier.fillMaxSize().padding(horizontal = 2.dp)) {
+        }
+
+        // The bars, over the cells. Taps fall through them to the day beneath.
+        bars.filter { it.lane < barLimit }.forEach { bar ->
             Box(
                 modifier = Modifier
-                    .padding(top = 2.dp)
-                    .height(22.dp)
-                    .background(if (isToday) Color.Black else Color.White, RoundedCornerShape(5.dp))
-                    .padding(horizontal = 4.dp),
-                contentAlignment = Alignment.Center,
+                    .offset(x = cell * bar.from + 1.dp, y = NUMBER_ROW + LINE * bar.lane + 1.dp)
+                    .width(cell * (bar.to - bar.from + 1) - 2.dp)
+                    .height(LINE - 2.dp)
+                    .background(Color.Black, RoundedCornerShape(3.dp))
+                    .padding(horizontal = 3.dp),
+                contentAlignment = Alignment.CenterStart,
             ) {
                 TextMMD(
-                    text = date.dayOfMonth.toString(),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = if (isToday) Color.White else Color.Black,
-                )
-            }
-            events.take(shown).forEach { o ->
-                TextMMD(
-                    text = o.title.ifBlank { stringResource(R.string.untitled) },
+                    text = bar.occurrence.title.ifBlank { stringResource(R.string.untitled) },
                     style = lineStyle,
-                    // Bold for all-day and multi-day, as the only emphasis this panel has.
-                    fontWeight = if (o.allDay || o.firstDay != o.lastDay) FontWeight.Bold else FontWeight.Normal,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
                     maxLines = 1,
                     softWrap = false,
                     overflow = TextOverflow.Clip,
-                    modifier = Modifier.height(TITLE_LINE),
                 )
-            }
-            if (events.size > shown) {
-                TextMMD(text = "+${events.size - shown}", style = lineStyle, modifier = Modifier.height(TITLE_LINE))
             }
         }
     }
