@@ -42,6 +42,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.mudita.mmd.components.divider.HorizontalDividerMMD
 import com.mudita.mmd.components.lazy.LazyColumnMMD
 import com.mudita.mmd.components.text.TextMMD
@@ -168,15 +169,22 @@ private fun MonthView(model: AppModel) {
     val month = YearMonth.from(model.anchor)
     val showWeeks = model.settings.weekNumbers
     val today = LocalDate.now()
-    val counts = remember(model.occurrences, first) {
-        val map = HashMap<LocalDate, Int>()
+    // Only the weeks the month needs: most months fit in five, and a sixth row of other
+    // months' blank days would take a title line from every day that has one.
+    val weeks = ((ChronoUnit.DAYS.between(first, month.atDay(1)) + month.lengthOfMonth() + 6) / 7).toInt()
+    val byDay = remember(model.occurrences, first) {
+        val map = HashMap<LocalDate, MutableList<Occurrence>>()
         for (o in model.occurrences) {
             var d = maxOf(o.firstDay, first)
             val last = minOf(o.lastDay, first.plusDays(41))
             while (!d.isAfter(last)) {
-                map[d] = (map[d] ?: 0) + 1
+                map.getOrPut(d) { mutableListOf() } += o
                 d = d.plusDays(1)
             }
+        }
+        // All-day and multi-day first, as a paper calendar writes them across the top.
+        map.values.forEach { list ->
+            list.sortWith(compareBy({ !(it.allDay || it.firstDay != it.lastDay) }, { it.start }))
         }
         map
     }
@@ -193,7 +201,7 @@ private fun MonthView(model: AppModel) {
                 )
             }
         }
-        for (week in 0..5) {
+        for (week in 0 until weeks) {
             val weekStart = first.plusWeeks(week.toLong())
             DashedRule()
             Row(Modifier.fillMaxWidth().weight(1f)) {
@@ -202,7 +210,7 @@ private fun MonthView(model: AppModel) {
                         TextMMD(
                             text = weekStart.plusDays(3).get(WeekFields.ISO.weekOfWeekBasedYear()).toString(),
                             style = MaterialTheme.typography.labelSmall,
-                            modifier = Modifier.padding(top = 6.dp),
+                            modifier = Modifier.padding(top = 4.dp),
                         )
                     }
                 }
@@ -212,7 +220,8 @@ private fun MonthView(model: AppModel) {
                         date = date,
                         inMonth = YearMonth.from(date) == month,
                         isToday = date == today,
-                        count = counts[date] ?: 0,
+                        events = byDay[date].orEmpty(),
+                        lastInRow = i == 6,
                         onOpen = { model.openDay(date) },
                         onAdd = { model.newEvent(date) },
                         modifier = Modifier.weight(1f).fillMaxHeight(),
@@ -225,46 +234,72 @@ private fun MonthView(model: AppModel) {
 
 private val WEEK_COLUMN = 28.dp
 
+/** The height of one title line in a day cell, at the house floor of 14sp. */
+private val TITLE_LINE = 17.dp
+
+/**
+ * A day: its number, then as many of its events' titles as fit, one clipped line each, and
+ * "+N" for the rest. Seven columns leave about six letters a title, which is enough to tell
+ * the dentist from choir, and the day view is a tap away for the rest.
+ */
 @Composable
 private fun DayCell(
     date: LocalDate,
     inMonth: Boolean,
     isToday: Boolean,
-    count: Int,
+    events: List<Occurrence>,
+    lastInRow: Boolean,
     onOpen: () -> Unit,
     onAdd: () -> Unit,
     modifier: Modifier,
 ) {
-    Column(
-        modifier = modifier.pointerInput(date) {
-            detectTapGestures(onTap = { onOpen() }, onLongPress = { onAdd() })
-        },
-        horizontalAlignment = Alignment.CenterHorizontally,
+    val lineStyle = MaterialTheme.typography.labelSmall.copy(lineHeight = 16.sp)
+    BoxWithConstraints(
+        modifier = modifier
+            .drawBehind {
+                // A hairline between days, so a clipped title reads as ending at its own edge.
+                if (!lastInRow) {
+                    drawLine(Color.Black, Offset(size.width, 0f), Offset(size.width, size.height), strokeWidth = 0.5.dp.toPx())
+                }
+            }
+            .pointerInput(date) {
+                detectTapGestures(onTap = { onOpen() }, onLongPress = { onAdd() })
+            },
     ) {
-        Spacer(Modifier.height(4.dp))
         // A day outside the month is left blank rather than greyed: there is no grey here.
-        if (inMonth) {
+        if (!inMonth) return@BoxWithConstraints
+        val room = ((maxHeight - 25.dp) / TITLE_LINE).toInt().coerceAtLeast(0)
+        val shown = if (events.size > room) (room - 1).coerceAtLeast(0) else events.size
+        Column(Modifier.fillMaxSize().padding(horizontal = 2.dp)) {
             Box(
                 modifier = Modifier
-                    .size(30.dp)
-                    .background(if (isToday) Color.Black else Color.White, RoundedCornerShape(6.dp)),
+                    .padding(top = 2.dp)
+                    .height(22.dp)
+                    .background(if (isToday) Color.Black else Color.White, RoundedCornerShape(5.dp))
+                    .padding(horizontal = 4.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 TextMMD(
                     text = date.dayOfMonth.toString(),
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
                     color = if (isToday) Color.White else Color.Black,
                 )
             }
-            Spacer(Modifier.height(3.dp))
-            // One mark per event up to three; a fourth says there are more.
-            Row(horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.CenterVertically) {
-                repeat(minOf(count, 3)) {
-                    Box(Modifier.size(6.dp).background(Color.Black, RoundedCornerShape(3.dp)))
-                }
-                if (count > 3) {
-                    Box(Modifier.size(width = 6.dp, height = 2.dp).background(Color.Black))
-                }
+            events.take(shown).forEach { o ->
+                TextMMD(
+                    text = o.title.ifBlank { stringResource(R.string.untitled) },
+                    style = lineStyle,
+                    // Bold for all-day and multi-day, as the only emphasis this panel has.
+                    fontWeight = if (o.allDay || o.firstDay != o.lastDay) FontWeight.Bold else FontWeight.Normal,
+                    maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Clip,
+                    modifier = Modifier.height(TITLE_LINE),
+                )
+            }
+            if (events.size > shown) {
+                TextMMD(text = "+${events.size - shown}", style = lineStyle, modifier = Modifier.height(TITLE_LINE))
             }
         }
     }

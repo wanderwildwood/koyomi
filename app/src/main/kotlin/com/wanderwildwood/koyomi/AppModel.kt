@@ -213,13 +213,23 @@ class AppModel(app: Application) : AndroidViewModel(app) {
     // ------------------------------------------------------------------------------------
     // Editing
 
-    fun writableCalendars(): List<CalendarInfo> = calendars.filter { it.writable }
+    /**
+     * The calendars a new event may go in: ones that can be written to and are showing.
+     *
+     * Found on his Kompakt: the calendar the phone marks primary is Mudita's "PC Sync" — local,
+     * hidden, and never synced. Picked as the fallback, a new event went where nothing would
+     * ever show it or carry it to a server. A hidden calendar is not offered, and a synced one
+     * comes before a local one.
+     */
+    fun writableCalendars(): List<CalendarInfo> = calendars
+        .filter { it.writable && it.visible }
+        .sortedBy { it.accountType == CalendarContract.ACCOUNT_TYPE_LOCAL }
 
     /** A new event on [date], at [time] if a timeline was long-pressed, otherwise the next hour. */
     fun newEvent(date: LocalDate = anchor, time: LocalTime? = null) {
         val writable = writableCalendars()
         val calendar = writable.firstOrNull { it.id == settings.defaultCalendar }
-            ?: writable.firstOrNull { it.isPrimary }
+            ?: writable.firstOrNull { it.isPrimary && it.accountType != CalendarContract.ACCOUNT_TYPE_LOCAL }
             ?: writable.firstOrNull()
         val start = time ?: LocalTime.now().withMinute(0).withSecond(0).withNano(0).plusHours(1)
         val rolled = time == null && start == LocalTime.MIDNIGHT
