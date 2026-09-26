@@ -36,6 +36,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -215,11 +217,19 @@ private fun MonthView(model: AppModel) {
 
 private val WEEK_COLUMN = 28.dp
 
-/** One line of a day cell: 14sp type, the house floor, and room for a bar around it. */
-private val LINE = 18.dp
+/**
+ * One line of a day cell. The month is the one place in this app below the house floor of
+ * 14sp: at 14 a Kompakt's month cell holds two lines and a busy day was "+6"; at 12, as Etar
+ * sets it, it holds four, which is what makes a month readable at a glance. He asked for
+ * Etar's density, 2026-09-26.
+ */
+private val LINE = 13.dp
 
 /** The day's number at the top of its cell. */
-private val NUMBER_ROW = 24.dp
+private val NUMBER_ROW = 17.dp
+
+@Composable
+private fun monthStyle() = MaterialTheme.typography.labelSmall.copy(fontSize = 12.sp, lineHeight = 13.sp)
 
 /** An all-day or multi-day event laid across a week: first and last column, and its lane. */
 internal data class Bar(val occurrence: Occurrence, val from: Int, val to: Int, val lane: Int)
@@ -268,10 +278,13 @@ private fun MonthWeek(
     val bars = remember(touching, weekStart) {
         layBars(touching.filter { it.allDay || it.firstDay != it.lastDay }, weekStart)
     }
-    val lineStyle = MaterialTheme.typography.labelSmall.copy(lineHeight = 15.sp)
+    val lineStyle = monthStyle()
+    val measurer = rememberTextMeasurer()
+    val density = LocalDensity.current
 
     BoxWithConstraints(modifier) {
         val cell = maxWidth / 7
+        val textWidthPx = with(density) { (cell - 4.dp).toPx() }
         val room = ((maxHeight - NUMBER_ROW) / LINE).toInt().coerceAtLeast(0)
         val laneCount = (bars.maxOfOrNull { it.lane } ?: -1) + 1
         // Bars keep their lane all the way across. If the week has more lanes than a day has
@@ -311,11 +324,11 @@ private fun MonthWeek(
                         Box(
                             modifier = Modifier
                                 .background(if (date == today) Color.Black else Color.White, RoundedCornerShape(5.dp))
-                                .padding(horizontal = 4.dp, vertical = 1.dp),
+                                .padding(horizontal = 3.dp),
                         ) {
                             TextMMD(
                                 text = date.dayOfMonth.toString(),
-                                style = MaterialTheme.typography.labelSmall,
+                                style = lineStyle.copy(fontSize = 13.sp),
                                 // The month's own days in bold; the neighbours' plain, since
                                 // there is no grey to set them back with.
                                 fontWeight = if (inMonth || date == today) FontWeight.Bold else FontWeight.Normal,
@@ -323,21 +336,33 @@ private fun MonthWeek(
                             )
                         }
                     }
-                    timed.take(shown).forEachIndexed { i, o ->
+                    // A title too long for its line may take the free line under it, as Etar
+                    // wraps "Silvermine Trail" — but only on a day with lines to spare, so it
+                    // never costs another event its place.
+                    var spare = if (overflow) 0 else free.size - timed.size
+                    var next = 0
+                    timed.take(shown).forEach { o ->
+                        val title = o.title.ifBlank { stringResource(R.string.untitled) }
+                        val slot = free[next]
+                        val wraps = spare > 0 && next + 1 < free.size && free[next + 1] == slot + 1 &&
+                            measurer.measure(title, lineStyle, softWrap = false).size.width > textWidthPx
+                        val lines = if (wraps) 2 else 1
+                        if (wraps) spare--
+                        next += lines
                         TextMMD(
-                            text = o.title.ifBlank { stringResource(R.string.untitled) },
+                            text = title,
                             style = lineStyle,
-                            maxLines = 1,
-                            softWrap = false,
+                            maxLines = lines,
+                            softWrap = wraps,
                             overflow = TextOverflow.Clip,
-                            modifier = Modifier.offset(y = NUMBER_ROW + LINE * free[i]).height(LINE),
+                            modifier = Modifier.offset(y = NUMBER_ROW + LINE * slot).height(LINE * lines),
                         )
                     }
                     if (hidden > 0 && free.isNotEmpty()) {
                         TextMMD(
                             text = "+$hidden",
                             style = lineStyle,
-                            modifier = Modifier.offset(y = NUMBER_ROW + LINE * free[shown]).height(LINE),
+                            modifier = Modifier.offset(y = NUMBER_ROW + LINE * free[minOf(next, free.lastIndex)]).height(LINE),
                         )
                     }
                 }
@@ -348,16 +373,17 @@ private fun MonthWeek(
         bars.filter { it.lane < barLimit }.forEach { bar ->
             Box(
                 modifier = Modifier
-                    .offset(x = cell * bar.from + 1.dp, y = NUMBER_ROW + LINE * bar.lane + 1.dp)
+                    .offset(x = cell * bar.from + 1.dp, y = NUMBER_ROW + LINE * bar.lane)
                     .width(cell * (bar.to - bar.from + 1) - 2.dp)
-                    .height(LINE - 2.dp)
+                    // The whole line: any shorter and 12sp loses its descenders.
+                    .height(LINE)
                     .background(Color.Black, RoundedCornerShape(3.dp))
                     .padding(horizontal = 3.dp),
                 contentAlignment = Alignment.CenterStart,
             ) {
                 TextMMD(
                     text = bar.occurrence.title.ifBlank { stringResource(R.string.untitled) },
-                    style = lineStyle,
+                    style = lineStyle.copy(lineHeight = 12.sp),
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
                     maxLines = 1,
