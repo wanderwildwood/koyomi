@@ -23,6 +23,15 @@ To have a Nextcloud, Fastmail, iCloud or any other CalDAV calendar here, set it 
 [DAVx5](https://www.davx5.com/) first. DAVx5 keeps the phone's store and the server in step;
 an event made or changed here reaches the server because DAVx5 carries it there.
 
+**Google Calendar goes through DAVx5 too**, and its sign-in opens in the phone's default
+browser. The Kompakt's built-in one is refused by Google ("Error 403: disallowed_useragent").
+Readers of the KompaktCalendar thread on the Mudita forum found the way past it: install
+[EinkBro](https://github.com/plateaukao/einkbro), make it the default browser, then add the
+Google account in DAVx5.
+
+A calendar called **PC Sync** may appear under Settings → Calendars. The phone's own calendar
+store makes it; it belongs to no account, so nothing saved in it leaves the phone.
+
 ## What it does
 
 **Four views.** A month of days with a mark for each event; a week and a day as a timeline,

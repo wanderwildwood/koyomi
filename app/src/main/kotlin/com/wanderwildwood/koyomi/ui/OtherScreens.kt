@@ -2,6 +2,7 @@ package com.wanderwildwood.koyomi.ui
 
 import android.content.Intent
 import android.net.Uri
+import android.provider.CalendarContract
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -287,6 +288,18 @@ fun CalendarsScreen(model: AppModel) {
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(top = 18.dp, bottom = 2.dp),
                     )
+                }
+                // A local calendar has no account behind it, which its name cannot say. The
+                // one most people meet is "PC Sync", made by the phone's own calendar store
+                // (MediaTek's), hidden, and easily taken for a way to sync.
+                if (list.first().accountType == CalendarContract.ACCOUNT_TYPE_LOCAL) {
+                    item(key = "l$account") {
+                        TextMMD(
+                            text = stringResource(R.string.calendars_local),
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.padding(bottom = 4.dp),
+                        )
+                    }
                 }
                 list.forEach { c ->
                     item(key = "c${c.id}") {
