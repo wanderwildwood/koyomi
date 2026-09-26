@@ -53,6 +53,10 @@ did not make.
 each one rings once. With the screen asleep a reminder wakes it with the event on it; there
 is a setting for a notification alone.
 
+**Today's events on the lock screen**, with
+[Glance](https://github.com/wanderwildwood/hitome) installed: what is left of today, all-day
+events first. Settings has the switch.
+
 **It asks before deleting**, on the row itself: the first press arms it, the second does it,
 and it forgets after four seconds.
 

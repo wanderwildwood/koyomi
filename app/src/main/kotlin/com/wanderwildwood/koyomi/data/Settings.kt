@@ -40,7 +40,13 @@ class Settings(context: Context) {
         get() = prefs.getBoolean(WAKE_SCREEN, true)
         set(v) = prefs.edit().putBoolean(WAKE_SCREEN, v).apply()
 
+    /** Whether today's events are handed to Glance for the lock screen. */
+    var lockScreen: Boolean
+        get() = prefs.getBoolean(LOCK_SCREEN, true)
+        set(v) = prefs.edit().putBoolean(LOCK_SCREEN, v).apply()
+
     private companion object {
+        const val LOCK_SCREEN = "lock_screen"
         const val OPEN_ON = "open_on"
         const val WEEK_START = "week_start"
         const val WEEK_NUMBERS = "week_numbers"

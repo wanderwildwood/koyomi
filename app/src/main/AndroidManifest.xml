@@ -54,6 +54,12 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
+
+        <!-- Today's events for Glance's lock-screen panel; it answers Glance alone. -->
+        <provider
+            android:name=".glance.TodayOnLockScreen"
+            android:authorities="com.wanderwildwood.koyomi.glance"
+            android:exported="true" />
     </application>
 
 </manifest>

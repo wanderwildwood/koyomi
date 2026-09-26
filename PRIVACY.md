@@ -28,6 +28,14 @@ six settings in `SharedPreferences`, all visible in `data/Settings.kt`: which vi
 on, the first day of the week, whether week numbers show, the calendar and the reminder a new
 event starts with, and whether a reminder fills the screen.
 
+## The lock screen
+
+If the Glance app is installed and its lock-screen panel is on, Calendar hands it today's events
+- their titles and times - to show on the lock screen, where anyone holding the phone can read
+them. It answers Glance alone, through a provider any other app is refused by
+(`glance/GlanceProvider.kt`), and hands over nothing while **Settings → Today's events on the
+lock screen** is off. Nothing leaves the phone.
+
 ## No analytics
 
 No crash reporting, no telemetry, no advertising identifier, no third-party SDK. The

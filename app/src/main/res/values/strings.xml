@@ -223,6 +223,13 @@
     <string name="settings_fix">Open the phone\'s setting</string>
     <!-- Under a calendar kept only on this phone, such as the "PC Sync" the phone makes itself -->
     <!-- Under the Calendars heading in Settings: the switches are the phone's own, shared by every calendar app -->
+    <!-- Settings: whether today's events show on the lock screen, through the Glance app -->
+    <string name="settings_lock_screen">Today\'s events on the lock screen</string>
+    <!-- On the lock screen, through Glance -->
+    <string name="lock_today">Today</string>
+    <string name="lock_all_day">All day</string>
+    <!-- An event under way since before today: "until 11:00" -->
+    <string name="lock_until">until %1$s</string>
     <string name="calendars_everywhere">Hiding one hides it in every calendar app.</string>
     <string name="calendars_local">On this phone only: nothing saved here reaches a server.</string>
     <string name="calendars_none">There are no calendars on this phone yet. DAVx5 puts a CalDAV account\'s calendars here once it has synced.</string>
