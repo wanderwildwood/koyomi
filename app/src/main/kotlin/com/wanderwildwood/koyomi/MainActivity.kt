@@ -13,7 +13,6 @@ import androidx.activity.viewModels
 import androidx.compose.runtime.Composable
 import com.mudita.mmd.ThemeMMD
 import com.wanderwildwood.koyomi.alerts.Alerts
-import com.wanderwildwood.koyomi.ui.CalendarsScreen
 import com.wanderwildwood.koyomi.ui.EditScreen
 import com.wanderwildwood.koyomi.ui.EventScreen
 import com.wanderwildwood.koyomi.ui.PermissionScreen
@@ -96,6 +95,5 @@ private fun Koyomi(model: AppModel) {
         Screen.Repeat -> RepeatScreen(model)
         Screen.Search -> SearchScreen(model)
         Screen.Settings -> SettingsScreen(model)
-        Screen.Calendars -> CalendarsScreen(model)
     }
 }

@@ -222,7 +222,9 @@
     <string name="settings_full_screen_off">Full-screen reminders are not allowed</string>
     <string name="settings_fix">Open the phone\'s setting</string>
     <!-- Under a calendar kept only on this phone, such as the "PC Sync" the phone makes itself -->
-    <string name="calendars_local">On this phone only. No account syncs it, so nothing saved here reaches a server.</string>
+    <!-- Under the Calendars heading in Settings: the switches are the phone's own, shared by every calendar app -->
+    <string name="calendars_everywhere">Hiding one hides it in every calendar app.</string>
+    <string name="calendars_local">On this phone only: nothing saved here reaches a server.</string>
     <string name="calendars_none">There are no calendars on this phone yet. DAVx5 puts a CalDAV account\'s calendars here once it has synced.</string>
 
     <!-- ============================================================ -->

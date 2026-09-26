@@ -59,15 +59,24 @@ fun SettingRow(title: String, value: String?, onClick: (() -> Unit)?) {
 }
 
 @Composable
-fun SwitchRow(title: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+fun SwitchRow(
+    title: String,
+    checked: Boolean,
+    note: String? = null,
+    compact: Boolean = false,
+    onChange: (Boolean) -> Unit,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onChange(!checked) }
-            .padding(vertical = 12.dp),
+            .padding(vertical = if (compact) 6.dp else 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        TextMMD(text = title, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+        Column(Modifier.weight(1f)) {
+            TextMMD(text = title, style = MaterialTheme.typography.bodyMedium)
+            if (note != null) TextMMD(text = note, style = MaterialTheme.typography.labelSmall)
+        }
         Spacer(Modifier.width(12.dp))
         SwitchMMD(checked = checked, onCheckedChange = null)
     }

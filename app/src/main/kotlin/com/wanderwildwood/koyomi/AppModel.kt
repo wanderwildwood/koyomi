@@ -40,7 +40,6 @@ sealed interface Screen {
     data object Repeat : Screen
     data object Search : Screen
     data object Settings : Screen
-    data object Calendars : Screen
 }
 
 class AppModel(app: Application) : AndroidViewModel(app) {

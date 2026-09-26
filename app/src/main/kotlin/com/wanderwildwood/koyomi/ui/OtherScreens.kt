@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.CalendarContract
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -134,6 +135,8 @@ fun SettingsScreen(model: AppModel) {
 
     fun open(intent: Intent) = runCatching { context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
 
+    LaunchedEffect(Unit) { model.refreshCalendars() }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
@@ -164,7 +167,10 @@ fun SettingsScreen(model: AppModel) {
                 }
             }
 
-            item { SettingRow(stringResource(R.string.settings_calendars), null) { model.push(Screen.Calendars) } }
+            // The calendars first, their switches right here: which ones show is changed far
+            // more often than anything below, and a screen of its own was a press for nothing.
+            calendarSwitches(model)
+            item { Spacer(Modifier.height(10.dp)) }
             item {
                 val name = model.calendars.firstOrNull { it.id == defaultCalendar }?.name
                 SettingRow(stringResource(R.string.settings_default_calendar), name ?: stringResource(R.string.settings_first_calendar)) { pickCalendar = true }
@@ -257,57 +263,49 @@ fun SettingsScreen(model: AppModel) {
     }
 }
 
-/** Which calendars show. Hiding one here hides it in every calendar app on the phone. */
-@Composable
-fun CalendarsScreen(model: AppModel) {
-    LaunchedEffect(Unit) { model.refreshCalendars() }
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.surface,
-        topBar = {
-            TopAppBarMMD(
-                title = { TextMMD(text = stringResource(R.string.settings_calendars)) },
-                navigationIcon = { BarButton(Icons.Close, stringResource(R.string.cd_close)) { model.pop() } },
+/**
+ * Which calendars show, as the first section of Settings. Hiding one here hides it in every
+ * calendar app on the phone, because it is the phone's own switch, and the line under the
+ * heading says so.
+ */
+private fun LazyListScope.calendarSwitches(model: AppModel) {
+    item(key = "calendars") {
+        Column(Modifier.padding(top = 6.dp, bottom = 2.dp)) {
+            TextMMD(text = stringResource(R.string.settings_calendars), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+            TextMMD(text = stringResource(R.string.calendars_everywhere), style = MaterialTheme.typography.labelSmall)
+        }
+    }
+    if (model.calendars.isEmpty()) {
+        item {
+            TextMMD(
+                text = stringResource(R.string.calendars_none),
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.padding(vertical = 8.dp),
             )
-        },
-    ) { padding ->
-        LazyColumnMMD(Modifier.fillMaxSize().padding(padding).padding(horizontal = 20.dp)) {
-            if (model.calendars.isEmpty()) {
-                item {
-                    TextMMD(
-                        text = stringResource(R.string.calendars_none),
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(top = 16.dp),
-                    )
-                }
+        }
+    }
+    // A local calendar has no account behind it, which its name cannot say, so it says so on
+    // its own row. The one most people meet is "PC Sync", made by the phone's own calendar
+    // store (MediaTek's), hidden, and easily taken for a way to sync.
+    val (local, synced) = model.calendars.partition { it.accountType == CalendarContract.ACCOUNT_TYPE_LOCAL }
+    synced.groupBy { it.accountName }.forEach { (account, list) ->
+        item(key = "a$account") {
+            TextMMD(
+                text = account,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+        }
+        list.forEach { c ->
+            item(key = "c${c.id}") {
+                SwitchRow(c.name, c.visible, compact = true) { model.setVisible(c, it) }
             }
-            model.calendars.groupBy { it.accountName }.forEach { (account, list) ->
-                item(key = "a$account") {
-                    TextMMD(
-                        text = account,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(top = 18.dp, bottom = 2.dp),
-                    )
-                }
-                // A local calendar has no account behind it, which its name cannot say. The
-                // one most people meet is "PC Sync", made by the phone's own calendar store
-                // (MediaTek's), hidden, and easily taken for a way to sync.
-                if (list.first().accountType == CalendarContract.ACCOUNT_TYPE_LOCAL) {
-                    item(key = "l$account") {
-                        TextMMD(
-                            text = stringResource(R.string.calendars_local),
-                            style = MaterialTheme.typography.labelSmall,
-                            modifier = Modifier.padding(bottom = 4.dp),
-                        )
-                    }
-                }
-                list.forEach { c ->
-                    item(key = "c${c.id}") {
-                        SwitchRow(c.name, c.visible) { model.setVisible(c, it) }
-                    }
-                }
-            }
-            item { Spacer(Modifier.height(24.dp)) }
+        }
+    }
+    local.forEach { c ->
+        item(key = "c${c.id}") {
+            SwitchRow(c.name, c.visible, note = stringResource(R.string.calendars_local), compact = true) { model.setVisible(c, it) }
         }
     }
 }
