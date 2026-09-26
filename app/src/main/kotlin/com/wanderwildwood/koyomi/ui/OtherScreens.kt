@@ -102,8 +102,18 @@ fun SearchScreen(model: AppModel) {
 @Composable
 fun SettingsScreen(model: AppModel) {
     val context = LocalContext.current
+    // Read here, not inside the list's items: a SharedPreferences read is not Compose state,
+    // so an item that read it itself was never redrawn, and a switch looked as if it had not
+    // moved until the screen was opened again. Read at this level, a new settingsVersion
+    // hands every row its new value.
     @Suppress("UNUSED_VARIABLE") val v = model.settingsVersion
     val s = model.settings
+    val defaultCalendar = s.defaultCalendar
+    val defaultReminder = s.defaultReminder
+    val openOn = s.openOn
+    val weekStart = s.weekStart
+    val weekNumbers = s.weekNumbers
+    val wakeScreen = s.wakeScreen
     var aboutOpen by remember { mutableStateOf(false) }
     var pickCalendar by remember { mutableStateOf(false) }
     var pickReminder by remember { mutableStateOf(false) }
@@ -155,11 +165,11 @@ fun SettingsScreen(model: AppModel) {
 
             item { SettingRow(stringResource(R.string.settings_calendars), null) { model.push(Screen.Calendars) } }
             item {
-                val name = model.calendars.firstOrNull { it.id == s.defaultCalendar }?.name
+                val name = model.calendars.firstOrNull { it.id == defaultCalendar }?.name
                 SettingRow(stringResource(R.string.settings_default_calendar), name ?: stringResource(R.string.settings_first_calendar)) { pickCalendar = true }
             }
             item {
-                val m = s.defaultReminder
+                val m = defaultReminder
                 SettingRow(
                     stringResource(R.string.settings_default_reminder),
                     if (m < 0) stringResource(R.string.reminder_none) else ReminderText.of(context, m, false),
@@ -172,7 +182,7 @@ fun SettingsScreen(model: AppModel) {
                     View.DAY to R.string.view_day,
                     View.AGENDA to R.string.view_agenda,
                 )
-                SettingRow(stringResource(R.string.settings_open_on), stringResource(names.getValue(s.openOn))) {
+                SettingRow(stringResource(R.string.settings_open_on), stringResource(names.getValue(openOn))) {
                     s.openOn = View.entries[(s.openOn.ordinal + 1) % View.entries.size]
                     model.settingsChanged()
                 }
@@ -180,7 +190,7 @@ fun SettingsScreen(model: AppModel) {
             item {
                 SettingRow(
                     stringResource(R.string.settings_week_starts),
-                    s.weekStart.getDisplayName(java.time.format.TextStyle.FULL, java.util.Locale.getDefault()),
+                    weekStart.getDisplayName(java.time.format.TextStyle.FULL, java.util.Locale.getDefault()),
                 ) {
                     s.weekStart = when (s.weekStart) {
                         java.time.DayOfWeek.MONDAY -> java.time.DayOfWeek.SUNDAY
@@ -191,18 +201,18 @@ fun SettingsScreen(model: AppModel) {
                 }
             }
             item {
-                SwitchRow(stringResource(R.string.settings_week_numbers), s.weekNumbers) {
+                SwitchRow(stringResource(R.string.settings_week_numbers), weekNumbers) {
                     s.weekNumbers = it
                     model.settingsChanged()
                 }
             }
             item {
-                SwitchRow(stringResource(R.string.settings_wake), s.wakeScreen) {
+                SwitchRow(stringResource(R.string.settings_wake), wakeScreen) {
                     s.wakeScreen = it
                     model.settingsChanged()
                 }
             }
-            if (s.wakeScreen && !fullScreenOn) {
+            if (wakeScreen && !fullScreenOn) {
                 item {
                     SettingRow(stringResource(R.string.settings_full_screen_off), stringResource(R.string.settings_fix)) {
                         open(Intent("android.settings.MANAGE_APP_USE_FULL_SCREEN_INTENT", Uri.parse("package:${context.packageName}")))
@@ -220,7 +230,7 @@ fun SettingsScreen(model: AppModel) {
             TextMMD(text = stringResource(R.string.settings_default_calendar), style = MaterialTheme.typography.bodyLarge)
             Spacer(Modifier.height(6.dp))
             model.writableCalendars().forEach { c ->
-                ChoiceRow(c.name, bold = c.id == s.defaultCalendar) {
+                ChoiceRow(c.name, bold = c.id == defaultCalendar) {
                     s.defaultCalendar = c.id
                     model.settingsChanged()
                     pickCalendar = false
@@ -235,7 +245,7 @@ fun SettingsScreen(model: AppModel) {
             listOf(-1, 0, 5, 10, 15, 30, 60, 1440).forEach { m ->
                 ChoiceRow(
                     if (m < 0) stringResource(R.string.reminder_none) else ReminderText.of(context, m, false),
-                    bold = m == s.defaultReminder,
+                    bold = m == defaultReminder,
                 ) {
                     s.defaultReminder = m
                     model.settingsChanged()
