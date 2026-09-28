@@ -53,15 +53,16 @@
     <string name="event_gone">This event is no longer in the calendar.</string>
     <string name="event_not_deleted">The calendar did not accept the delete.</string>
 
-    <!-- Delete rows. The first press shows the second wording, and a second press does it -->
+    <!-- Delete choices, asked in a dialog from the Delete button -->
+    <string name="cd_delete">Delete</string>
+    <string name="delete_which_one">Delete this event?</string>
+    <string name="delete_which">Delete which?</string>
+    <string name="event_read_only_label">Read only</string>
+    <string name="event_read_only">This calendar cannot be changed from this phone.</string>
     <string name="delete">Delete</string>
-    <string name="delete_armed">Delete — tap again</string>
     <string name="delete_one">Delete this one</string>
-    <string name="delete_one_armed">Delete this one — tap again</string>
     <string name="delete_following">Delete this one and every later one</string>
-    <string name="delete_following_armed">Delete this and later ones — tap again</string>
     <string name="delete_all">Delete every one</string>
-    <string name="delete_all_armed">Delete every one — tap again</string>
 
     <!-- Asked before editing an event that repeats -->
     <string name="edit_which">Change which?</string>

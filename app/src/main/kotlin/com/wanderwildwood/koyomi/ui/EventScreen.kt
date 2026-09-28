@@ -22,7 +22,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.mudita.mmd.components.divider.HorizontalDividerMMD
 import com.mudita.mmd.components.lazy.LazyColumnMMD
 import com.mudita.mmd.components.text.TextMMD
 import com.mudita.mmd.components.top_app_bar.TopAppBarMMD
@@ -44,6 +43,9 @@ fun EventScreen(model: AppModel, screen: Screen.Event) {
     var record by remember { mutableStateOf<EventRecord?>(null) }
     var loaded by remember { mutableStateOf(false) }
     var askScope by remember { mutableStateOf(false) }
+    // Delete asks first, in a dialog: it sits in the bar beside Edit, where it can be found,
+    // and one tap there must not be enough to lose an event.
+    var askDelete by remember { mutableStateOf(false) }
 
     // Reloads when the store changes under it, so an edit shows once it is saved.
     LaunchedEffect(screen, model.occurrences) {
@@ -61,6 +63,7 @@ fun EventScreen(model: AppModel, screen: Screen.Event) {
                 navigationIcon = { BarButton(Icons.Close, stringResource(R.string.cd_close)) { model.pop() } },
                 actions = {
                     if (writable) {
+                        BarButton(Icons.Delete, stringResource(R.string.cd_delete)) { if (record != null) askDelete = true }
                         BarButton(Icons.Edit, stringResource(R.string.cd_edit)) {
                             val r = record ?: return@BarButton
                             if (r.rrule != null) askScope = true else model.editEvent(r, screen.begin, screen.end, Scope.ALL)
@@ -115,30 +118,41 @@ fun EventScreen(model: AppModel, screen: Screen.Event) {
             }
             calendar?.let { item { Detail(stringResource(R.string.event_calendar), it.name) } }
             r.description?.let { item { Detail(stringResource(R.string.event_notes), it) } }
+            // Said, rather than left as an Edit and a Delete that are simply not there.
+            if (!writable) {
+                item { Detail(stringResource(R.string.event_read_only_label), stringResource(R.string.event_read_only)) }
+            }
 
-            if (writable) {
-                item {
-                    Spacer(Modifier.height(16.dp))
-                    HorizontalDividerMMD(thickness = 1.dp)
-                }
-                fun remove(s: Scope) {
-                    scope.launch {
-                        if (model.delete(r, screen.begin, screen.end, s)) {
-                            model.pop()
-                        } else {
-                            Toast.makeText(context, R.string.event_not_deleted, Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                }
-                if (r.rrule == null) {
-                    item { ArmedRow(stringResource(R.string.delete), stringResource(R.string.delete_armed)) { remove(Scope.ALL) } }
+            item { Spacer(Modifier.height(24.dp)) }
+        }
+
+        fun remove(s: Scope) {
+            askDelete = false
+            scope.launch {
+                if (model.delete(r, screen.begin, screen.end, s)) {
+                    model.pop()
                 } else {
-                    item { ArmedRow(stringResource(R.string.delete_one), stringResource(R.string.delete_one_armed)) { remove(Scope.ONE) } }
-                    item { ArmedRow(stringResource(R.string.delete_following), stringResource(R.string.delete_following_armed)) { remove(Scope.FOLLOWING) } }
-                    item { ArmedRow(stringResource(R.string.delete_all), stringResource(R.string.delete_all_armed)) { remove(Scope.ALL) } }
+                    Toast.makeText(context, R.string.event_not_deleted, Toast.LENGTH_SHORT).show()
                 }
             }
-            item { Spacer(Modifier.height(24.dp)) }
+        }
+
+        if (askDelete) {
+            EInkDialog(onDismiss = { askDelete = false }) {
+                TextMMD(
+                    text = stringResource(if (r.rrule == null) R.string.delete_which_one else R.string.delete_which),
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+                Spacer(Modifier.height(6.dp))
+                if (r.rrule == null) {
+                    ChoiceRow(stringResource(R.string.delete), bold = true) { remove(Scope.ALL) }
+                } else {
+                    ChoiceRow(stringResource(R.string.delete_one)) { remove(Scope.ONE) }
+                    ChoiceRow(stringResource(R.string.delete_following)) { remove(Scope.FOLLOWING) }
+                    ChoiceRow(stringResource(R.string.delete_all)) { remove(Scope.ALL) }
+                }
+                ChoiceRow(stringResource(R.string.cancel)) { askDelete = false }
+            }
         }
 
         if (askScope) {
