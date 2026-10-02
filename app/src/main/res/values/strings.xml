@@ -222,6 +222,11 @@
     <string name="settings_alarms_off">Exact alarms are off, so reminders may come late</string>
     <string name="settings_full_screen_off">Full-screen reminders are not allowed</string>
     <string name="settings_fix">Open the phone\'s setting</string>
+    <!-- Settings, on a Kompakt: DuraSpeed shuts the app down, which cancels its reminders. Pressing it opens DuraSpeed's App info, where Open shows its list -->
+    <string name="settings_duraspeed">The phone\'s DuraSpeed setting can shut Calendar down, and its reminders with it. Open DuraSpeed, tap Open, and switch Calendar on.</string>
+    <string name="settings_duraspeed_open">Open DuraSpeed</string>
+    <!-- Settings, under the DuraSpeed row: pressing it says Calendar is now switched on there -->
+    <string name="settings_duraspeed_done">It\'s switched on</string>
     <!-- Under a calendar kept only on this phone, such as the "PC Sync" the phone makes itself -->
     <!-- Under the Calendars heading in Settings: the switches are the phone's own, shared by every calendar app -->
     <!-- Settings: whether today's events show on the lock screen, through the Glance app -->

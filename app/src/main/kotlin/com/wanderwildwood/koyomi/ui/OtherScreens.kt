@@ -129,6 +129,7 @@ fun SettingsScreen(model: AppModel) {
         android.os.Build.VERSION.SDK_INT < 34 ||
             context.getSystemService(android.app.NotificationManager::class.java).canUseFullScreenIntent()
     }
+    val duraSpeedRisk = remember(checks, v) { com.wanderwildwood.koyomi.data.DuraSpeed.atRisk(context, s) }
     androidx.lifecycle.compose.LifecycleResumeEffect(Unit) {
         checks++
         onPauseOrDispose { }
@@ -164,6 +165,21 @@ fun SettingsScreen(model: AppModel) {
                 item {
                     SettingRow(stringResource(R.string.settings_alarms_off), stringResource(R.string.settings_fix)) {
                         open(Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:${context.packageName}")))
+                    }
+                }
+            }
+            // On a Kompakt, DuraSpeed shuts the app down and its reminders with it. Its list
+            // cannot be read, so the second row is how the person says Calendar is on it.
+            if (duraSpeedRisk) {
+                item {
+                    SettingRow(stringResource(R.string.settings_duraspeed), stringResource(R.string.settings_duraspeed_open)) {
+                        open(com.wanderwildwood.koyomi.data.DuraSpeed.appInfo())
+                    }
+                }
+                item {
+                    SettingRow(stringResource(R.string.settings_duraspeed_done), null) {
+                        s.duraSpeedAllowed = true
+                        model.settingsChanged()
                     }
                 }
             }

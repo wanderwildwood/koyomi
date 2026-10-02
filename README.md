@@ -72,16 +72,15 @@ reminders do not go off: closing an app this way cancels the alarms it has set. 
 apps are on its allow list; this one has to be added, once.
 
 Kompakt's Settings has no way in to DuraSpeed: no menu entry, and no search box to look for it
-in. Its own screen will not open for another app either, but its App info page will. Messaging
-and Whereabouts each have a button that goes there; without either, from a computer with `adb`:
-
-    adb shell am start -a android.settings.APPLICATION_DETAILS_SETTINGS -d package:com.mediatek.duraspeed
-
-Then, on the phone:
+in. Its own screen will not open for another app either, but its App info page will. While
+Calendar is at risk, its **Settings** shows a row saying so, with **Open DuraSpeed**; then, on
+the phone:
 
 1. Tap **Open** on DuraSpeed's App info page.
 2. Switch **Calendar** on in the list. **On means allowed** to run in the background, which is
    easy to read the wrong way round. Switching DuraSpeed off at the top works too, for every app.
+3. Back in Calendar, tap **It's switched on**. Calendar cannot read DuraSpeed's list, so this is
+   how it knows; if DuraSpeed shuts it down anyway, the row comes back.
 
 ## Getting it, and keeping it
 

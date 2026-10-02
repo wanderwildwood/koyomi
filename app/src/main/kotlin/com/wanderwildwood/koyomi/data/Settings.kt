@@ -45,7 +45,19 @@ class Settings(context: Context) {
         get() = prefs.getBoolean(LOCK_SCREEN, true)
         set(v) = prefs.edit().putBoolean(LOCK_SCREEN, v).apply()
 
+    /** Said to be switched on in DuraSpeed's list, which no app can read; see DuraSpeed. */
+    var duraSpeedAllowed: Boolean
+        get() = prefs.getBoolean(DURASPEED_ALLOWED, false)
+        set(v) = prefs.edit().putBoolean(DURASPEED_ALLOWED, v).apply()
+
+    /** The newest system stop already looked at. */
+    var duraSpeedStopSeen: Long
+        get() = prefs.getLong(DURASPEED_STOP_SEEN, 0)
+        set(v) = prefs.edit().putLong(DURASPEED_STOP_SEEN, v).apply()
+
     private companion object {
+        const val DURASPEED_ALLOWED = "duraspeed_allowed"
+        const val DURASPEED_STOP_SEEN = "duraspeed_stop_seen"
         const val LOCK_SCREEN = "lock_screen"
         const val OPEN_ON = "open_on"
         const val WEEK_START = "week_start"
