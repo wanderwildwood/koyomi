@@ -3,6 +3,8 @@ package com.wanderwildwood.koyomi.ui
 import android.content.Intent
 import android.net.Uri
 import android.provider.CalendarContract
+import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.layout.Spacer
@@ -299,19 +301,31 @@ private fun LazyListScope.calendarSwitches(model: AppModel) {
             TextMMD(text = stringResource(R.string.calendars_everywhere), style = MaterialTheme.typography.labelSmall)
         }
     }
-    if (model.calendars.isEmpty()) {
-        item {
-            TextMMD(
-                text = stringResource(R.string.calendars_none),
-                style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.padding(vertical = 8.dp),
-            )
-        }
-    }
     // A local calendar has no account behind it, which its name cannot say, so it says so on
     // its own row. The one most people meet is "PC Sync", made by the phone's own calendar
     // store (MediaTek's), hidden, and easily taken for a way to sync.
     val (local, synced) = model.calendars.partition { it.accountType == CalendarContract.ACCOUNT_TYPE_LOCAL }
+    // With nothing synced, say where synced calendars come from. Only local calendars is the
+    // usual case, not an empty phone: "PC Sync" is there from the start, and an app that
+    // syncs into its own database (KashCal with iCloud) adds nothing here at all.
+    if (synced.isEmpty()) {
+        item(key = "davx5") {
+            val context = LocalContext.current
+            TextMMD(
+                text = stringResource(if (local.isEmpty()) R.string.calendars_none else R.string.calendars_no_sync),
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier
+                    .clickable {
+                        runCatching {
+                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.davx5.com")))
+                        }.onFailure {
+                            Toast.makeText(context, context.getString(R.string.about_no_browser), Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    .padding(vertical = 8.dp),
+            )
+        }
+    }
     synced.groupBy { it.accountName }.forEach { (account, list) ->
         item(key = "a$account") {
             TextMMD(
