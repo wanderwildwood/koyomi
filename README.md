@@ -77,7 +77,8 @@ Calendar is at risk, its **Settings** shows a row saying so, with **Open DuraSpe
 the phone:
 
 1. Tap **Open** on DuraSpeed's App info page.
-2. Switch **Calendar** on in the list. **On means allowed** to run in the background, which is
+2. Switch **Calendar** on in the list: the one whose icon has no box round it, since Mudita's own
+   calendar is listed as Calendar too. **On means allowed** to run in the background, which is
    easy to read the wrong way round. Switching DuraSpeed off at the top works too, for every app.
 3. Back in Calendar, tap **It's switched on**. Calendar cannot read DuraSpeed's list, so this is
    how it knows; if DuraSpeed shuts it down anyway, the row comes back.
