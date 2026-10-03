@@ -249,6 +249,15 @@ class AppModel(app: Application) : AndroidViewModel(app) {
         push(Screen.Edit(record, begin, end, scope))
     }
 
+    /** Can the event being edited go to another calendar? See [CalendarStore.update]. */
+    suspend fun canMove(screen: Screen.Edit): Boolean {
+        val r = screen.record ?: return true
+        if (r.originalId != null) return false
+        if (r.rrule != null && screen.scope != Scope.ALL) return false
+        if (writableCalendars().none { it.id != r.calendarId }) return false
+        return withContext(Dispatchers.IO) { runCatching { !store.hasExceptions(r) }.getOrDefault(false) }
+    }
+
     suspend fun save(screen: Screen.Edit): Boolean {
         val d = draft
         // The store refuses what it will not take by throwing; that is a "no" to say on

@@ -16,6 +16,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -38,7 +39,8 @@ import kotlinx.coroutines.launch
 
 /**
  * One screen for a new event and for a changed one. What cannot be changed is not offered:
- * the calendar of an event that already exists, and the repeat of a single occurrence.
+ * the repeat of a single occurrence, and the calendar of one occurrence or of a series that
+ * has occurrences changed on their own.
  */
 @Composable
 fun EditScreen(model: AppModel, screen: Screen.Edit) {
@@ -51,6 +53,9 @@ fun EditScreen(model: AppModel, screen: Screen.Edit) {
     val isNew = screen.record == null
     val single = screen.scope == Scope.ONE
     val editableRule = d.rrule == null || RepeatRule.canEdit(d.rrule)
+    // An existing event can go to another calendar unless that would lose something; see
+    // CalendarStore.move. Until that is known the row is shown fixed.
+    val movable by produceState(isNew, screen) { value = model.canMove(screen) }
 
     fun save() {
         if (saving) return
@@ -182,7 +187,7 @@ fun EditScreen(model: AppModel, screen: Screen.Edit) {
                 SettingRow(
                     title = stringResource(R.string.event_calendar),
                     value = calendar?.name ?: stringResource(R.string.edit_no_calendar_short),
-                    onClick = if (isNew) ({ picking = Picking.CALENDAR }) else null,
+                    onClick = if (movable) ({ picking = Picking.CALENDAR }) else null,
                 )
             }
             item { Spacer(Modifier.height(24.dp)) }

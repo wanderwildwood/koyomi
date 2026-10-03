@@ -239,11 +239,14 @@ class CalendarStore(private val context: Context) {
      * Saves [draft] over [record]. [occurrenceBegin] is the provider's BEGIN of the occurrence
      * that was opened; for a non-repeating event it is simply the event's start.
      *
-     * Etar's `saveEvent`, less the cases this app does not offer (moving between calendars,
-     * "this and every later one").
+     * Etar's `saveEvent`, less "this and every later one", and plus a move to another
+     * calendar, which Etar does not offer.
      */
     fun update(record: EventRecord, occurrenceBegin: Long, occurrenceEnd: Long, draft: Draft, scope: Scope): Boolean {
         if (!canWrite()) return false
+        if (draft.calendarId != null && draft.calendarId != record.calendarId) {
+            return move(record, occurrenceBegin, draft)
+        }
         val tz = record.timezone ?: ZoneId.systemDefault().id
         val uri = ContentUris.withAppendedId(Events.CONTENT_URI, record.id)
         val values = draft.toValues(tz)
@@ -324,6 +327,56 @@ class CalendarStore(private val context: Context) {
             }
         }
         return true
+    }
+
+    /**
+     * Saves [draft] into another calendar: a new event there, and the old one deleted.
+     *
+     * Not CALENDAR_ID changed in place: the row would keep the sync id and server address
+     * of the collection it came from, which no sync adapter is asked to follow. A new row is
+     * uploaded to the new collection and the deleted one removed from the old, which is how
+     * a move between two CalDAV collections is made on a server too.
+     *
+     * Offered only where nothing would be lost: a whole series that has no changed or
+     * cancelled occurrences of its own ([hasExceptions]), or an event that does not repeat.
+     */
+    private fun move(record: EventRecord, occurrenceBegin: Long, draft: Draft): Boolean {
+        val tz = record.timezone ?: ZoneId.systemDefault().id
+        val values = draft.toValues(tz)
+        values.put(Events.HAS_ALARM, if (draft.reminders.isNotEmpty()) 1 else 0)
+        values.put(Events.STATUS, record.status ?: Events.STATUS_CONFIRMED)
+        values.put(Events.HAS_ATTENDEE_DATA, 1)
+        if (record.rrule != null && draft.rrule != null) {
+            // As in update(): the series keeps its first date and its exclusions, moved by
+            // whatever the edit did to the occurrence that was opened.
+            val (newBegin, _) = draft.millis()
+            values.put(Events.DTSTART, seriesStart(occurrenceBegin, newBegin, record.dtStart, draft.allDay))
+            values.put(Events.EXDATE, Exdates.shift(record.exdate, newBegin - occurrenceBegin))
+        }
+        val inserted = resolver.insert(Events.CONTENT_URI, values) ?: return false
+        val id = ContentUris.parseId(inserted)
+        writeReminders(id, draft.reminders, record.reminders, force = true)
+        if (resolver.delete(syncAwareUri(record), null, null) <= 0) {
+            // The old one stays, so the new one goes, or the event would be there twice.
+            resolver.delete(ContentUris.withAppendedId(Events.CONTENT_URI, id), null, null)
+            return false
+        }
+        return true
+    }
+
+    /** Has this series any occurrence changed or cancelled on its own? A move would lose it. */
+    fun hasExceptions(record: EventRecord): Boolean {
+        if (!canRead() || record.rrule == null) return false
+        val where = StringBuilder("${Events.ORIGINAL_ID} = ?")
+        val args = mutableListOf(record.id.toString())
+        if (record.syncId != null) {
+            where.append(" OR (${Events.ORIGINAL_SYNC_ID} = ? AND ${Events.CALENDAR_ID} = ?)")
+            args += record.syncId
+            args += record.calendarId.toString()
+        }
+        resolver.query(Events.CONTENT_URI, arrayOf(Events._ID), where.toString(), args.toTypedArray(), null)
+            ?.use { return it.count > 0 }
+        return false
     }
 
     /**
