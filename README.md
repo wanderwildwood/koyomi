@@ -60,9 +60,25 @@ events first. Settings has the switch.
 **It asks before deleting**, on the row itself: the first press arms it, the second does it,
 and it forgets after four seconds.
 
+**Other apps' "add to calendar" opens here.** The new-event screen comes up filled in with
+what the other app sent — title, time or all day, place, notes, and a repeat — and nothing
+is saved until you press Save. "Show this event" from another app opens the event.
+
+**Calendar files open here.** An .ics file, from a mail attachment, a download or a file
+manager, lists the events in it with their dates, times and places; choose the calendar and
+press Add. Times keep their own time zone and are shown in the phone's; repeats come across
+as they are written. An invitation is added as a plain event and no reply is sent. Opening
+the same file twice adds its events once.
+
+**Define in an event's notes.** The notes can be selected, and the menu over them offers
+Copy, and Define from [Dictionary](https://github.com/wanderwildwood/jibiki) where it is
+installed, behind the ⋮.
+
 ## What it does not do
 
-It does not sync; DAVx5 does. It has no guests, invitations or colours, and no widget.
+It does not sync; DAVx5 does. It has no guests, invitations or colours, and no widget. It
+does not answer invitations, and it does not keep the reminders written into a calendar
+file: an added event gets the reminder a new one would.
 
 ## On a Mudita Kompakt
 

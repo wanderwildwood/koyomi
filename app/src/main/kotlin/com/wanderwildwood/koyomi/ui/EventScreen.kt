@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -117,7 +118,9 @@ fun EventScreen(model: AppModel, screen: Screen.Event) {
                 }
             }
             calendar?.let { item { Detail(stringResource(R.string.event_calendar), it.name) } }
-            r.description?.let { item { Detail(stringResource(R.string.event_notes), it) } }
+            // The notes can be selected, for Copy and for Define and the other apps that act on
+            // text; see TextActions.
+            r.description?.let { item { Detail(stringResource(R.string.event_notes), it, selectable = true) } }
             // Said, rather than left as an Edit and a Delete that are simply not there.
             if (!writable) {
                 item { Detail(stringResource(R.string.event_read_only_label), stringResource(R.string.event_read_only)) }
@@ -184,9 +187,15 @@ fun ChoiceRow(label: String, bold: Boolean = false, onClick: () -> Unit) {
 }
 
 @Composable
-private fun Detail(label: String, value: String) {
+private fun Detail(label: String, value: String, selectable: Boolean = false) {
     Column(Modifier.fillMaxWidth().padding(top = 14.dp)) {
         TextMMD(text = label, style = MaterialTheme.typography.labelSmall)
-        TextMMD(text = value, style = MaterialTheme.typography.bodyMedium)
+        if (selectable) {
+            SelectionContainer(Modifier.textActions()) {
+                TextMMD(text = value, style = MaterialTheme.typography.bodyMedium)
+            }
+        } else {
+            TextMMD(text = value, style = MaterialTheme.typography.bodyMedium)
+        }
     }
 }

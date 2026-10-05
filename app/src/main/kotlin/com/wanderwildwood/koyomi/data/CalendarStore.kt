@@ -524,6 +524,48 @@ class CalendarStore(private val context: Context) {
     }
 
     /**
+     * Adds one event read from an .ics file to [calendarId], in its own zone, with [reminders]
+     * in minutes. The file's UID goes in `UID_2445`, which DAVx5 sends to the server as the
+     * event's UID, so the invitation and the copy here stay the same event.
+     */
+    fun insertImported(event: IcsEvent, calendarId: Long, reminders: List<Int>): Long? {
+        if (!canWrite()) return null
+        val values = ContentValues().apply {
+            put(Events.CALENDAR_ID, calendarId)
+            put(Events.TITLE, event.title)
+            put(Events.EVENT_LOCATION, event.location)
+            put(Events.DESCRIPTION, event.description)
+            put(Events.ALL_DAY, if (event.allDay) 1 else 0)
+            put(Events.EVENT_TIMEZONE, if (event.allDay) "UTC" else event.zone.id)
+            put(Events.DTSTART, event.startMillis)
+            if (event.rrule != null) {
+                put(Events.RRULE, event.rrule)
+                put(Events.DURATION, event.duration())
+                putNull(Events.DTEND)
+            } else {
+                put(Events.DTEND, event.endMillis)
+            }
+            event.uid?.let { put(Events.UID_2445, it) }
+            put(Events.HAS_ALARM, if (reminders.isNotEmpty()) 1 else 0)
+            put(Events.STATUS, Events.STATUS_CONFIRMED)
+            put(Events.HAS_ATTENDEE_DATA, 1)
+        }
+        val uri = resolver.insert(Events.CONTENT_URI, values) ?: return null
+        val id = ContentUris.parseId(uri)
+        writeReminders(id, reminders, emptyList(), force = true)
+        return id
+    }
+
+    /** Is an event with this UID already in [calendarId]? Opening one invitation twice adds it once. */
+    fun hasUid(calendarId: Long, uid: String): Boolean = resolver.query(
+        Events.CONTENT_URI,
+        arrayOf(Events._ID),
+        "${Events.CALENDAR_ID} = ? AND ${Events.UID_2445} = ? AND ${Events.DELETED} = 0",
+        arrayOf(calendarId.toString(), uid),
+        null,
+    )?.use { it.count > 0 } ?: false
+
+    /**
      * Replaces the reminders only if they changed, as Etar's `saveReminders` does. A server
      * may hold e-mail or other kinds of reminder alongside the alerts this app shows; a
      * reminder that stays keeps the method it came with.

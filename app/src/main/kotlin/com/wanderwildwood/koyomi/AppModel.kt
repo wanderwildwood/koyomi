@@ -2,6 +2,7 @@ package com.wanderwildwood.koyomi
 
 import android.app.Application
 import android.database.ContentObserver
+import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.provider.CalendarContract
@@ -17,7 +18,10 @@ import com.wanderwildwood.koyomi.data.CalendarInfo
 import com.wanderwildwood.koyomi.data.CalendarStore
 import com.wanderwildwood.koyomi.data.Draft
 import com.wanderwildwood.koyomi.data.EventRecord
+import com.wanderwildwood.koyomi.data.Ics
+import com.wanderwildwood.koyomi.data.IcsEvent
 import com.wanderwildwood.koyomi.data.Occurrence
+import com.wanderwildwood.koyomi.data.Prefill
 import com.wanderwildwood.koyomi.data.Scope
 import com.wanderwildwood.koyomi.data.Settings
 import com.wanderwildwood.koyomi.data.View
@@ -27,8 +31,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.YearMonth
+import java.time.ZoneId
 import java.time.temporal.TemporalAdjusters
 
 /** A screen laid over the four views. The views themselves are the bottom of the stack. */
@@ -40,6 +46,16 @@ sealed interface Screen {
     data object Repeat : Screen
     data object Search : Screen
     data object Settings : Screen
+
+    /** The events of an .ics file another app opened here, to be added to a calendar. */
+    data class Import(val uri: Uri) : Screen
+}
+
+/** What another app asked this one for: a new event, an event shown or changed, a file read. */
+sealed interface Request {
+    data class New(val prefill: Prefill) : Request
+    data class Show(val eventId: Long, val begin: Long?, val end: Long?, val edit: Boolean) : Request
+    data class Import(val uri: Uri) : Request
 }
 
 class AppModel(app: Application) : AndroidViewModel(app) {
@@ -294,8 +310,102 @@ class AppModel(app: Application) : AndroidViewModel(app) {
         store.occurrences(today.minusYears(1), today.plusYears(2), query)
     }
 
+    // ------------------------------------------------------------------------------------
+    // Asked for by another app
+
+    /** Has the request been turned into a screen yet? Until then there is nothing to finish. */
+    var opened by mutableStateOf(false)
+        private set
+
+    suspend fun open(request: Request) {
+        if (opened) return
+        // The request is answered from the calendars, which the first reload may not have
+        // brought in yet: a new event would otherwise have no calendar to go in.
+        calendars = withContext(Dispatchers.IO) { store.calendars() }
+        when (request) {
+            is Request.New -> {
+                newEvent()
+                val p = request.prefill
+                val calendar = p.calendarId?.takeIf { id -> writableCalendars().any { it.id == id } }
+                draft = p.copy(calendarId = calendar).draft(draft, ZoneId.systemDefault(), LocalDateTime.now())
+            }
+            is Request.Show -> {
+                val r = load(request.eventId)
+                val begin = request.begin ?: r?.dtStart ?: 0L
+                val end = request.end
+                    ?: r?.let { it.dtEnd ?: (it.dtStart + (it.duration?.let(Ics::duration)?.toMillis() ?: 0L)) }
+                    ?: begin
+                push(Screen.Event(request.eventId, begin, end))
+                // A repeating event asks which occurrences to change; that question is on the
+                // event's own screen, so the editor is not opened over it.
+                val writable = r != null && calendars.any { it.id == r.calendarId && it.writable }
+                if (request.edit && r != null && r.rrule == null && writable) editEvent(r, begin, end, Scope.ALL)
+            }
+            is Request.Import -> push(Screen.Import(request.uri))
+        }
+        opened = true
+    }
+
+    /** The events in an .ics file, or null if it could not be read. */
+    suspend fun readIcs(uri: Uri): List<IcsEvent>? = withContext(Dispatchers.IO) {
+        runCatching {
+            val bytes = getApplication<Application>().contentResolver.openInputStream(uri)!!.use { input ->
+                // A calendar of events is small; a file the size of a photograph is not one.
+                val buffer = ByteArray(MAX_ICS + 1)
+                var n = 0
+                while (n < buffer.size) {
+                    val read = input.read(buffer, n, buffer.size - n)
+                    if (read < 0) break
+                    n += read
+                }
+                require(n <= MAX_ICS) { "Too large for a calendar file" }
+                buffer.copyOf(n)
+            }
+            Ics.parse(String(bytes, Charsets.UTF_8), ZoneId.systemDefault(), ::zoneOf)
+        }.onFailure { Log.w(TAG, "Could not read $uri", it) }.getOrNull()
+    }
+
+    /** An IANA zone, or a Windows one as Outlook writes them ("W. Europe Standard Time"). */
+    private fun zoneOf(tzid: String): ZoneId? = Ics.ianaZone(tzid) ?: runCatching {
+        android.icu.util.TimeZone.getIDForWindowsID(tzid.trim().trim('"'), "001")?.let { ZoneId.of(it) }
+    }.getOrNull()
+
+    /**
+     * Adds [events] to [calendarId], each with the reminder a new event would get. Returns how
+     * many were added and how many were there already, by UID.
+     */
+    suspend fun addAll(events: List<IcsEvent>, calendarId: Long): Pair<Int, Int> {
+        val reminder = settings.defaultReminder.takeIf { it >= 0 }
+        val result = withContext(Dispatchers.IO) {
+            var added = 0
+            var had = 0
+            for (e in events) {
+                val there = e.uid != null && runCatching { store.hasUid(calendarId, e.uid) }.getOrDefault(false)
+                if (there) {
+                    had++
+                    continue
+                }
+                val reminders = when {
+                    reminder == null -> emptyList()
+                    e.allDay -> listOf(900)
+                    else -> listOf(reminder)
+                }
+                runCatching { store.insertImported(e, calendarId, reminders) }
+                    .onFailure { Log.w(TAG, "Import refused", it) }
+                    .getOrNull()?.let { added++ }
+            }
+            added to had
+        }
+        if (result.first > 0) {
+            reload()
+            viewModelScope.launch(Dispatchers.IO) { Alerts.check(getApplication()) }
+        }
+        return result
+    }
+
     private companion object {
         const val TAG = "AppModel"
+        const val MAX_ICS = 4 * 1024 * 1024
     }
 
     private fun initialHours(): Int {

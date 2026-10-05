@@ -277,4 +277,25 @@
     <string name="about_no_browser">There is no browser on this phone to open that with.</string>
     <!-- Button that closes the About dialog -->
     <string name="about_close">Close</string>
+
+    <!-- Opening an .ics file from another app -->
+    <!-- Title of the screen listing the events found in a calendar file -->
+    <string name="import_title">Add to calendar</string>
+    <!-- Button in the bar that adds every event listed to the chosen calendar -->
+    <string name="import_add">Add</string>
+    <!-- When the file could not be read, or held nothing to add -->
+    <string name="import_unreadable">This file could not be read.</string>
+    <string name="import_nothing">There is no event in this file to add.</string>
+    <!-- Under an event whose time zone this phone does not know; %1$s is the zone's name in the file -->
+    <string name="import_unknown_zone">Time zone “%1$s” is not known here; read as this phone\'s</string>
+    <!-- Toasts after Add -->
+    <plurals name="import_added">
+        <item quantity="one">Added %d event</item>
+        <item quantity="other">Added %d events</item>
+    </plurals>
+    <plurals name="import_already">
+        <item quantity="one">%d was here already</item>
+        <item quantity="other">%d were here already</item>
+    </plurals>
+    <string name="import_failed">Nothing was added. The calendar did not take them.</string>
 </resources>

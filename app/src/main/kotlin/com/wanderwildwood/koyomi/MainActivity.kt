@@ -11,10 +11,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import com.mudita.mmd.ThemeMMD
 import com.wanderwildwood.koyomi.alerts.Alerts
 import com.wanderwildwood.koyomi.ui.EditScreen
 import com.wanderwildwood.koyomi.ui.EventScreen
+import com.wanderwildwood.koyomi.ui.ImportScreen
 import com.wanderwildwood.koyomi.ui.PermissionScreen
 import com.wanderwildwood.koyomi.ui.RepeatScreen
 import com.wanderwildwood.koyomi.ui.SearchScreen
@@ -68,8 +70,12 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+/**
+ * The app's screens. [finish] is given where another app asked for one thing — a new event,
+ * one event, a file — and is called once that is done, to go back to the app that asked.
+ */
 @Composable
-private fun Koyomi(model: AppModel) {
+internal fun Koyomi(model: AppModel, finish: (() -> Unit)? = null) {
     val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         model.permissionsChanged()
     }
@@ -89,11 +95,16 @@ private fun Koyomi(model: AppModel) {
     BackHandler(enabled = model.stack.isNotEmpty()) { model.pop() }
 
     when (val top = model.stack.lastOrNull()) {
-        null -> ViewsScreen(model)
+        null -> if (finish == null) {
+            ViewsScreen(model)
+        } else if (model.opened) {
+            LaunchedEffect(Unit) { finish() }
+        }
         is Screen.Event -> EventScreen(model, top)
         is Screen.Edit -> EditScreen(model, top)
         Screen.Repeat -> RepeatScreen(model)
         Screen.Search -> SearchScreen(model)
         Screen.Settings -> SettingsScreen(model)
+        is Screen.Import -> ImportScreen(model, top)
     }
 }
