@@ -51,6 +51,8 @@
     <string name="event_calendar">Calendar</string>
     <string name="event_notes">Notes</string>
     <string name="event_gone">This event is no longer in the calendar.</string>
+    <string name="event_open_in">Open in %1$s</string>
+    <string name="event_app_failed">That app could not open it.</string>
     <string name="event_not_deleted">The calendar did not accept the delete.</string>
 
     <!-- Delete choices, asked in a dialog from the Delete button -->

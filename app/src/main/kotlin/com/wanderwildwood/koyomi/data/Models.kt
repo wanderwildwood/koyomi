@@ -77,4 +77,6 @@ data class EventRecord(
     val status: Int?,
     val reminders: List<Reminder>,
     val accountType: String,
+    val appPackage: String? = null,
+    val appUri: String? = null,
 )

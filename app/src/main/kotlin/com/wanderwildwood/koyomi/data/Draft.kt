@@ -25,6 +25,12 @@ data class Draft(
     val endTime: LocalTime = LocalTime.of(10, 0),
     val rrule: String? = null,
     val reminders: List<Int> = emptyList(),
+    /**
+     * Android's link from an event to the app that made it (Wallet's card, say), for a new
+     * event only: an edit leaves the stored one as it is.
+     */
+    val appPackage: String? = null,
+    val appUri: String? = null,
 ) {
     /** The provider's DTSTART and DTEND for this draft, after the weekly shift below. */
     fun millis(): Pair<Long, Long> {
@@ -81,6 +87,10 @@ data class Draft(
             }
             put(Events.DESCRIPTION, notes.trim().ifEmpty { null })
             put(Events.EVENT_LOCATION, location.trim().ifEmpty { null })
+            if (appPackage != null && appUri != null) {
+                put(Events.CUSTOM_APP_PACKAGE, appPackage)
+                put(Events.CUSTOM_APP_URI, appUri)
+            }
         }
     }
 

@@ -21,6 +21,10 @@
             <action android:name="android.intent.action.PROCESS_TEXT" />
             <data android:mimeType="text/plain" />
         </intent>
+        <!-- The app that made an event and can show what it was made from (Wallet's card). -->
+        <intent>
+            <action android:name="android.provider.calendar.action.HANDLE_CUSTOM_EVENT" />
+        </intent>
     </queries>
 
     <application

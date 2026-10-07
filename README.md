@@ -62,7 +62,10 @@ and it forgets after four seconds.
 
 **Other apps' "add to calendar" opens here.** The new-event screen comes up filled in with
 what the other app sent — title, time or all day, place, notes, and a repeat — and nothing
-is saved until you press Save. "Show this event" from another app opens the event.
+is saved until you press Save. "Show this event" from another app opens the event. An event
+that came from an app able to show what it was made from - a ticket added from
+[Wallet](https://github.com/wanderwildwood/satsuire) - has an "Open in Wallet" button
+under its title, while that app is on the phone.
 
 **Calendar files open here.** An .ics file, from a mail attachment, a download or a file
 manager, lists the events in it with their dates, times and places; choose the calendar and

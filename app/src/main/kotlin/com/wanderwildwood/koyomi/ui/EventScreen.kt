@@ -1,5 +1,8 @@
 package com.wanderwildwood.koyomi.ui
 
+import android.content.Context
+import android.content.Intent
+import android.provider.CalendarContract
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -23,6 +26,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.mudita.mmd.components.buttons.OutlinedButtonMMD
 import com.mudita.mmd.components.lazy.LazyColumnMMD
 import com.mudita.mmd.components.text.TextMMD
 import com.mudita.mmd.components.top_app_bar.TopAppBarMMD
@@ -53,6 +57,11 @@ fun EventScreen(model: AppModel, screen: Screen.Event) {
         record = model.load(screen.eventId)
         loaded = true
     }
+
+    // Made by another app that can show what it was made from (Wallet's card): opening it there
+    // is the next move from such an event, so it is a button under the title, on those events
+    // only and only while that app is on the phone to answer.
+    val link = remember(record, screen.begin) { record?.let { appLink(context, it, screen.begin) } }
 
     val writable = record?.let { r -> model.calendars.firstOrNull { it.id == r.calendarId }?.writable } ?: false
 
@@ -104,6 +113,21 @@ fun EventScreen(model: AppModel, screen: Screen.Event) {
                     },
                     style = MaterialTheme.typography.bodyMedium,
                 )
+            }
+            link?.let { (label, intent) ->
+                item {
+                    Spacer(Modifier.height(14.dp))
+                    OutlinedButtonMMD(
+                        onClick = {
+                            try {
+                                context.startActivity(intent)
+                            } catch (_: Exception) {
+                                Toast.makeText(context, R.string.event_app_failed, Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                    ) { TextMMD(text = stringResource(R.string.event_open_in, label), style = MaterialTheme.typography.bodyMedium) }
+                }
             }
             if (r.rrule != null) {
                 item { Detail(stringResource(R.string.event_repeats), RepeatText.of(context.resources, r.rrule, start.toLocalDate(), r.allDay)) }
@@ -173,6 +197,23 @@ fun EventScreen(model: AppModel, screen: Screen.Event) {
             }
         }
     }
+}
+
+/**
+ * The app named in the event's `CUSTOM_APP_PACKAGE`, by its name, and the request that opens
+ * the event there (`CalendarContract.ACTION_HANDLE_CUSTOM_EVENT`, as AOSP Calendar sends it);
+ * null when the event names none or that app is not on the phone to answer.
+ */
+private fun appLink(context: Context, r: EventRecord, begin: Long): Pair<String, Intent>? {
+    val pkg = r.appPackage ?: return null
+    val uri = r.appUri ?: return null
+    val intent = Intent(CalendarContract.ACTION_HANDLE_CUSTOM_EVENT)
+        .setPackage(pkg)
+        .putExtra(CalendarContract.EXTRA_CUSTOM_APP_URI, uri)
+        .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, begin)
+    val pm = context.packageManager
+    val found = pm.resolveActivity(intent, 0) ?: return null
+    return found.activityInfo.applicationInfo.loadLabel(pm).toString() to intent
 }
 
 @Composable

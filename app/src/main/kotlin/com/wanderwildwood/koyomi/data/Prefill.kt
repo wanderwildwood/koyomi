@@ -20,6 +20,9 @@ data class Prefill(
     val end: Long? = null,
     val allDay: Boolean = false,
     val calendarId: Long? = null,
+    /** The app that made the event, and its own link back to what it was made from. */
+    val appPackage: String? = null,
+    val appUri: String? = null,
 ) {
     /**
      * [base] carries the calendar and reminder a new event would have had. With no begin, the
@@ -38,6 +41,8 @@ data class Prefill(
             location = location?.trim().orEmpty(),
             notes = description?.trim().orEmpty(),
             rrule = rrule?.trim()?.ifEmpty { null },
+            appPackage = appPackage?.trim()?.ifEmpty { null },
+            appUri = appUri?.trim()?.ifEmpty { null },
         )
         val chosen = calendarId
         if (chosen != null) d = d.copy(calendarId = chosen)

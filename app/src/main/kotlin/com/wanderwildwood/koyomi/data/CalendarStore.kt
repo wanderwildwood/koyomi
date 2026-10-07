@@ -175,6 +175,8 @@ class CalendarStore(private val context: Context) {
                 Events.STATUS,
                 Events.ACCOUNT_TYPE,
                 Events.EXDATE,
+                Events.CUSTOM_APP_PACKAGE,
+                Events.CUSTOM_APP_URI,
             ),
             null, null, null,
         )?.use { c ->
@@ -197,6 +199,8 @@ class CalendarStore(private val context: Context) {
                 reminders = reminders,
                 accountType = c.getString(14).orEmpty(),
                 exdate = c.getString(15)?.takeIf { it.isNotBlank() },
+                appPackage = c.getString(16)?.takeIf { it.isNotBlank() },
+                appUri = c.getString(17)?.takeIf { it.isNotBlank() },
             )
         }
         return null
@@ -346,6 +350,11 @@ class CalendarStore(private val context: Context) {
         values.put(Events.HAS_ALARM, if (draft.reminders.isNotEmpty()) 1 else 0)
         values.put(Events.STATUS, record.status ?: Events.STATUS_CONFIRMED)
         values.put(Events.HAS_ATTENDEE_DATA, 1)
+        // The link to the app that made it goes along to the new calendar.
+        if (record.appPackage != null && record.appUri != null) {
+            values.put(Events.CUSTOM_APP_PACKAGE, record.appPackage)
+            values.put(Events.CUSTOM_APP_URI, record.appUri)
+        }
         if (record.rrule != null && draft.rrule != null) {
             // As in update(): the series keeps its first date and its exclusions, moved by
             // whatever the edit did to the occurrence that was opened.

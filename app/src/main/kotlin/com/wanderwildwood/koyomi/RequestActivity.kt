@@ -107,6 +107,8 @@ class RequestActivity : ComponentActivity() {
                 else -> false
             },
             calendarId = intent.long(Events.CALENDAR_ID),
+            appPackage = intent.text(Events.CUSTOM_APP_PACKAGE),
+            appUri = intent.text(Events.CUSTOM_APP_URI),
         )
     }
 }
