@@ -189,6 +189,21 @@ fun SettingsScreen(model: AppModel) {
             // The calendars first, their switches right here: which ones show is changed far
             // more often than anything below, and a screen of its own was a press for nothing.
             calendarSwitches(model)
+            // Syncing is another app's work -- DAVx5, ICSx5, whatever keeps the calendars --
+            // and this row only asks it to do that work now. A reader on a long sync interval
+            // who has just changed something elsewhere wants to be sure before looking, and
+            // should not have to open the syncing app to say so. Asked on the forum.
+            item {
+                var asked by remember { mutableStateOf(false) }
+                LaunchedEffect(asked) { if (asked) { delay(4000); asked = false } }
+                SettingRow(
+                    stringResource(R.string.settings_sync_now),
+                    stringResource(if (asked) R.string.settings_sync_asked else R.string.settings_sync_now_hint),
+                ) {
+                    com.wanderwildwood.koyomi.data.CalendarSync.requestNow()
+                    asked = true
+                }
+            }
             item { Spacer(Modifier.height(10.dp)) }
             item {
                 val name = model.calendars.firstOrNull { it.id == defaultCalendar }?.name

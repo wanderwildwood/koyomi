@@ -212,6 +212,9 @@
 
     <string name="settings_title">Settings</string>
     <string name="settings_calendars">Calendars</string>
+    <string name="settings_sync_now">Sync calendars now</string>
+    <string name="settings_sync_now_hint">Asks the apps that sync them</string>
+    <string name="settings_sync_asked">Asked</string>
     <string name="settings_default_calendar">New events go in</string>
     <string name="settings_first_calendar">The first that can be written to</string>
     <string name="settings_default_reminder">New events remind</string>
