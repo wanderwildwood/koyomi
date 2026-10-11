@@ -119,7 +119,7 @@ fun ImportScreen(model: AppModel, screen: Screen.Import) {
             }
             return@Scaffold
         }
-        LazyColumnMMD(Modifier.fillMaxSize().padding(padding).padding(horizontal = 20.dp)) {
+        LazyColumnMMD(Modifier.fillMaxSize().padding(padding).padding(horizontal = 20.dp), isScrollbarVisible = false) {
             item {
                 SettingRow(
                     title = stringResource(R.string.event_calendar),

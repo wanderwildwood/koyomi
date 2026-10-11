@@ -733,7 +733,7 @@ private fun AgendaView(model: AppModel) {
         }
         return
     }
-    LazyColumnMMD(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+    LazyColumnMMD(Modifier.fillMaxSize().padding(horizontal = 16.dp), isScrollbarVisible = false) {
         byDay.forEach { (day, list) ->
             item(key = "h$day") {
                 Column(Modifier.fillMaxWidth().padding(top = 14.dp, bottom = 2.dp)) {

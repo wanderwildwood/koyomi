@@ -97,7 +97,7 @@ fun EventScreen(model: AppModel, screen: Screen.Event) {
         val finish = CalendarStore.toLocal(screen.end, r.allDay, zone)
         val calendar = model.calendars.firstOrNull { it.id == r.calendarId }
 
-        LazyColumnMMD(Modifier.fillMaxSize().padding(padding).padding(horizontal = 20.dp)) {
+        LazyColumnMMD(Modifier.fillMaxSize().padding(padding).padding(horizontal = 20.dp), isScrollbarVisible = false) {
             item {
                 Spacer(Modifier.height(16.dp))
                 TextMMD(

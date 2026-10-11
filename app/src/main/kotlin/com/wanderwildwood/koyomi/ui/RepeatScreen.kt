@@ -82,7 +82,7 @@ fun RepeatScreen(model: AppModel) {
             )
         },
     ) { padding ->
-        LazyColumnMMD(Modifier.fillMaxSize().padding(padding).padding(horizontal = 20.dp)) {
+        LazyColumnMMD(Modifier.fillMaxSize().padding(padding).padding(horizontal = 20.dp), isScrollbarVisible = false) {
             item {
                 Spacer(Modifier.height(12.dp))
                 TextMMD(

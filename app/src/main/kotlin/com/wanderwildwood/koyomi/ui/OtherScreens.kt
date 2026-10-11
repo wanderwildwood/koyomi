@@ -84,7 +84,7 @@ fun SearchScreen(model: AppModel) {
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(top = 20.dp),
                 )
-                else -> LazyColumnMMD(Modifier.fillMaxSize()) {
+                else -> LazyColumnMMD(Modifier.fillMaxSize(), isScrollbarVisible = false) {
                     found.forEach { o ->
                         item(key = "${o.eventId}/${o.begin}") {
                             AgendaRow(
@@ -151,7 +151,7 @@ fun SettingsScreen(model: AppModel) {
             )
         },
     ) { padding ->
-        LazyColumnMMD(Modifier.fillMaxSize().padding(padding).padding(horizontal = 20.dp)) {
+        LazyColumnMMD(Modifier.fillMaxSize().padding(padding).padding(horizontal = 20.dp), isScrollbarVisible = false) {
             item { Spacer(Modifier.height(8.dp)) }
 
             // Only what is wrong is shown: a row for a switch that is already on would be
