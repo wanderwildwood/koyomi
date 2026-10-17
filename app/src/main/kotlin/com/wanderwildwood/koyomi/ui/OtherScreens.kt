@@ -30,7 +30,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationManagerCompat
 import com.mudita.mmd.components.buttons.ButtonMMD
-import com.mudita.mmd.components.lazy.LazyColumnMMD
 import com.mudita.mmd.components.text.TextMMD
 import com.mudita.mmd.components.text_field.TextFieldMMD
 import com.mudita.mmd.components.top_app_bar.TopAppBarMMD
@@ -85,7 +84,7 @@ fun SearchScreen(model: AppModel) {
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(top = 20.dp),
                 )
-                else -> LazyColumnMMD(Modifier.fillMaxSize(), isScrollbarVisible = false) {
+                else -> PagedColumn(Modifier.fillMaxSize()) {
                     found.forEach { o ->
                         item(key = "${o.eventId}/${o.begin}") {
                             AgendaRow(
@@ -154,7 +153,7 @@ fun SettingsScreen(model: AppModel) {
     ) { padding ->
         // Every calendar on the phone is a row here, so with many of them it gets page dots.
         val state = rememberLazyListState()
-        ListJumpBox(state, ListJump.Pages, Modifier.padding(padding)) { LazyColumnMMD(Modifier.fillMaxSize().padding(horizontal = 20.dp), state = state, isScrollbarVisible = false) {
+        ListJumpBox(state, ListJump.Pages, Modifier.padding(padding)) { PagedColumn(Modifier.fillMaxSize().padding(horizontal = 20.dp), state = state) {
             item { Spacer(Modifier.height(8.dp)) }
 
             // Only what is wrong is shown: a row for a switch that is already on would be
@@ -270,7 +269,6 @@ fun SettingsScreen(model: AppModel) {
                     }
                 }
             }
-            item { Spacer(Modifier.height(24.dp)) }
         } }
     }
 

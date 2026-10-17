@@ -31,7 +31,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.mudita.mmd.components.divider.HorizontalDividerMMD
-import com.mudita.mmd.components.lazy.LazyColumnMMD
 import com.mudita.mmd.components.radio_button.RadioButtonMMD
 import com.mudita.mmd.components.text.TextMMD
 import com.mudita.mmd.components.top_app_bar.TopAppBarMMD
@@ -82,7 +81,7 @@ fun RepeatScreen(model: AppModel) {
             )
         },
     ) { padding ->
-        LazyColumnMMD(Modifier.fillMaxSize().padding(padding).padding(horizontal = 20.dp), isScrollbarVisible = false) {
+        PagedColumn(Modifier.fillMaxSize().padding(padding).padding(horizontal = 20.dp)) {
             item {
                 Spacer(Modifier.height(12.dp))
                 TextMMD(
@@ -197,7 +196,6 @@ fun RepeatScreen(model: AppModel) {
                     }
                 }
             }
-            item { Spacer(Modifier.height(24.dp)) }
         }
     }
 

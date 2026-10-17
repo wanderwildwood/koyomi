@@ -25,7 +25,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
-import com.mudita.mmd.components.lazy.LazyColumnMMD
 import com.mudita.mmd.components.text.TextMMD
 import com.mudita.mmd.components.text_field.TextFieldMMD
 import com.mudita.mmd.components.top_app_bar.TopAppBarMMD
@@ -98,7 +97,7 @@ fun EditScreen(model: AppModel, screen: Screen.Edit) {
             )
         },
     ) { padding ->
-        LazyColumnMMD(Modifier.fillMaxSize().padding(padding).padding(horizontal = 20.dp), isScrollbarVisible = false) {
+        PagedColumn(Modifier.fillMaxSize().padding(padding).padding(horizontal = 20.dp)) {
             item {
                 Spacer(Modifier.height(8.dp))
                 TextFieldMMD(
@@ -190,7 +189,6 @@ fun EditScreen(model: AppModel, screen: Screen.Edit) {
                     onClick = if (movable) ({ picking = Picking.CALENDAR }) else null,
                 )
             }
-            item { Spacer(Modifier.height(24.dp)) }
         }
     }
 

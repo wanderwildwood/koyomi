@@ -25,7 +25,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.mudita.mmd.components.divider.HorizontalDividerMMD
-import com.mudita.mmd.components.lazy.LazyColumnMMD
 import com.mudita.mmd.components.text.TextMMD
 import com.mudita.mmd.components.top_app_bar.TopAppBarMMD
 import com.wanderwildwood.koyomi.AppModel
@@ -119,7 +118,7 @@ fun ImportScreen(model: AppModel, screen: Screen.Import) {
             }
             return@Scaffold
         }
-        LazyColumnMMD(Modifier.fillMaxSize().padding(padding).padding(horizontal = 20.dp), isScrollbarVisible = false) {
+        PagedColumn(Modifier.fillMaxSize().padding(padding).padding(horizontal = 20.dp)) {
             item {
                 SettingRow(
                     title = stringResource(R.string.event_calendar),
@@ -129,7 +128,6 @@ fun ImportScreen(model: AppModel, screen: Screen.Import) {
                 HorizontalDividerMMD(thickness = 1.dp)
             }
             list.forEach { e -> item { ImportRow(e) } }
-            item { Spacer(Modifier.height(24.dp)) }
         }
     }
 

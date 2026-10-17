@@ -155,14 +155,15 @@ fun RemindersDialog(allDay: Boolean, chosen: List<Int>, onDone: (List<Int>) -> U
         Spacer(Modifier.height(6.dp))
         options.forEach { m ->
             val on = m in picked
+            val toggle = { picked = if (on) picked - m else picked + m }
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { picked = if (on) picked - m else picked + m }
+                    .clickable(onClick = toggle)
                     .padding(vertical = 2.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                CheckboxMMD(checked = on, onCheckedChange = null)
+                CheckboxMMD(checked = on, onCheckedChange = { toggle() })
                 Spacer(Modifier.width(8.dp))
                 TextMMD(text = ReminderText.of(context, m, allDay), style = MaterialTheme.typography.bodyMedium)
             }

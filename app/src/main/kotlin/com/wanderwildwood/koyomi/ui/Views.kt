@@ -47,7 +47,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mudita.mmd.components.divider.HorizontalDividerMMD
-import com.mudita.mmd.components.lazy.LazyColumnMMD
 import com.mudita.mmd.components.text.TextMMD
 import com.mudita.mmd.components.top_app_bar.TopAppBarMMD
 import com.wanderwildwood.koyomi.AppModel
@@ -711,7 +710,7 @@ private fun AgendaView(model: AppModel) {
     }
     // Six months of days: page dots down the edge once it runs past three screens.
     val state = rememberLazyListState()
-    ListJumpBox(state, ListJump.Pages) { LazyColumnMMD(Modifier.fillMaxSize().padding(horizontal = 16.dp), state = state, isScrollbarVisible = false) {
+    ListJumpBox(state, ListJump.Pages) { PagedColumn(Modifier.fillMaxSize().padding(horizontal = 16.dp), state = state) {
         byDay.forEach { (day, list) ->
             item(key = "h$day") {
                 Column(Modifier.fillMaxWidth().padding(top = 14.dp, bottom = 2.dp)) {
@@ -735,7 +734,6 @@ private fun AgendaView(model: AppModel) {
                 }
             }
         }
-        item { Spacer(Modifier.height(24.dp)) }
     } }
 }
 

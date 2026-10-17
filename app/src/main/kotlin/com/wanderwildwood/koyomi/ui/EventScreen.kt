@@ -27,7 +27,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.mudita.mmd.components.buttons.OutlinedButtonMMD
-import com.mudita.mmd.components.lazy.LazyColumnMMD
 import com.mudita.mmd.components.text.TextMMD
 import com.mudita.mmd.components.top_app_bar.TopAppBarMMD
 import com.wanderwildwood.koyomi.AppModel
@@ -97,7 +96,7 @@ fun EventScreen(model: AppModel, screen: Screen.Event) {
         val finish = CalendarStore.toLocal(screen.end, r.allDay, zone)
         val calendar = model.calendars.firstOrNull { it.id == r.calendarId }
 
-        LazyColumnMMD(Modifier.fillMaxSize().padding(padding).padding(horizontal = 20.dp), isScrollbarVisible = false) {
+        PagedColumn(Modifier.fillMaxSize().padding(padding).padding(horizontal = 20.dp)) {
             item {
                 Spacer(Modifier.height(16.dp))
                 TextMMD(
@@ -150,7 +149,6 @@ fun EventScreen(model: AppModel, screen: Screen.Event) {
                 item { Detail(stringResource(R.string.event_read_only_label), stringResource(R.string.event_read_only)) }
             }
 
-            item { Spacer(Modifier.height(24.dp)) }
         }
 
         fun remove(s: Scope) {
