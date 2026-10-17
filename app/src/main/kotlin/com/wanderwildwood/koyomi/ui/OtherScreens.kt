@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -151,7 +152,9 @@ fun SettingsScreen(model: AppModel) {
             )
         },
     ) { padding ->
-        LazyColumnMMD(Modifier.fillMaxSize().padding(padding).padding(horizontal = 20.dp), isScrollbarVisible = false) {
+        // Every calendar on the phone is a row here, so with many of them it gets page dots.
+        val state = rememberLazyListState()
+        ListJumpBox(state, ListJump.Pages, Modifier.padding(padding)) { LazyColumnMMD(Modifier.fillMaxSize().padding(horizontal = 20.dp), state = state, isScrollbarVisible = false) {
             item { Spacer(Modifier.height(8.dp)) }
 
             // Only what is wrong is shown: a row for a switch that is already on would be
@@ -268,7 +271,7 @@ fun SettingsScreen(model: AppModel) {
                 }
             }
             item { Spacer(Modifier.height(24.dp)) }
-        }
+        } }
     }
 
     if (aboutOpen) AboutDialog(onDismiss = { aboutOpen = false })

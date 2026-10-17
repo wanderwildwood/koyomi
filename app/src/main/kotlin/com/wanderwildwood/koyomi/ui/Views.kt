@@ -26,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -112,35 +113,10 @@ fun ViewsScreen(model: AppModel) {
 
 @Composable
 private fun ViewTabs(current: View, onPick: (View) -> Unit) {
-    val names = listOf(
-        View.MONTH to R.string.view_month,
-        View.WEEK to R.string.view_week,
-        View.DAY to R.string.view_day,
-        View.AGENDA to R.string.view_agenda,
-    )
-    Row(Modifier.fillMaxWidth().height(44.dp)) {
-        names.forEach { (v, label) ->
-            val chosen = v == current
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .clickable { onPick(v) }
-                    .drawBehind {
-                        // State by the border, not by colour: a rule under the chosen view.
-                        val w = if (chosen) 3.dp.toPx() else 1.dp.toPx()
-                        drawRect(Color.Black, topLeft = Offset(0f, size.height - w), size = size.copy(height = w))
-                    },
-                contentAlignment = Alignment.Center,
-            ) {
-                TextMMD(
-                    text = stringResource(label),
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = if (chosen) FontWeight.Bold else FontWeight.Normal,
-                )
-            }
-        }
-    }
+    val views = listOf(View.MONTH, View.WEEK, View.DAY, View.AGENDA)
+    val labels = listOf(R.string.view_month, R.string.view_week, R.string.view_day, R.string.view_agenda)
+        .map { stringResource(it) }
+    StoneTabs(labels, views.indexOf(current), onSelect = { onPick(views[it]) })
 }
 
 @Composable
@@ -733,7 +709,9 @@ private fun AgendaView(model: AppModel) {
         }
         return
     }
-    LazyColumnMMD(Modifier.fillMaxSize().padding(horizontal = 16.dp), isScrollbarVisible = false) {
+    // Six months of days: page dots down the edge once it runs past three screens.
+    val state = rememberLazyListState()
+    ListJumpBox(state, ListJump.Pages) { LazyColumnMMD(Modifier.fillMaxSize().padding(horizontal = 16.dp), state = state, isScrollbarVisible = false) {
         byDay.forEach { (day, list) ->
             item(key = "h$day") {
                 Column(Modifier.fillMaxWidth().padding(top = 14.dp, bottom = 2.dp)) {
@@ -758,7 +736,7 @@ private fun AgendaView(model: AppModel) {
             }
         }
         item { Spacer(Modifier.height(24.dp)) }
-    }
+    } }
 }
 
 @Composable
