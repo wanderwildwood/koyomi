@@ -72,6 +72,34 @@ class CalendarStore(private val context: Context) {
         return out
     }
 
+    /**
+     * A calendar kept on this phone alone, named [name], for a phone with no calendar that can be
+     * written to: KompaktOS, unlike the Kompakt's own system, comes with none, and without an
+     * account in DAVx5 there was nowhere for an event to go. Made as a local calendar, through
+     * the sync-adapter door that a local calendar needs; after that it is like any other.
+     */
+    fun makeLocalCalendar(name: String): Long? {
+        if (!canWrite()) return null
+        val uri = Calendars.CONTENT_URI.buildUpon()
+            .appendQueryParameter(CalendarContract.CALLER_IS_SYNCADAPTER, "true")
+            .appendQueryParameter(Calendars.ACCOUNT_NAME, name)
+            .appendQueryParameter(Calendars.ACCOUNT_TYPE, CalendarContract.ACCOUNT_TYPE_LOCAL)
+            .build()
+        val values = ContentValues().apply {
+            put(Calendars.ACCOUNT_NAME, name)
+            put(Calendars.ACCOUNT_TYPE, CalendarContract.ACCOUNT_TYPE_LOCAL)
+            put(Calendars.NAME, name)
+            put(Calendars.CALENDAR_DISPLAY_NAME, name)
+            put(Calendars.CALENDAR_COLOR, 0xFF000000.toInt())
+            put(Calendars.CALENDAR_ACCESS_LEVEL, Calendars.CAL_ACCESS_OWNER)
+            put(Calendars.OWNER_ACCOUNT, name)
+            put(Calendars.VISIBLE, 1)
+            put(Calendars.SYNC_EVENTS, 1)
+            put(Calendars.CALENDAR_TIME_ZONE, ZoneId.systemDefault().id)
+        }
+        return runCatching { resolver.insert(uri, values)?.let { ContentUris.parseId(it) } }.getOrNull()
+    }
+
     fun setVisible(calendarId: Long, visible: Boolean) {
         if (!canWrite()) return
         resolver.update(

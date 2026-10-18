@@ -218,6 +218,20 @@ class AppModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /** No calendar at all that an event could be written to, hidden or not. */
+    val noCalendarToWrite: Boolean get() = calendars.none { it.writable }
+
+    /** Makes "On this phone", and puts an event being made into it. */
+    fun makeLocalCalendar() {
+        viewModelScope.launch {
+            val name = getApplication<Application>().getString(R.string.calendar_on_this_phone)
+            val id = withContext(Dispatchers.IO) { store.makeLocalCalendar(name) }
+            calendars = withContext(Dispatchers.IO) { store.calendars() }
+            if (id != null && draft.calendarId == null) draft = draft.copy(calendarId = id)
+            reload()
+        }
+    }
+
     fun setVisible(calendar: CalendarInfo, visible: Boolean) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) { store.setVisible(calendar.id, visible) }

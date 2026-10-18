@@ -186,7 +186,7 @@ fun EditScreen(model: AppModel, screen: Screen.Edit) {
                 SettingRow(
                     title = stringResource(R.string.event_calendar),
                     value = calendar?.name ?: stringResource(R.string.edit_no_calendar_short),
-                    onClick = if (movable) ({ picking = Picking.CALENDAR }) else null,
+                    onClick = if (movable || d.calendarId == null) ({ picking = Picking.CALENDAR }) else null,
                 )
             }
         }
@@ -219,6 +219,12 @@ fun EditScreen(model: AppModel, screen: Screen.Edit) {
             val writable = model.writableCalendars()
             if (writable.isEmpty()) {
                 TextMMD(text = stringResource(R.string.edit_no_calendar), style = MaterialTheme.typography.labelSmall)
+                if (model.noCalendarToWrite) {
+                    ChoiceRow(stringResource(R.string.calendar_make_local), bold = true) {
+                        model.makeLocalCalendar()
+                        picking = null
+                    }
+                }
             }
             writable.forEach { c ->
                 ChoiceRow(c.name, bold = c.id == d.calendarId) {

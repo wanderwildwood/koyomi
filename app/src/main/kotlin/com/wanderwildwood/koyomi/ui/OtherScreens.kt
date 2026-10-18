@@ -356,6 +356,15 @@ private fun LazyListScope.calendarSwitches(model: AppModel) {
             )
         }
     }
+    // KompaktOS has no calendar on the phone, so without an account there was nowhere for an
+    // event to go. Only offered while there is no calendar that can be written to at all.
+    if (model.noCalendarToWrite) {
+        item(key = "make-local") {
+            SettingRow(stringResource(R.string.calendar_make_local), stringResource(R.string.calendar_make_local_note)) {
+                model.makeLocalCalendar()
+            }
+        }
+    }
     synced.groupBy { it.accountName }.forEach { (account, list) ->
         item(key = "a$account") {
             TextMMD(

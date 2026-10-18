@@ -82,8 +82,12 @@
     <string name="edit_starts">Starts</string>
     <string name="edit_ends">Ends</string>
     <string name="edit_reminders">Reminders</string>
-    <string name="edit_no_calendar">There is no calendar here that can be written to. Add one in DAVx5, or in the phone\'s accounts, first.</string>
+    <string name="edit_no_calendar">There is no calendar here that can be written to. Make one on this phone, or add one in DAVx5 or the phone\'s accounts.</string>
     <string name="edit_no_calendar_short">None that can be written to</string>
+    <!-- The name of the calendar Calendar makes on a phone that has none it can write to. -->
+    <string name="calendar_on_this_phone">On this phone</string>
+    <string name="calendar_make_local">Make a calendar on this phone</string>
+    <string name="calendar_make_local_note">Events stay on this phone; nothing in it reaches a server</string>
     <string name="edit_not_saved">The calendar did not accept the change.</string>
 
     <!-- Reminders. For an event with a time -->
