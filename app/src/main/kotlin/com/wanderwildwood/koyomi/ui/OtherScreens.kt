@@ -250,6 +250,10 @@ fun SettingsScreen(model: AppModel) {
                 }
             }
             item {
+                val jumpShown by rememberListJumpShown()
+                SwitchRow(stringResource(R.string.list_jump_setting), jumpShown) { ListJumpPrefs.setShown(context, it) }
+            }
+            item {
                 SwitchRow(stringResource(R.string.settings_wake), wakeScreen) {
                     s.wakeScreen = it
                     model.settingsChanged()

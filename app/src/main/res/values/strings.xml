@@ -303,4 +303,7 @@
         <item quantity="other">%d were here already</item>
     </plurals>
     <string name="import_failed">Nothing was added. The calendar did not take them.</string>
+    <string name="list_jump_setting">Letters and page dots</string>
+    <string name="list_jump_shown">Shown</string>
+    <string name="list_jump_hidden">Hidden</string>
 </resources>
