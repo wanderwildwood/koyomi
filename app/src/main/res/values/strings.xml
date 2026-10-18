@@ -234,8 +234,14 @@
     <string name="settings_duraspeed_done">It\'s switched on</string>
     <!-- Settings: whether today's events show on the lock screen, through the Glance app -->
     <string name="settings_lock_screen">Today\'s events on the lock screen</string>
+    <!-- Settings, under the row above: once today's events are over, the lock screen names the next one -->
+    <string name="settings_lock_screen_next">The next event, once today\'s are over</string>
     <!-- On the lock screen, through Glance -->
     <string name="lock_today">Today</string>
+    <!-- On the lock screen: the heading over the next event to come, on a later day -->
+    <string name="lock_next">Next</string>
+    <!-- On the lock screen, after the day of the next event: "9:00 Dentist" -->
+    <string name="lock_next_timed">%1$s %2$s</string>
     <string name="lock_all_day">All day</string>
     <!-- An event under way since before today: "until 11:00" -->
     <string name="lock_until">until %1$s</string>

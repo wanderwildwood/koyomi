@@ -55,7 +55,8 @@ is a setting for a notification alone.
 
 **Today's events on the lock screen**, with
 [Glance](https://github.com/wanderwildwood/hitome) installed: what is left of today, all-day
-events first. Settings has the switch.
+events first. Settings has the switch, and under it a second, off until you turn it on: once
+today's events are over, the next one to come, with its day.
 
 **It asks before deleting**, on the row itself: the first press arms it, the second does it,
 and it forgets after four seconds.

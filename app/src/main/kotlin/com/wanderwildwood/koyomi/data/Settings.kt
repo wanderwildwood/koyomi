@@ -45,6 +45,14 @@ class Settings(context: Context) {
         get() = prefs.getBoolean(LOCK_SCREEN, true)
         set(v) = prefs.edit().putBoolean(LOCK_SCREEN, v).apply()
 
+    /**
+     * Whether the lock screen, once today has nothing left, names the next event to come.
+     * Off until switched on: it puts what is coming on a screen anyone can pick up.
+     */
+    var lockScreenNext: Boolean
+        get() = prefs.getBoolean(LOCK_SCREEN_NEXT, false)
+        set(v) = prefs.edit().putBoolean(LOCK_SCREEN_NEXT, v).apply()
+
     /** Said to be switched on in DuraSpeed's list, which no app can read; see DuraSpeed. */
     var duraSpeedAllowed: Boolean
         get() = prefs.getBoolean(DURASPEED_ALLOWED, false)
@@ -59,6 +67,7 @@ class Settings(context: Context) {
         const val DURASPEED_ALLOWED = "duraspeed_allowed"
         const val DURASPEED_STOP_SEEN = "duraspeed_stop_seen"
         const val LOCK_SCREEN = "lock_screen"
+        const val LOCK_SCREEN_NEXT = "lock_screen_next"
         const val OPEN_ON = "open_on"
         const val WEEK_START = "week_start"
         const val WEEK_NUMBERS = "week_numbers"

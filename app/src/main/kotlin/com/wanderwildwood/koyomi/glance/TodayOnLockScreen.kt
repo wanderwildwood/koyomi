@@ -11,7 +11,8 @@ import java.time.format.DateTimeFormatter
 
 /**
  * Today's events for the lock screen: those that run all day first, then the rest that have
- * not yet finished, each with its time. Nothing when today has nothing left.
+ * not yet finished, each with its time. When today has nothing left, nothing - or, if asked
+ * for in Settings, the next event on a later day, with its day.
  */
 class TodayOnLockScreen : GlanceProvider() {
 
@@ -31,11 +32,28 @@ class TodayOnLockScreen : GlanceProvider() {
                 else it.start.format(time)
                 Line(text = it.title, lead = lead)
             }
-        if (lines.isEmpty()) return emptyList()
+        if (lines.isEmpty()) return next(context, today, time)
         return lines.take(MAX).mapIndexed { i, l -> if (i == 0) l.copy(heading = context.getString(R.string.lock_today)) else l }
     }
 
+    /** The first event after today, within [AHEAD] days, as one line; empty when switched off. */
+    private fun next(context: Context, today: LocalDate, time: DateTimeFormatter): List<Line> {
+        if (!Settings(context).lockScreenNext) return emptyList()
+        val first = CalendarStore(context).occurrences(today.plusDays(1), today.plusDays(AHEAD))
+            .filter { it.firstDay.isAfter(today) }
+            .minWithOrNull(compareBy({ it.firstDay }, { !it.allDay }, { it.start }))
+            ?: return emptyList()
+        // Within the week the day's name is enough; further off, the date.
+        val day = if (first.firstDay.isBefore(today.plusDays(7))) DateTimeFormatter.ofPattern("EEE")
+        else DateTimeFormatter.ofPattern("MMM d")
+        // The day takes the narrow left column; the time goes with the title.
+        val text = if (first.allDay) first.title else context.getString(R.string.lock_next_timed, first.start.format(time), first.title)
+        return listOf(Line(text = text, lead = first.firstDay.format(day), heading = context.getString(R.string.lock_next)))
+    }
+
     private companion object {
+        // How far ahead the next event is looked for.
+        const val AHEAD = 30L
         // Glance trims to the room it has; more than this would never fit.
         const val MAX = 6
     }

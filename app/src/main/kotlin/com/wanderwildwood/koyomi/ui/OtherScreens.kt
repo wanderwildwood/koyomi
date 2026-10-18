@@ -119,6 +119,7 @@ fun SettingsScreen(model: AppModel) {
     val weekNumbers = s.weekNumbers
     val wakeScreen = s.wakeScreen
     val lockScreen = s.lockScreen
+    val lockScreenNext = s.lockScreenNext
     var aboutOpen by remember { mutableStateOf(false) }
     var pickCalendar by remember { mutableStateOf(false) }
     var pickReminder by remember { mutableStateOf(false) }
@@ -264,6 +265,15 @@ fun SettingsScreen(model: AppModel) {
                     s.lockScreen = it
                     model.settingsChanged()
                     com.wanderwildwood.koyomi.glance.GlanceProvider.changed(context)
+                }
+            }
+            if (lockScreen) {
+                item {
+                    SwitchRow(stringResource(R.string.settings_lock_screen_next), lockScreenNext) {
+                        s.lockScreenNext = it
+                        model.settingsChanged()
+                        com.wanderwildwood.koyomi.glance.GlanceProvider.changed(context)
+                    }
                 }
             }
             if (wakeScreen && !fullScreenOn) {
