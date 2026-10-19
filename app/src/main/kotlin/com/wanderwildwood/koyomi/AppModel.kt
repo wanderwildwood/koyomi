@@ -375,14 +375,9 @@ class AppModel(app: Application) : AndroidViewModel(app) {
                 require(n <= MAX_ICS) { "Too large for a calendar file" }
                 buffer.copyOf(n)
             }
-            Ics.parse(String(bytes, Charsets.UTF_8), ZoneId.systemDefault(), ::zoneOf)
+            Ics.parse(String(bytes, Charsets.UTF_8), ZoneId.systemDefault())
         }.onFailure { Log.w(TAG, "Could not read $uri", it) }.getOrNull()
     }
-
-    /** An IANA zone, or a Windows one as Outlook writes them ("W. Europe Standard Time"). */
-    private fun zoneOf(tzid: String): ZoneId? = Ics.ianaZone(tzid) ?: runCatching {
-        android.icu.util.TimeZone.getIDForWindowsID(tzid.trim().trim('"'), "001")?.let { ZoneId.of(it) }
-    }.getOrNull()
 
     /**
      * Adds [events] to [calendarId], each with the reminder a new event would get. Returns how

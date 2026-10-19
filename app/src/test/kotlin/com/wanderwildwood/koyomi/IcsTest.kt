@@ -138,6 +138,82 @@ class IcsTest {
     }
 
     @Test
+    fun windowsZoneNames() {
+        assertEquals(ZoneId.of("America/New_York"), Ics.windowsZone("Eastern Standard Time"))
+        assertEquals(ZoneId.of("Europe/Berlin"), Ics.windowsZone("\"W. Europe Standard Time\""))
+        assertNull(Ics.windowsZone("Somewhere Standard Time"))
+        // An Outlook invitation opened on a phone in Berlin: 10:00 in New York, still on daylight time.
+        val e = Ics.parse(
+            cal(
+                "METHOD:REQUEST",
+                "BEGIN:VTIMEZONE", "TZID:Eastern Standard Time",
+                "BEGIN:STANDARD", "DTSTART:16010101T020000", "TZOFFSETFROM:-0400", "TZOFFSETTO:-0500",
+                "RRULE:FREQ=YEARLY;BYDAY=1SU;BYMONTH=11", "END:STANDARD",
+                "BEGIN:DAYLIGHT", "DTSTART:16010101T020000", "TZOFFSETFROM:-0500", "TZOFFSETTO:-0400",
+                "RRULE:FREQ=YEARLY;BYDAY=2SU;BYMONTH=3", "END:DAYLIGHT",
+                "END:VTIMEZONE",
+                "BEGIN:VEVENT", "SUMMARY:Planning", "DTSTART;TZID=Eastern Standard Time:20261012T100000",
+                "DTEND;TZID=Eastern Standard Time:20261012T110000", "END:VEVENT",
+            ),
+            ZoneId.of("Europe/Berlin"),
+        ).single()
+        assertEquals("America/New_York", e.zone.id)
+        assertEquals(ms("2026-10-12T14:00:00Z"), e.startMillis)
+        assertEquals(ms("2026-10-12T15:00:00Z"), e.endMillis)
+        assertNull(e.unknownZone)
+    }
+
+    private fun customZone(tzid: String, standard: String, daylight: String?, vararg event: String) = cal(
+        *(
+            listOf("BEGIN:VTIMEZONE", "TZID:$tzid", "BEGIN:STANDARD", "DTSTART:16010101T030000", "TZOFFSETTO:${standard.substringBefore(' ')}") +
+                standard.substringAfter(' ', "").let { if (it.isEmpty()) emptyList() else listOf("RRULE:FREQ=YEARLY;$it") } +
+                "END:STANDARD" +
+                (daylight?.let {
+                    listOf("BEGIN:DAYLIGHT", "DTSTART:16010101T020000", "TZOFFSETTO:${it.substringBefore(' ')}", "RRULE:FREQ=YEARLY;${it.substringAfter(' ')}", "END:DAYLIGHT")
+                } ?: emptyList()) +
+                "END:VTIMEZONE" + event.toList()
+            ).toTypedArray(),
+    )
+
+    @Test
+    fun customVtimezoneIsReadByItsRules() {
+        val us = customZone(
+            "Customized Time Zone", "-0500 BYMONTH=11;BYDAY=1SU", "-0400 BYMONTH=3;BYDAY=2SU",
+            "BEGIN:VEVENT", "DTSTART;TZID=Customized Time Zone:20261012T100000", "END:VEVENT",
+            "BEGIN:VEVENT", "DTSTART;TZID=Customized Time Zone:20270112T100000", "END:VEVENT",
+        )
+        // On a phone in Tokyo, the zone found is one whose clocks change on those days.
+        val far = Ics.parse(us, ZoneId.of("Asia/Tokyo"))
+        assertEquals(ms("2026-10-12T14:00:00Z"), far[0].startMillis)
+        assertEquals(ms("2027-01-12T15:00:00Z"), far[1].startMillis)
+        assertNull(far[0].unknownZone)
+        // On a phone in New York, the phone's own zone fits and is the one used.
+        assertEquals(phone, Ics.parse(us, phone)[0].zone)
+
+        val europe = customZone(
+            "(UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna", "+0100 BYMONTH=10;BYDAY=-1SU", "+0200 BYMONTH=3;BYDAY=-1SU",
+            "BEGIN:VEVENT", "DTSTART;TZID=\"(UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna\":20261030T090000", "END:VEVENT",
+        )
+        val e = Ics.parse(europe, phone).single()
+        assertEquals("Europe/Berlin", e.zone.id)
+        // 30 October is after Europe's clocks go back on the 25th, though New York's have not yet.
+        assertEquals(ms("2026-10-30T08:00:00Z"), e.startMillis)
+    }
+
+    @Test
+    fun customVtimezoneWithoutDaylightIsAnOffset() {
+        val e = Ics.parse(
+            customZone(
+                "(UTC+05:30) Chennai, Kolkata, Mumbai, New Delhi", "+0530", null,
+                "BEGIN:VEVENT", "DTSTART;TZID=\"(UTC+05:30) Chennai, Kolkata, Mumbai, New Delhi\":20261012T090000", "END:VEVENT",
+            ),
+            phone,
+        ).single()
+        assertEquals(ms("2026-10-12T03:30:00Z"), e.startMillis)
+        assertNull(e.unknownZone)
+    }
+
+    @Test
     fun durations() {
         assertEquals(Duration.ofDays(14), Ics.duration("P2W"))
         assertEquals(Duration.ofMinutes(90), Ics.duration("PT1H30M"))
