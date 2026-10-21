@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
@@ -35,9 +34,7 @@ import com.mudita.mmd.components.checkbox.CheckboxMMD
 import com.mudita.mmd.components.text.TextMMD
 import com.mudita.mmd.components.time.DatePickerFormatterMMD
 import com.mudita.mmd.components.time.DatePickerMMD
-import com.mudita.mmd.components.time.TimeInputMMD
 import com.mudita.mmd.components.time.rememberDatePickerMMDState
-import com.mudita.mmd.components.time.rememberTimeInputMMDState
 import com.wanderwildwood.koyomi.R
 import java.time.Instant
 import java.time.LocalDate
@@ -100,33 +97,6 @@ private object UtcDateFormatter : DatePickerFormatterMMD {
 
     override fun formatDate(dateMillis: Long?, locale: java.util.Locale, forContentDescription: Boolean): String? =
         dateMillis?.let { Dates.long(Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate()) }
-}
-
-/**
- * Mudita's time input: the hour and the minute typed, the way the Kompakt's own clock sets
- * them. Always on the 24-hour clock, whatever the phone uses: in 12-hour mode MMD 1.0.2 sets
- * a typed hour as it stands, so "6" with PM showing came out as 6 in the morning and the
- * toggle quietly flipped to AM. Material's own input adds the twelve; MMD's drops it.
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun TimeDialog(initial: LocalTime, onPick: (LocalTime) -> Unit, onDismiss: () -> Unit) {
-    val state = rememberTimeInputMMDState(
-        initialHour = initial.hour,
-        initialMinute = initial.minute,
-        is24Hour = true,
-    )
-    EInkDialog(onDismiss = onDismiss) {
-        TimeInputMMD(state = state, modifier = Modifier.align(Alignment.CenterHorizontally))
-        Spacer(Modifier.height(8.dp))
-        DialogButtons(
-            onCancel = onDismiss,
-            onOk = {
-                onPick(LocalTime.of(state.hour, state.minute))
-                onDismiss()
-            },
-        )
-    }
 }
 
 @Composable

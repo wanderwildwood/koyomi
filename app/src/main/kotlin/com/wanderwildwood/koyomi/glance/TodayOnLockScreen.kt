@@ -5,6 +5,7 @@ import android.text.format.DateFormat
 import com.wanderwildwood.koyomi.R
 import com.wanderwildwood.koyomi.data.CalendarStore
 import com.wanderwildwood.koyomi.data.Settings
+import com.wanderwildwood.koyomi.ui.Dates
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -24,6 +25,8 @@ class TodayOnLockScreen : GlanceProvider() {
         val all = CalendarStore(context).occurrences(today, today)
         val allDay = all.filter { it.allDay }.sortedBy { it.title.lowercase() }
         val timed = all.filter { !it.allDay && it.finish.isAfter(now) }.sortedBy { it.start }
+        // Glance's lead column is 64dp, which holds "12:30" but not "12:30 PM", so the lead
+        // leaves AM and PM out, as Glance's own Today does.
         val time = DateTimeFormatter.ofPattern(if (DateFormat.is24HourFormat(context)) "H:mm" else "h:mm")
         val lines = allDay.map { Line(text = it.title, lead = context.getString(R.string.lock_all_day)) } +
             timed.map {
@@ -32,12 +35,12 @@ class TodayOnLockScreen : GlanceProvider() {
                 else it.start.format(time)
                 Line(text = it.title, lead = lead)
             }
-        if (lines.isEmpty()) return next(context, today, time)
+        if (lines.isEmpty()) return next(context, today)
         return lines.take(MAX).mapIndexed { i, l -> if (i == 0) l.copy(heading = context.getString(R.string.lock_today)) else l }
     }
 
     /** The first event after today, within [AHEAD] days, as one line; empty when switched off. */
-    private fun next(context: Context, today: LocalDate, time: DateTimeFormatter): List<Line> {
+    private fun next(context: Context, today: LocalDate): List<Line> {
         if (!Settings(context).lockScreenNext) return emptyList()
         val first = CalendarStore(context).occurrences(today.plusDays(1), today.plusDays(AHEAD))
             .filter { it.firstDay.isAfter(today) }
@@ -46,8 +49,10 @@ class TodayOnLockScreen : GlanceProvider() {
         // Within the week the day's name is enough; further off, the date.
         val day = if (first.firstDay.isBefore(today.plusDays(7))) DateTimeFormatter.ofPattern("EEE")
         else DateTimeFormatter.ofPattern("MMM d")
-        // The day takes the narrow left column; the time goes with the title.
-        val text = if (first.allDay) first.title else context.getString(R.string.lock_next_timed, first.start.format(time), first.title)
+        // The day takes the narrow left column; the time goes with the title, where there is
+        // room for AM and PM on the 12-hour clock.
+        val text = if (first.allDay) first.title
+        else context.getString(R.string.lock_next_timed, Dates.time(context, first.start.toLocalTime()), first.title)
         return listOf(Line(text = text, lead = first.firstDay.format(day), heading = context.getString(R.string.lock_next)))
     }
 

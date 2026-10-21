@@ -34,6 +34,10 @@ object Dates {
     fun time(context: Context, t: LocalTime): String =
         format(if (DateFormat.is24HourFormat(context)) "Hm" else "hma", t)
 
+    /** "AM" or "PM" as the phone's language writes them, for the time input's choice. */
+    fun halfOfDay(pm: Boolean): String =
+        DateTimeFormatter.ofPattern("a", Locale.getDefault()).format(LocalTime.of(if (pm) 12 else 0, 0))
+
     /** "9 am" or "09" — the label beside an hour line. */
     fun hour(context: Context, h: Int): String =
         if (DateFormat.is24HourFormat(context)) {
