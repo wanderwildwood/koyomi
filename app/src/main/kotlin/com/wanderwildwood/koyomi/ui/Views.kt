@@ -710,31 +710,54 @@ private fun AgendaView(model: AppModel) {
     }
     // Six months of days: page dots down the edge once it runs past three screens.
     val state = rememberLazyListState()
-    ListJumpBox(state, ListJump.Pages) { PagedColumn(Modifier.fillMaxSize().padding(horizontal = 16.dp), state = state) {
-        byDay.forEach { (day, list) ->
-            item(key = "h$day") {
-                Column(Modifier.fillMaxWidth().padding(top = 14.dp, bottom = 2.dp)) {
-                    TextMMD(
-                        text = Dates.dayTitle(day),
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
-            }
-            list.sortedWith(compareBy({ !it.allDay }, { it.start })).forEach { o ->
-                item(key = "o$day${o.eventId}${o.begin}") {
-                    AgendaRow(
-                        time = when {
-                            o.allDay || o.firstDay != o.lastDay && o.firstDay != day -> stringResource(R.string.all_day)
-                            else -> Dates.time(context, o.start.toLocalTime())
-                        },
-                        occurrence = o,
-                        onClick = { model.push(Screen.Event(o.eventId, o.begin, o.end)) },
-                    )
-                }
-            }
+    // A swipe down on the first page asks DAVx5 and its kind to sync, as Settings' row does;
+    // the line above the list says so in words for a few seconds, and the rows change when the
+    // calendar store does.
+    var asked by remember { mutableStateOf(0) }
+    LaunchedEffect(asked) { if (asked > 0) { delay(3000); asked = 0 } }
+    Column(Modifier.fillMaxSize()) {
+        if (asked > 0) {
+            TextMMD(
+                text = stringResource(R.string.agenda_sync_asked),
+                style = MaterialTheme.typography.labelSmall,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
+            )
         }
-    } }
+        ListJumpBox(state, ListJump.Pages) { PagedColumn(
+            Modifier.fillMaxSize().padding(horizontal = 16.dp),
+            state = state,
+            onPullAtTop = {
+                com.wanderwildwood.koyomi.data.CalendarSync.requestNow()
+                asked++
+            },
+        ) {
+            byDay.forEach { (day, list) ->
+                item(key = "h$day") {
+                    Column(Modifier.fillMaxWidth().padding(top = 14.dp, bottom = 2.dp)) {
+                        TextMMD(
+                            text = Dates.dayTitle(day),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                }
+                list.sortedWith(compareBy({ !it.allDay }, { it.start })).forEach { o ->
+                    item(key = "o$day${o.eventId}${o.begin}") {
+                        AgendaRow(
+                            time = when {
+                                o.allDay || o.firstDay != o.lastDay && o.firstDay != day -> stringResource(R.string.all_day)
+                                else -> Dates.time(context, o.start.toLocalTime())
+                            },
+                            occurrence = o,
+                            onClick = { model.push(Screen.Event(o.eventId, o.begin, o.end)) },
+                        )
+                    }
+                }
+            }
+        } }
+    }
 }
 
 @Composable

@@ -49,6 +49,8 @@ did not make.
 
 **Change or delete one occurrence**, every later one, or all of them.
 
+**A swipe down at the top of the agenda asks DAVx5 to sync**, as Settings' Sync calendars now does.
+
 **Reminders from the phone's own store**, so the ones set on the server ring here too, and
 each one rings once. With the screen asleep a reminder wakes it with the event on it; there
 is a setting for a notification alone.

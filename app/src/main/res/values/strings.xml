@@ -219,6 +219,8 @@
     <string name="settings_sync_now">Sync calendars now</string>
     <string name="settings_sync_now_hint">Asks the apps that sync them</string>
     <string name="settings_sync_asked">Asked</string>
+    <!-- One line above the Agenda for a few seconds after a swipe down on its first page -->
+    <string name="agenda_sync_asked">Asked DAVx5 to sync</string>
     <string name="settings_default_calendar">New events go in</string>
     <string name="settings_first_calendar">The first that can be written to</string>
     <string name="settings_default_reminder">New events remind</string>
