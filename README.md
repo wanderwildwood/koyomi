@@ -37,6 +37,7 @@ store makes it; it belongs to no account, so nothing saved in it leaves the phon
 **Four views.** A month of days with a mark for each event; a week and a day as a timeline,
 twelve hours at a time, changed by a swipe up or down; and an agenda of the six months ahead.
 A swipe across turns one page and stops. Nothing scrolls on its own and nothing animates.
+Back returns to the Month view, and from the Month view leaves the app.
 
 **Repeats of every ordinary shape.** Every so many days, weeks, months or years; chosen days
 of the week; the 25th of the month or the fourth Friday or the last one; for ever, until a

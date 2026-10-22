@@ -1,5 +1,6 @@
 package com.wanderwildwood.koyomi
 
+import com.wanderwildwood.koyomi.ui.backTarget
 import android.Manifest
 import android.app.Application
 import android.content.Intent
@@ -93,6 +94,7 @@ internal fun Koyomi(model: AppModel, finish: (() -> Unit)? = null) {
     }
 
     BackHandler(enabled = model.stack.isNotEmpty()) { model.pop() }
+    BackHandler(enabled = model.stack.isEmpty() && backTarget(model.view) != null) { model.backToMonth() }
 
     when (val top = model.stack.lastOrNull()) {
         null -> if (finish == null) {

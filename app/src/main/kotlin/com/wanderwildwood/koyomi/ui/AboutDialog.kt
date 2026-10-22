@@ -56,6 +56,12 @@ fun AboutDialog(onDismiss: () -> Unit) {
 
         Spacer(Modifier.height(14.dp))
         TextMMD(
+            text = stringResource(R.string.about_google),
+            style = MaterialTheme.typography.labelSmall,
+        )
+
+        Spacer(Modifier.height(14.dp))
+        TextMMD(
             text = stringResource(R.string.about_after),
             style = MaterialTheme.typography.labelSmall,
         )

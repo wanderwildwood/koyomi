@@ -1,5 +1,6 @@
 package com.wanderwildwood.koyomi
 
+import com.wanderwildwood.koyomi.ui.backTarget
 import android.app.Application
 import android.database.ContentObserver
 import android.net.Uri
@@ -157,6 +158,11 @@ class AppModel(app: Application) : AndroidViewModel(app) {
     fun show(v: View) {
         view = v
         reload()
+    }
+
+    /** Back from a view: the Month view of the same month (the anchor stays). */
+    fun backToMonth() {
+        backTarget(view)?.let { show(it) }
     }
 
     fun goTo(date: LocalDate) {

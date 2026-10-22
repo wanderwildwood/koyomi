@@ -284,6 +284,7 @@
     <string name="about_title">Calendar %1$s</string>
     <string name="about_privacy">It reads and writes the calendars already on the phone and never reaches the network. DAVx5, or the account the calendar came from, does the syncing.</string>
     <string name="about_sources">Reminders come from the phone\'s calendar store, so the ones set in Nextcloud ring here too.</string>
+    <string name="about_google">To bring a Google calendar in, sync it with DAVx5 (or any CalDAV or Nextcloud account). This app shows what the phone has.</string>
     <string name="about_after">After KompaktCalendar by David Anderlohr, GPL 3.0, and Etar, GPL 3.0, whose repeat rules and ways of saving a changed occurrence this follows. The repeat-rule parser is the Android Open Source Project\'s, Apache 2.0.</string>
     <!-- The name of the app's licence -->
     <string name="about_licence">GNU General Public License v3</string>
