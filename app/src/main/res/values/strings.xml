@@ -227,6 +227,8 @@
     <string name="settings_open_on">Opens on</string>
     <string name="settings_week_starts">Week starts on</string>
     <string name="settings_week_numbers">Week numbers</string>
+    <string name="settings_vibrate">Vibrate at each key press</string>
+    <string name="settings_vibrate_note">A short tick at each key of the time entry. Stays quiet if the phone\'s own touch feedback is off.</string>
     <string name="settings_wake">Reminders fill the screen</string>
     <!-- Rows shown only when something the reminders need is switched off -->
     <string name="settings_notifications_off">Notifications are off, so reminders cannot show</string>
