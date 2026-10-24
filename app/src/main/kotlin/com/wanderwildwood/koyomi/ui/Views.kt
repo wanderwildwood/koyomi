@@ -436,6 +436,7 @@ private fun Timeline(model: AppModel, days: List<LocalDate>) {
                         }
                     }
                 }
+                Spacer(Modifier.width(RAIL_WIDTH))
             }
         }
 
@@ -484,6 +485,9 @@ private fun Timeline(model: AppModel, days: List<LocalDate>) {
 
 private val HOUR_COLUMN = 44.dp
 
+/** The hours rail beside the grid; the header and all-day rows reserve the same width so their columns match the grid's. */
+private val RAIL_WIDTH = 20.dp
+
 @Composable
 private fun AllDayStrip(all: List<Occurrence>, days: List<LocalDate>, week: Boolean, onOpen: (Occurrence) -> Unit) {
     val touching = all.filter { o -> days.any { o.touches(it) } }
@@ -511,6 +515,7 @@ private fun AllDayStrip(all: List<Occurrence>, days: List<LocalDate>, week: Bool
                 }
             }
         }
+        Spacer(Modifier.width(RAIL_WIDTH))
     }
 }
 
@@ -666,7 +671,7 @@ internal fun layOut(events: List<Occurrence>): List<Triple<Occurrence, Int, Int>
 @Composable
 private fun HoursRail(page: Int, onPick: (Int) -> Unit) {
     Column(
-        modifier = Modifier.width(20.dp).fillMaxHeight(),
+        modifier = Modifier.width(RAIL_WIDTH).fillMaxHeight(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
