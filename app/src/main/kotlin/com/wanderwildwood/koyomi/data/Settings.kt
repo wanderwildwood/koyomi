@@ -53,14 +53,6 @@ class Settings(context: Context) {
         get() = prefs.getBoolean(LOCK_SCREEN_NEXT, false)
         set(v) = prefs.edit().putBoolean(LOCK_SCREEN_NEXT, v).apply()
 
-    /**
-     * Whether each key press in the time entry gives a short tick. Off to begin with; the tick
-     * is the phone's own keyboard tap, so its touch feedback setting still has the last word.
-     */
-    var vibrate: Boolean
-        get() = prefs.getBoolean(VIBRATE, Buzz.DEFAULT)
-        set(v) = prefs.edit().putBoolean(VIBRATE, v).apply()
-
     /** Said to be switched on in DuraSpeed's list, which no app can read; see DuraSpeed. */
     var duraSpeedAllowed: Boolean
         get() = prefs.getBoolean(DURASPEED_ALLOWED, false)
@@ -72,7 +64,6 @@ class Settings(context: Context) {
         set(v) = prefs.edit().putLong(DURASPEED_STOP_SEEN, v).apply()
 
     private companion object {
-        const val VIBRATE = "vibrate"
         const val DURASPEED_ALLOWED = "duraspeed_allowed"
         const val DURASPEED_STOP_SEEN = "duraspeed_stop_seen"
         const val LOCK_SCREEN = "lock_screen"

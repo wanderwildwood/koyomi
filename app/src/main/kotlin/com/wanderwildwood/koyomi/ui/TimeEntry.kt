@@ -1,7 +1,6 @@
 package com.wanderwildwood.koyomi.ui
 
 import android.text.format.DateFormat
-import android.view.HapticFeedbackConstants
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -27,13 +26,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.mudita.mmd.components.text.TextMMD
-import com.wanderwildwood.koyomi.data.Buzz
-import com.wanderwildwood.koyomi.data.Settings
 import com.mudita.mmd.components.time.TimeInputMMD
 import com.mudita.mmd.components.time.TimeInputStateMMD
 import com.mudita.mmd.components.time.TimePickerSelectionMode
@@ -88,14 +84,7 @@ class ClockState(hour24: Int, minute: Int, val twelveHour: Boolean) : TimeInputS
     var hour24 by mutableIntStateOf(hour24)
         private set
 
-    private var minuteValue by mutableIntStateOf(minute)
-
-    /** Told at each digit typed into the hour or the minute; the dialog points it at the buzz. */
-    var onKey: () -> Unit = {}
-
-    override var minute: Int
-        get() = minuteValue
-        set(value) { onKey(); minuteValue = value }
+    override var minute by mutableIntStateOf(minute)
 
     override var is24hour: Boolean
         get() = true
@@ -109,10 +98,7 @@ class ClockState(hour24: Int, minute: Int, val twelveHour: Boolean) : TimeInputS
 
     override var hour: Int
         get() = if (twelveHour) Clock12.faceHour(hour24) else hour24
-        set(value) {
-            onKey()
-            hour24 = if (twelveHour) Clock12.typed(value, isAfternoon) else value
-        }
+        set(value) { hour24 = if (twelveHour) Clock12.typed(value, isAfternoon) else value }
 
     companion object {
         fun saver(twelveHour: Boolean) = Saver<ClockState, List<Int>>(
@@ -137,12 +123,10 @@ fun TimeDialog(initial: LocalTime, onPick: (LocalTime) -> Unit, onDismiss: () ->
     val state = rememberSaveable(saver = ClockState.saver(twelveHour)) {
         ClockState(initial.hour, initial.minute, twelveHour)
     }
-    val buzz = rememberKeyBuzz()
-    state.onKey = buzz
     EInkDialog(onDismiss = onDismiss) {
         TimeInputMMD(state = state, modifier = Modifier.align(Alignment.CenterHorizontally))
         if (twelveHour) {
-            HalfOfDay(pm = state.isAfternoon, onPick = { buzz(); state.isAfternoon = it })
+            HalfOfDay(pm = state.isAfternoon, onPick = { state.isAfternoon = it })
             Spacer(Modifier.height(16.dp))
         } else {
             Spacer(Modifier.height(8.dp))
@@ -192,17 +176,4 @@ private fun HalfOfDay(pm: Boolean, onPick: (Boolean) -> Unit) {
             }
         }
     }
-}
-
-/**
- * Asks the phone for its keyboard tap at a key press when Settings has the buzz on: through the
- * view rather than the vibrator, so the phone's own touch feedback setting is respected and no
- * permission is needed. The setting is read at each press, so turning it on needs no restart.
- */
-@Composable
-fun rememberKeyBuzz(): () -> Unit {
-    val context = LocalContext.current
-    val view = LocalView.current
-    val settings = androidx.compose.runtime.remember { Settings(context) }
-    return { Buzz.press(settings.vibrate) { view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP) } }
 }

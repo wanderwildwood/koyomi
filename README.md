@@ -61,9 +61,6 @@ is a setting for a notification alone.
 events first. Settings has the switch, and under it a second, off until you turn it on: once
 today's events are over, the next one to come, with its day.
 
-**A vibration at each key press** in the time entry (and the AM/PM choice), off to begin with; it
-follows the phone's own touch feedback setting.
-
 **It asks before deleting**, on the row itself: the first press arms it, the second does it,
 and it forgets after four seconds.
 

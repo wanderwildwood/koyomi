@@ -118,7 +118,6 @@ fun SettingsScreen(model: AppModel) {
     val weekStart = s.weekStart
     val weekNumbers = s.weekNumbers
     val wakeScreen = s.wakeScreen
-    val vibrate = s.vibrate
     val lockScreen = s.lockScreen
     val lockScreenNext = s.lockScreenNext
     var aboutOpen by remember { mutableStateOf(false) }
@@ -254,12 +253,6 @@ fun SettingsScreen(model: AppModel) {
             item {
                 val jumpShown by rememberListJumpShown()
                 SwitchRow(stringResource(R.string.list_jump_setting), jumpShown) { ListJumpPrefs.setShown(context, it) }
-            }
-            item {
-                SwitchRow(stringResource(R.string.settings_vibrate), vibrate, note = stringResource(R.string.settings_vibrate_note)) {
-                    s.vibrate = it
-                    model.settingsChanged()
-                }
             }
             item {
                 SwitchRow(stringResource(R.string.settings_wake), wakeScreen) {
