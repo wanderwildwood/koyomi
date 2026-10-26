@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.CalendarContract
+import com.wanderwildwood.koyomi.R
 import android.provider.CalendarContract.Calendars
 import android.provider.CalendarContract.Events
 import android.provider.CalendarContract.Instances
@@ -40,6 +41,17 @@ class CalendarStore(private val context: Context) {
     private fun granted(permission: String) =
         context.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
 
+    /**
+     * The name a calendar is shown by. The phone's own unsynced store makes a local calendar
+     * called "PC Sync", which reads like a way to sync; it is shown by what it is.
+     */
+    private fun shown(name: String, accountType: String): String =
+        if (accountType == CalendarContract.ACCOUNT_TYPE_LOCAL && name.trim().equals("PC Sync", ignoreCase = true)) {
+            context.getString(R.string.calendar_pc_sync_name)
+        } else {
+            name
+        }
+
     fun calendars(): List<CalendarInfo> {
         if (!canRead()) return emptyList()
         val out = mutableListOf<CalendarInfo>()
@@ -60,7 +72,7 @@ class CalendarStore(private val context: Context) {
             while (c.moveToNext()) {
                 out += CalendarInfo(
                     id = c.getLong(0),
-                    name = c.getString(1).orEmpty(),
+                    name = shown(c.getString(1).orEmpty(), c.getString(3).orEmpty()),
                     accountName = c.getString(2).orEmpty(),
                     accountType = c.getString(3).orEmpty(),
                     visible = c.getInt(4) == 1,

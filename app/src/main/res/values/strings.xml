@@ -21,6 +21,8 @@
     <string name="cd_about">About</string>
     <string name="cd_close">Close</string>
     <string name="cd_discard">Discard</string>
+    <string name="settings_update">Check for updates</string>
+    <string name="settings_update_note">This is %1$s. Opens the newest release in the browser</string>
     <string name="duplicate">Duplicate</string>
     <string name="cd_edit">Edit</string>
     <string name="cd_add">New event</string>
@@ -87,6 +89,7 @@
     <string name="edit_no_calendar_short">None that can be written to</string>
     <!-- The name of the calendar Calendar makes on a phone that has none it can write to. -->
     <string name="calendar_on_this_phone">On this phone</string>
+    <string name="calendar_pc_sync_name">Only on this phone</string>
     <string name="calendar_make_local">Make a calendar on this phone</string>
     <string name="calendar_make_local_note">Events stay on this phone; nothing in it reaches a server</string>
     <string name="edit_not_saved">The calendar did not accept the change.</string>

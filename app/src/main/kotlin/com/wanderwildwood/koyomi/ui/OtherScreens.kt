@@ -283,6 +283,23 @@ fun SettingsScreen(model: AppModel) {
                     }
                 }
             }
+            // This app has no network permission, so it cannot ask for itself what is newest;
+            // the row opens the releases page, where the newest version is the first thing on it.
+            item {
+                SettingRow(
+                    stringResource(R.string.settings_update),
+                    stringResource(R.string.settings_update_note, com.wanderwildwood.koyomi.BuildConfig.VERSION_NAME),
+                ) {
+                    runCatching {
+                        context.startActivity(
+                            Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/wanderwildwood/koyomi/releases/latest"))
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                        )
+                    }.onFailure {
+                        Toast.makeText(context, context.getString(R.string.about_no_browser), Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
         } }
     }
 
