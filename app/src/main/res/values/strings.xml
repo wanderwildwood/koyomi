@@ -21,6 +21,7 @@
     <string name="cd_about">About</string>
     <string name="cd_close">Close</string>
     <string name="cd_discard">Discard</string>
+    <string name="duplicate">Duplicate</string>
     <string name="cd_edit">Edit</string>
     <string name="cd_add">New event</string>
     <string name="cd_previous">Previous</string>

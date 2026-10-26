@@ -285,6 +285,17 @@ class AppModel(app: Application) : AndroidViewModel(app) {
         push(Screen.Edit(record, begin, end, scope))
     }
 
+    /**
+     * A new event filled in from [record] as the occurrence shown (same day and time, no repeat
+     * rule). Nothing is saved until the person saves it from the editor.
+     */
+    fun duplicateEvent(record: EventRecord, begin: Long, end: Long) {
+        val own = writableCalendars().firstOrNull { it.id == record.calendarId }
+        val fallback = writableCalendars().let { w -> w.firstOrNull { it.id == settings.defaultCalendar } ?: w.firstOrNull() }
+        draft = Draft.of(record, begin, end, keepRule = false).copy(calendarId = (own ?: fallback)?.id)
+        push(Screen.Edit(null, 0, 0, Scope.ALL))
+    }
+
     /** Can the event being edited go to another calendar? See [CalendarStore.update]. */
     suspend fun canMove(screen: Screen.Edit): Boolean {
         val r = screen.record ?: return true

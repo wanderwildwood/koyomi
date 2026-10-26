@@ -144,6 +144,13 @@ fun EventScreen(model: AppModel, screen: Screen.Event) {
             // The notes can be selected, for Copy and for Define and the other apps that act on
             // text; see TextActions.
             r.description?.let { item { Detail(stringResource(R.string.event_notes), it, selectable = true) } }
+            item {
+                Spacer(Modifier.height(18.dp))
+                OutlinedButtonMMD(
+                    onClick = { model.duplicateEvent(r, screen.begin, screen.end) },
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                ) { TextMMD(text = stringResource(R.string.duplicate), style = MaterialTheme.typography.bodyMedium) }
+            }
             // Said, rather than left as an Edit and a Delete that are simply not there.
             if (!writable) {
                 item { Detail(stringResource(R.string.event_read_only_label), stringResource(R.string.event_read_only)) }
