@@ -42,7 +42,6 @@
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTask"
-            android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -64,7 +63,6 @@
         <activity
             android:name=".RequestActivity"
             android:exported="true"
-            android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.EDIT" />
@@ -134,7 +132,6 @@
             android:name=".alerts.AlertActivity"
             android:exported="false"
             android:excludeFromRecents="true"
-            android:screenOrientation="portrait"
             android:taskAffinity="" />
 
         <receiver
