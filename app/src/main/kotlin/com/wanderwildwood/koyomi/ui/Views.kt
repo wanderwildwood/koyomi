@@ -77,6 +77,17 @@ fun ViewsScreen(model: AppModel) {
         View.AGENDA -> stringResource(R.string.agenda_from, Dates.medium(model.anchor))
     }
 
+    // A swipe down at the top of any view asks DAVx5 and its kind to sync, as Settings' row does;
+    // the line above the view says so in words for a few seconds, and what arrives shows when
+    // the calendar store changes.
+    var asked by remember { mutableStateOf(0) }
+    LaunchedEffect(asked) { if (asked > 0) { delay(3000); asked = 0 } }
+    val pull = {
+        com.wanderwildwood.koyomi.data.CalendarSync.requestNow()
+        asked++
+        Unit
+    }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
@@ -91,6 +102,15 @@ fun ViewsScreen(model: AppModel) {
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
             ViewTabs(model.view, model::show)
+            if (asked > 0) {
+                TextMMD(
+                    text = stringResource(R.string.agenda_sync_asked),
+                    style = MaterialTheme.typography.labelSmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
+                )
+            }
             Box(
                 Modifier
                     .weight(1f)
@@ -98,10 +118,10 @@ fun ViewsScreen(model: AppModel) {
                     .swipePages(model.anchor to model.view, { model.step(false) }, { model.step(true) }),
             ) {
                 when (model.view) {
-                    View.MONTH -> MonthView(model)
-                    View.WEEK -> Timeline(model, (0..6).map { from.plusDays(it.toLong()) })
-                    View.DAY -> Timeline(model, listOf(model.anchor))
-                    View.AGENDA -> AgendaView(model)
+                    View.MONTH -> MonthView(model, pull)
+                    View.WEEK -> Timeline(model, (0..6).map { from.plusDays(it.toLong()) }, pull)
+                    View.DAY -> Timeline(model, listOf(model.anchor), pull)
+                    View.AGENDA -> AgendaView(model, pull)
                 }
             }
             HorizontalDividerMMD(thickness = 1.dp)
@@ -141,7 +161,7 @@ private fun Foot(model: AppModel) {
 // Month
 
 @Composable
-private fun MonthView(model: AppModel) {
+private fun MonthView(model: AppModel, onPull: () -> Unit) {
     val (first, _) = model.range()
     val month = YearMonth.from(model.anchor)
     val showWeeks = model.settings.weekNumbers
@@ -151,7 +171,7 @@ private fun MonthView(model: AppModel) {
     // as Etar does, so the end of one month still says what the start of the next holds.
     val weeks = ((ChronoUnit.DAYS.between(first, month.atDay(1)) + month.lengthOfMonth() + 6) / 7).toInt()
 
-    Column(Modifier.fillMaxSize()) {
+    Column(Modifier.fillMaxSize().swipeVertical(Unit, onUp = onPull, onDown = {})) {
         Row(Modifier.fillMaxWidth().padding(top = 6.dp, bottom = 4.dp)) {
             if (showWeeks) Spacer(Modifier.width(WEEK_COLUMN))
             for (i in 0..6) {
@@ -397,7 +417,7 @@ private fun DashedRule() {
  * event in does not leave room for twenty-four of them.
  */
 @Composable
-private fun Timeline(model: AppModel, days: List<LocalDate>) {
+private fun Timeline(model: AppModel, days: List<LocalDate>, onPull: () -> Unit) {
     val context = LocalContext.current
     val week = days.size > 1
     val today = LocalDate.now()
@@ -447,7 +467,8 @@ private fun Timeline(model: AppModel, days: List<LocalDate>) {
             Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .swipeVertical(model.hours, { model.stepHours(false) }, { model.stepHours(true) }),
+                // On the first third of the day a swipe down has nowhere earlier to go: it asks for a sync.
+                .swipeVertical(model.hours, { if (model.hours == 0) onPull() else model.stepHours(false) }, { model.stepHours(true) }),
         ) {
             BoxWithConstraints(Modifier.weight(1f).fillMaxHeight()) {
                 val hourHeight = maxHeight / 12
@@ -692,7 +713,7 @@ private fun HoursRail(page: Int, onPick: (Int) -> Unit) {
 // Agenda
 
 @Composable
-private fun AgendaView(model: AppModel) {
+private fun AgendaView(model: AppModel, onPull: () -> Unit) {
     val context = LocalContext.current
     val byDay = remember(model.occurrences, model.anchor) {
         val (from, to) = model.range()
@@ -708,35 +729,18 @@ private fun AgendaView(model: AppModel) {
         map
     }
     if (byDay.isEmpty()) {
-        Box(Modifier.fillMaxSize().padding(24.dp)) {
+        Box(Modifier.fillMaxSize().swipeVertical(Unit, onUp = onPull, onDown = {}).padding(24.dp)) {
             TextMMD(text = stringResource(R.string.agenda_empty), style = MaterialTheme.typography.bodyMedium)
         }
         return
     }
     // Six months of days: page dots down the edge once it runs past three screens.
     val state = rememberLazyListState()
-    // A swipe down on the first page asks DAVx5 and its kind to sync, as Settings' row does;
-    // the line above the list says so in words for a few seconds, and the rows change when the
-    // calendar store does.
-    var asked by remember { mutableStateOf(0) }
-    LaunchedEffect(asked) { if (asked > 0) { delay(3000); asked = 0 } }
     Column(Modifier.fillMaxSize()) {
-        if (asked > 0) {
-            TextMMD(
-                text = stringResource(R.string.agenda_sync_asked),
-                style = MaterialTheme.typography.labelSmall,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
-            )
-        }
         ListJumpBox(state, ListJump.Pages) { PagedColumn(
             Modifier.fillMaxSize().padding(horizontal = 16.dp),
             state = state,
-            onPullAtTop = {
-                com.wanderwildwood.koyomi.data.CalendarSync.requestNow()
-                asked++
-            },
+            onPullAtTop = onPull,
         ) {
             byDay.forEach { (day, list) ->
                 item(key = "h$day") {
