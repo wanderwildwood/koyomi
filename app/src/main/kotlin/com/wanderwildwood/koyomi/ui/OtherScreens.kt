@@ -118,6 +118,7 @@ fun SettingsScreen(model: AppModel) {
     val openOn = s.openOn
     val weekStart = s.weekStart
     val weekNumbers = s.weekNumbers
+    val turnWithPhone = s.turnWithPhone
     val wakeScreen = s.wakeScreen
     val lockScreen = s.lockScreen
     val lockScreenNext = s.lockScreenNext
@@ -260,6 +261,12 @@ fun SettingsScreen(model: AppModel) {
             item {
                 SwitchRow(stringResource(R.string.settings_week_numbers), weekNumbers) {
                     s.weekNumbers = it
+                    model.settingsChanged()
+                }
+            }
+            item {
+                SwitchRow(stringResource(R.string.settings_turn), turnWithPhone) {
+                    s.turnWithPhone = it
                     model.settingsChanged()
                 }
             }

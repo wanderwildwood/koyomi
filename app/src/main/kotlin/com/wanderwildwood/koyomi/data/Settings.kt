@@ -35,6 +35,15 @@ class Settings(context: Context) {
         get() = prefs.getInt(DEFAULT_REMINDER, 10)
         set(v) = prefs.edit().putInt(DEFAULT_REMINDER, v).apply()
 
+    /**
+     * Whether the views turn sideways when the phone does. The Kompakt's own settings have no
+     * auto-rotate switch and it starts off, so following the phone alone left landscape out of
+     * reach for nearly everyone.
+     */
+    var turnWithPhone: Boolean
+        get() = prefs.getBoolean(TURN_WITH_PHONE, true)
+        set(v) = prefs.edit().putBoolean(TURN_WITH_PHONE, v).apply()
+
     /** Whether a reminder lights the screen with the event, rather than only notifying. */
     var wakeScreen: Boolean
         get() = prefs.getBoolean(WAKE_SCREEN, true)
@@ -95,5 +104,6 @@ class Settings(context: Context) {
         const val DEFAULT_CALENDAR = "default_calendar"
         const val DEFAULT_REMINDER = "default_reminder"
         const val WAKE_SCREEN = "wake_screen"
+        const val TURN_WITH_PHONE = "turn_with_phone"
     }
 }
