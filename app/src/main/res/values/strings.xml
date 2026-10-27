@@ -227,6 +227,20 @@
     <string name="agenda_sync_asked">Asked DAVx5 to sync</string>
     <string name="settings_default_calendar">New events go in</string>
     <string name="settings_first_calendar">The first that can be written to</string>
+    <string name="settings_all_day">Remind me about all-day events</string>
+    <string name="settings_all_day_off">Off</string>
+    <plurals name="settings_all_day_on">
+        <item quantity="one">On for %1$d calendar</item>
+        <item quantity="other">On for %1$d calendars</item>
+    </plurals>
+    <string name="all_day_which">Which calendar</string>
+    <string name="all_day_note">This app rings these itself, so they work for a calendar that cannot be changed, such as a subscription. Nothing is added to the calendar.</string>
+    <string name="all_day_off">Off</string>
+    <string name="all_day_evening">The evening before</string>
+    <string name="all_day_morning">The morning of</string>
+    <string name="all_day_both">Both</string>
+    <string name="all_day_evening_at">Evening before at %1$s</string>
+    <string name="all_day_morning_at">Morning of at %1$s</string>
     <string name="settings_default_reminder">New events remind</string>
     <string name="settings_open_on">Opens on</string>
     <string name="settings_week_starts">Week starts on</string>
@@ -278,6 +292,8 @@
     <string name="alert_channel">Reminders</string>
     <!-- %1$d is minutes -->
     <string name="alert_snooze">Again in %1$d minutes</string>
+    <string name="alert_tomorrow">Tomorrow: %1$s</string>
+    <string name="alert_today">Today: %1$s</string>
     <string name="alert_dismiss">Dismiss</string>
     <string name="alert_open">Open the event</string>
 
@@ -320,7 +336,4 @@
         <item quantity="other">%d were here already</item>
     </plurals>
     <string name="import_failed">Nothing was added. The calendar did not take them.</string>
-    <string name="list_jump_setting">Letters and page dots</string>
-    <string name="list_jump_shown">Shown</string>
-    <string name="list_jump_hidden">Hidden</string>
 </resources>

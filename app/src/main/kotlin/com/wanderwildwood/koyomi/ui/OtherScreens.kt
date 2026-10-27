@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -123,6 +124,8 @@ fun SettingsScreen(model: AppModel) {
     var aboutOpen by remember { mutableStateOf(false) }
     var pickCalendar by remember { mutableStateOf(false) }
     var pickReminder by remember { mutableStateOf(false) }
+    var allDayPick by remember { mutableStateOf(false) }
+    var allDayFor by remember { mutableStateOf<com.wanderwildwood.koyomi.data.CalendarInfo?>(null) }
 
     // Re-read on every return from the phone's settings, where these are changed.
     var checks by remember { mutableStateOf(0) }
@@ -152,9 +155,8 @@ fun SettingsScreen(model: AppModel) {
             )
         },
     ) { padding ->
-        // Every calendar on the phone is a row here, so with many of them it gets page dots.
         val state = rememberLazyListState()
-        ListJumpBox(state, ListJump.Pages, Modifier.padding(padding)) { PagedColumn(Modifier.fillMaxSize().padding(horizontal = 20.dp), state = state) {
+        PagedColumn(Modifier.padding(padding).fillMaxSize().padding(horizontal = 20.dp), state = state) {
             item { Spacer(Modifier.height(8.dp)) }
 
             // Only what is wrong is shown: a row for a switch that is already on would be
@@ -209,6 +211,17 @@ fun SettingsScreen(model: AppModel) {
             }
             item { Spacer(Modifier.height(10.dp)) }
             item {
+                val on = s.allDayOn().size
+                SettingRow(
+                    stringResource(R.string.settings_all_day),
+                    if (on == 0) stringResource(R.string.settings_all_day_off)
+                    else pluralStringResource(R.plurals.settings_all_day_on, on, on),
+                ) {
+                    val only = model.calendars.singleOrNull()
+                    if (only != null) allDayFor = only else allDayPick = true
+                }
+            }
+            item {
                 val name = model.calendars.firstOrNull { it.id == defaultCalendar }?.name
                 SettingRow(stringResource(R.string.settings_default_calendar), name ?: stringResource(R.string.settings_first_calendar)) { pickCalendar = true }
             }
@@ -249,10 +262,6 @@ fun SettingsScreen(model: AppModel) {
                     s.weekNumbers = it
                     model.settingsChanged()
                 }
-            }
-            item {
-                val jumpShown by rememberListJumpShown()
-                SwitchRow(stringResource(R.string.list_jump_setting), jumpShown) { ListJumpPrefs.setShown(context, it) }
             }
             item {
                 SwitchRow(stringResource(R.string.settings_wake), wakeScreen) {
@@ -300,7 +309,7 @@ fun SettingsScreen(model: AppModel) {
                     }
                 }
             }
-        } }
+        }
     }
 
     if (aboutOpen) AboutDialog(onDismiss = { aboutOpen = false })
@@ -317,6 +326,31 @@ fun SettingsScreen(model: AppModel) {
                 }
             }
         }
+    }
+    if (allDayPick) {
+        EInkDialog(onDismiss = { allDayPick = false }) {
+            TextMMD(text = stringResource(R.string.all_day_which), style = MaterialTheme.typography.bodyLarge)
+            Spacer(Modifier.height(6.dp))
+            model.calendars.forEach { c ->
+                ChoiceRow(c.name, bold = s.allDay(c.id).mode != com.wanderwildwood.koyomi.data.AllDayMode.OFF) {
+                    allDayPick = false
+                    allDayFor = c
+                }
+            }
+        }
+    }
+    allDayFor?.let { c ->
+        AllDayDialog(
+            calendarName = c.name,
+            initial = s.allDay(c.id),
+            onSave = {
+                s.setAllDay(c.id, it)
+                model.settingsChanged()
+                val app = context.applicationContext
+                kotlin.concurrent.thread { com.wanderwildwood.koyomi.alerts.AllDayReminders.check(app) }
+            },
+            onDismiss = { allDayFor = null },
+        )
     }
     if (pickReminder) {
         EInkDialog(onDismiss = { pickReminder = false }) {

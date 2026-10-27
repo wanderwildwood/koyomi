@@ -23,6 +23,7 @@ import com.mudita.mmd.components.buttons.OutlinedButtonMMD
 import com.mudita.mmd.components.text.TextMMD
 import com.wanderwildwood.koyomi.MainActivity
 import com.wanderwildwood.koyomi.R
+import com.wanderwildwood.koyomi.data.AllDayKind
 import com.wanderwildwood.koyomi.data.CalendarStore
 import com.wanderwildwood.koyomi.ui.Dates
 import com.wanderwildwood.koyomi.ui.monochrome
@@ -46,6 +47,7 @@ class AlertActivity : ComponentActivity() {
         val eventId = intent.getLongExtra(Alerts.EXTRA_EVENT, -1)
         val begin = intent.getLongExtra(Alerts.EXTRA_BEGIN, -1)
         val end = intent.getLongExtra(Alerts.EXTRA_END, -1)
+        val kind = AllDayKind.of(intent.getIntExtra(Alerts.EXTRA_KIND, 0))
         val record = CalendarStore(this).event(eventId)
         if (record == null) {
             finish()
@@ -67,7 +69,7 @@ class AlertActivity : ComponentActivity() {
                         // Below where the heads-up notification lands for its few seconds.
                         Spacer(Modifier.height(140.dp))
                         TextMMD(
-                            text = record.title.ifBlank { stringResource(R.string.untitled) },
+                            text = Alerts.titleFor(LocalContext.current, record.title, kind),
                             style = MaterialTheme.typography.headlineMedium,
                         )
                         Spacer(Modifier.height(12.dp))
@@ -81,12 +83,12 @@ class AlertActivity : ComponentActivity() {
                         }
                         Spacer(Modifier.weight(1f))
                         ButtonMMD(
-                            onClick = { inBackground { Alerts.dismiss(applicationContext, eventId, begin) } },
+                            onClick = { inBackground { Alerts.dismiss(applicationContext, eventId, begin, kind) } },
                             modifier = Modifier.fillMaxWidth().height(56.dp),
                         ) { TextMMD(text = stringResource(R.string.alert_dismiss), style = MaterialTheme.typography.bodyMedium) }
                         Spacer(Modifier.height(12.dp))
                         OutlinedButtonMMD(
-                            onClick = { inBackground { Alerts.snooze(applicationContext, eventId, begin, end) } },
+                            onClick = { inBackground { Alerts.snooze(applicationContext, eventId, begin, end, kind) } },
                             modifier = Modifier.fillMaxWidth().height(56.dp),
                         ) {
                             TextMMD(
@@ -102,9 +104,10 @@ class AlertActivity : ComponentActivity() {
                                         .putExtra(Alerts.EXTRA_EVENT, eventId)
                                         .putExtra(Alerts.EXTRA_BEGIN, begin)
                                         .putExtra(Alerts.EXTRA_END, end)
+                                        .also { if (kind != null) it.putExtra(Alerts.EXTRA_KIND, kind.code) }
                                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
                                 )
-                                inBackground { Alerts.dismiss(applicationContext, eventId, begin) }
+                                inBackground { Alerts.dismiss(applicationContext, eventId, begin, kind) }
                             },
                             modifier = Modifier.fillMaxWidth().height(56.dp),
                         ) { TextMMD(text = stringResource(R.string.alert_open), style = MaterialTheme.typography.bodyMedium) }

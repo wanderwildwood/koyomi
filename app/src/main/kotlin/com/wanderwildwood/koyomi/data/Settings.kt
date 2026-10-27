@@ -63,7 +63,28 @@ class Settings(context: Context) {
         get() = prefs.getLong(DURASPEED_STOP_SEEN, 0)
         set(v) = prefs.edit().putLong(DURASPEED_STOP_SEEN, v).apply()
 
+    /** What a calendar does about its all-day events; off until chosen. */
+    fun allDay(calendarId: Long): AllDaySetting = AllDaySetting.decode(prefs.getString("$ALL_DAY$calendarId", null))
+
+    fun setAllDay(calendarId: Long, setting: AllDaySetting) {
+        prefs.edit().apply {
+            if (setting.mode == AllDayMode.OFF) remove("$ALL_DAY$calendarId") else putString("$ALL_DAY$calendarId", setting.encode())
+        }.apply()
+    }
+
+    /** Every calendar that reminds, by id. */
+    fun allDayOn(): Map<Long, AllDaySetting> = prefs.all.keys
+        .filter { it.startsWith(ALL_DAY) }
+        .mapNotNull { key ->
+            val id = key.removePrefix(ALL_DAY).toLongOrNull() ?: return@mapNotNull null
+            val setting = allDay(id)
+            if (setting.mode == AllDayMode.OFF) null else id to setting
+        }
+        .toMap()
+
     private companion object {
+        const val ALL_DAY = "all_day_"
+
         const val DURASPEED_ALLOWED = "duraspeed_allowed"
         const val DURASPEED_STOP_SEEN = "duraspeed_stop_seen"
         const val LOCK_SCREEN = "lock_screen"

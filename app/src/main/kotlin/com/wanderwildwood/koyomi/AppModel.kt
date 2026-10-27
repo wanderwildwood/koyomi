@@ -98,6 +98,8 @@ class AppModel(app: Application) : AndroidViewModel(app) {
         override fun onChange(selfChange: Boolean) {
             // A sync arrives as a burst of changes; one reload after it settles is enough.
             reload(debounce = true)
+            // All-day reminders are worked out from the same events; look them over again too.
+            kotlin.concurrent.thread { com.wanderwildwood.koyomi.alerts.AllDayReminders.check(getApplication<Application>()) }
         }
     }
 

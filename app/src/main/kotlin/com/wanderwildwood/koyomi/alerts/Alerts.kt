@@ -13,6 +13,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.wanderwildwood.koyomi.MainActivity
 import com.wanderwildwood.koyomi.R
+import com.wanderwildwood.koyomi.data.AllDayKind
 import com.wanderwildwood.koyomi.data.CalendarStore
 import com.wanderwildwood.koyomi.data.Settings
 import com.wanderwildwood.koyomi.ui.Dates
@@ -42,6 +43,9 @@ object Alerts {
     const val EXTRA_EVENT = "event_id"
     const val EXTRA_BEGIN = "begin"
     const val EXTRA_END = "end"
+
+    /** Set on a reminder this app made itself for an all-day event; see [AllDayKind]. */
+    const val EXTRA_KIND = "all_day_kind"
 
     const val SNOOZE_MINUTES = 10
 
@@ -99,6 +103,8 @@ object Alerts {
             if (!stale) notify(context, alert)
         }
         scheduleNext(context, now)
+        // The all-day reminders this app keeps for itself ride along on every check.
+        AllDayReminders.check(context)
     }
 
     private fun setState(context: Context, rowId: Long, state: Int) {
@@ -113,7 +119,12 @@ object Alerts {
     }
 
     /** Marks every fired alert for one occurrence dismissed, and takes its notification away. */
-    fun dismiss(context: Context, eventId: Long, begin: Long) {
+    fun dismiss(context: Context, eventId: Long, begin: Long, kind: AllDayKind? = null) {
+        // A reminder this app made for an all-day event has no row in the store to mark.
+        if (kind != null) {
+            context.getSystemService(NotificationManager::class.java).cancel(notificationId(eventId, begin, kind))
+            return
+        }
         runCatching {
             context.contentResolver.update(
                 CalendarAlerts.CONTENT_URI,
@@ -126,8 +137,12 @@ object Alerts {
     }
 
     /** A new alert row, [SNOOZE_MINUTES] from now, which [check] will show like any other. */
-    fun snooze(context: Context, eventId: Long, begin: Long, end: Long) {
-        dismiss(context, eventId, begin)
+    fun snooze(context: Context, eventId: Long, begin: Long, end: Long, kind: AllDayKind? = null) {
+        dismiss(context, eventId, begin, kind)
+        if (kind != null) {
+            AllDayReminders.snooze(context, eventId, begin, kind)
+            return
+        }
         val now = System.currentTimeMillis()
         val at = now + SNOOZE_MINUTES * 60_000L
         runCatching {
@@ -177,20 +192,32 @@ object Alerts {
         }
     }
 
-    fun notificationId(eventId: Long, begin: Long): Int = (eventId * 31 + begin / 60_000).hashCode()
+    fun notificationId(eventId: Long, begin: Long, kind: AllDayKind? = null): Int =
+        (eventId * 31 + begin / 60_000).hashCode().let { if (kind == null) it else it * 31 + kind.code }
 
-    private fun notify(context: Context, alert: Due) {
-        val id = notificationId(alert.eventId, alert.begin)
+    /** "Tomorrow: Bins" and "Today: Bins" for a reminder this app made; the plain title otherwise. */
+    fun titleFor(context: Context, title: String, kind: AllDayKind?): String {
+        val name = title.ifBlank { context.getString(R.string.untitled) }
+        return when (kind) {
+            AllDayKind.EVENING -> context.getString(R.string.alert_tomorrow, name)
+            AllDayKind.MORNING -> context.getString(R.string.alert_today, name)
+            null -> name
+        }
+    }
+
+    internal fun notify(context: Context, alert: Due, kind: AllDayKind? = null) {
+        val id = notificationId(alert.eventId, alert.begin, kind)
         val zone = ZoneId.systemDefault()
         val start = CalendarStore.toLocal(alert.begin, alert.allDay, zone)
         val finish = CalendarStore.toLocal(alert.end, alert.allDay, zone)
         val `when` = Dates.span(context, start, finish, alert.allDay)
         val text = listOfNotNull(`when`, alert.location).joinToString("  ·  ")
-        val title = alert.title.ifBlank { context.getString(R.string.untitled) }
+        val title = titleFor(context, alert.title, kind)
 
         fun extras(i: Intent) = i.putExtra(EXTRA_EVENT, alert.eventId)
             .putExtra(EXTRA_BEGIN, alert.begin)
             .putExtra(EXTRA_END, alert.end)
+            .also { if (kind != null) it.putExtra(EXTRA_KIND, kind.code) }
 
         val open = PendingIntent.getActivity(
             context, id,
@@ -237,7 +264,7 @@ object Alerts {
         }.onFailure { Log.w(TAG, "Could not post the reminder for ${alert.eventId}", it) }
     }
 
-    private data class Due(
+    internal data class Due(
         val id: Long,
         val eventId: Long,
         val begin: Long,
@@ -258,9 +285,11 @@ class AlertReceiver : BroadcastReceiver() {
                 val eventId = intent.getLongExtra(Alerts.EXTRA_EVENT, -1)
                 val begin = intent.getLongExtra(Alerts.EXTRA_BEGIN, -1)
                 val end = intent.getLongExtra(Alerts.EXTRA_END, -1)
+                val kind = AllDayKind.of(intent.getIntExtra(Alerts.EXTRA_KIND, 0))
                 when (intent.action) {
-                    Alerts.ACTION_SNOOZE -> Alerts.snooze(app, eventId, begin, end)
-                    Alerts.ACTION_DISMISS -> Alerts.dismiss(app, eventId, begin)
+                    Alerts.ACTION_SNOOZE -> Alerts.snooze(app, eventId, begin, end, kind)
+                    Alerts.ACTION_DISMISS -> Alerts.dismiss(app, eventId, begin, kind)
+                    AllDayReminders.ACTION -> AllDayReminders.check(app)
                     else -> Alerts.check(app)
                 }
             } finally {

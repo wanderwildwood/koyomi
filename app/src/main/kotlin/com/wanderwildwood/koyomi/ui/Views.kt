@@ -753,10 +753,9 @@ private fun AgendaView(model: AppModel, onPull: () -> Unit) {
         }
         return
     }
-    // Six months of days: page dots down the edge once it runs past three screens.
     val state = rememberLazyListState()
     Column(Modifier.fillMaxSize()) {
-        ListJumpBox(state, ListJump.Pages) { PagedColumn(
+        PagedColumn(
             Modifier.fillMaxSize().padding(horizontal = 16.dp),
             state = state,
             onPullAtTop = onPull,
@@ -784,7 +783,7 @@ private fun AgendaView(model: AppModel, onPull: () -> Unit) {
                     }
                 }
             }
-        } }
+        }
     }
 }
 
