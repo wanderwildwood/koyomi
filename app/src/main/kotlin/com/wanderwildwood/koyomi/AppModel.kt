@@ -192,12 +192,13 @@ class AppModel(app: Application) : AndroidViewModel(app) {
         show(View.DAY)
     }
 
-    fun stepHours(later: Boolean) {
-        hours = (hours + if (later) 1 else -1).coerceIn(0, 2)
+    /** [last] is the last page there is: 2 for twelve-hour pages, 3 for the six-hour ones. */
+    fun stepHours(later: Boolean, last: Int = 2) {
+        hours = (hours.coerceAtMost(last) + if (later) 1 else -1).coerceIn(0, last)
     }
 
     fun showHours(page: Int) {
-        hours = page.coerceIn(0, 2)
+        hours = page.coerceIn(0, 3)
     }
 
     fun push(screen: Screen) {

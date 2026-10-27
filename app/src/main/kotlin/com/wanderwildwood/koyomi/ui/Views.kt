@@ -8,6 +8,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -36,6 +37,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -315,7 +317,7 @@ private fun MonthWeek(
                         }
                         .padding(horizontal = 2.dp),
                 ) {
-                    Box(Modifier.height(NUMBER_ROW), contentAlignment = Alignment.CenterStart) {
+                    Row(Modifier.height(NUMBER_ROW), verticalAlignment = Alignment.CenterVertically) {
                         Box(
                             modifier = Modifier
                                 .background(if (date == today) Color.Black else Color.White, RoundedCornerShape(5.dp))
@@ -328,6 +330,15 @@ private fun MonthWeek(
                                 // there is no grey to set them back with.
                                 fontWeight = if (inMonth || date == today) FontWeight.Bold else FontWeight.Normal,
                                 color = if (date == today) Color.White else Color.Black,
+                            )
+                        }
+                        // A cell with no line to spare (the month on its side) still says how
+                        // many events the day holds, beside its number.
+                        if (room == 0 && timed.size + barLanes.size > 0) {
+                            TextMMD(
+                                text = "+${timed.size + barLanes.size}",
+                                style = lineStyle,
+                                modifier = Modifier.padding(start = 4.dp),
                             )
                         }
                     }
@@ -421,7 +432,13 @@ private fun Timeline(model: AppModel, days: List<LocalDate>, onPull: () -> Unit)
     val context = LocalContext.current
     val week = days.size > 1
     val today = LocalDate.now()
-    val startHour = listOf(0, 8, 12)[model.hours]
+    // On its side the screen is about half as tall, so a page is six hours, not twelve: an hour
+    // twelve to the screen leaves no room for its own label.
+    val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val span = if (landscape) 6 else 12
+    val starts = if (landscape) listOf(0, 6, 12, 18) else listOf(0, 8, 12)
+    val page = model.hours.coerceAtMost(starts.lastIndex)
+    val startHour = starts[page]
     val rangeStart = LocalTime.of(startHour, 0)
 
     var now by remember { mutableStateOf(LocalDateTime.now()) }
@@ -468,12 +485,12 @@ private fun Timeline(model: AppModel, days: List<LocalDate>, onPull: () -> Unit)
                 .weight(1f)
                 .fillMaxWidth()
                 // On the first third of the day a swipe down has nowhere earlier to go: it asks for a sync.
-                .swipeVertical(model.hours, { if (model.hours == 0) onPull() else model.stepHours(false) }, { model.stepHours(true) }),
+                .swipeVertical(page to span, { if (page == 0) onPull() else model.stepHours(false, starts.lastIndex) }, { model.stepHours(true, starts.lastIndex) }),
         ) {
             BoxWithConstraints(Modifier.weight(1f).fillMaxHeight()) {
-                val hourHeight = maxHeight / 12
+                val hourHeight = maxHeight / span
                 // Hour lines and labels.
-                for (i in 0 until 12) {
+                for (i in 0 until span) {
                     Row(Modifier.offset(y = hourHeight * i).fillMaxWidth().height(hourHeight)) {
                         TextMMD(
                             text = Dates.hour(context, startHour + i),
@@ -489,6 +506,7 @@ private fun Timeline(model: AppModel, days: List<LocalDate>, onPull: () -> Unit)
                             date = d,
                             occurrences = model.occurrences.filter { !it.allDay && it.firstDay == it.lastDay && it.firstDay == d },
                             rangeStart = rangeStart,
+                            span = span,
                             hourHeight = hourHeight,
                             now = now,
                             showTimes = !week,
@@ -499,7 +517,7 @@ private fun Timeline(model: AppModel, days: List<LocalDate>, onPull: () -> Unit)
                     }
                 }
             }
-            HoursRail(model.hours, model::showHours)
+            HoursRail(page, starts.size) { model.showHours(it) }
         }
     }
 }
@@ -562,6 +580,7 @@ private fun DayColumn(
     date: LocalDate,
     occurrences: List<Occurrence>,
     rangeStart: LocalTime,
+    span: Int,
     hourHeight: Dp,
     now: LocalDateTime,
     showTimes: Boolean,
@@ -571,7 +590,7 @@ private fun DayColumn(
 ) {
     val context = LocalContext.current
     val startMin = rangeStart.toSecondOfDay() / 60
-    val endMin = startMin + 12 * 60
+    val endMin = startMin + span * 60
     val laid = remember(occurrences) { layOut(occurrences) }
 
     BoxWithConstraints(
@@ -690,17 +709,17 @@ internal fun layOut(events: List<Occurrence>): List<Triple<Occurrence, Int, Int>
 
 /** Three marks down the edge, one per third of the day; the filled one is showing. */
 @Composable
-private fun HoursRail(page: Int, onPick: (Int) -> Unit) {
+private fun HoursRail(page: Int, count: Int, onPick: (Int) -> Unit) {
     Column(
         modifier = Modifier.width(RAIL_WIDTH).fillMaxHeight(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        for (i in 0..2) {
+        for (i in 0 until count) {
             Box(
                 Modifier
-                    .padding(vertical = 4.dp)
-                    .size(width = 8.dp, height = 56.dp)
+                    .padding(vertical = if (count > 3) 2.dp else 4.dp)
+                    .size(width = 8.dp, height = if (count > 3) 24.dp else 56.dp)
                     .background(if (i == page) Color.Black else Color.White, RoundedCornerShape(4.dp))
                     .border(1.dp, Color.Black, RoundedCornerShape(4.dp))
                     .clickable { onPick(i) },
