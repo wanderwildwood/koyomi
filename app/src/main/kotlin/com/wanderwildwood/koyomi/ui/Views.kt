@@ -754,6 +754,8 @@ private fun AgendaView(model: AppModel, onPull: () -> Unit) {
         return
     }
     val state = rememberLazyListState()
+    // Today goes back to the first page, even when the anchor was already today.
+    LaunchedEffect(model.todayPresses) { if (model.todayPresses > 0) state.scrollToItem(0) }
     Column(Modifier.fillMaxSize()) {
         PagedColumn(
             Modifier.fillMaxSize().padding(horizontal = 16.dp),

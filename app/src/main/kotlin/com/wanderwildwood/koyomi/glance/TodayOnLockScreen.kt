@@ -25,9 +25,9 @@ class TodayOnLockScreen : GlanceProvider() {
         val all = CalendarStore(context).occurrences(today, today)
         val allDay = all.filter { it.allDay }.sortedBy { it.title.lowercase() }
         val timed = all.filter { !it.allDay && it.finish.isAfter(now) }.sortedBy { it.start }
-        // Glance's lead column is 64dp, which holds "12:30" but not "12:30 PM", so the lead
-        // leaves AM and PM out, as Glance's own Today does.
-        val time = DateTimeFormatter.ofPattern(if (DateFormat.is24HourFormat(context)) "H:mm" else "h:mm")
+        // Follows the phone's 12/24-hour setting with AM and PM, as Glance's own Today does since
+        // its 0.1.27: a bare "10:15" on a 12-hour phone could be morning or night.
+        val time = DateTimeFormatter.ofPattern(if (DateFormat.is24HourFormat(context)) "H:mm" else "h:mm a")
         val lines = allDay.map { Line(text = it.title, lead = context.getString(R.string.lock_all_day)) } +
             timed.map {
                 // An event under way since before today says so rather than giving yesterday's time.

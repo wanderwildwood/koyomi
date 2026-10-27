@@ -5,6 +5,7 @@ import android.Manifest
 import android.app.Application
 import android.content.Intent
 import android.os.Bundle
+import android.os.SystemClock
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -34,6 +35,10 @@ class KoyomiApp : Application() {
 }
 
 class MainActivity : ComponentActivity() {
+    private companion object {
+        const val AWAY_MS = 5 * 60 * 1000L
+    }
+
     private val model: AppModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,6 +61,22 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         model.permissionsChanged()
+    }
+
+    /** When the app was last left; 0 while it is in front. */
+    private var leftAt = 0L
+
+    override fun onStop() {
+        super.onStop()
+        leftAt = SystemClock.elapsedRealtime()
+    }
+
+    // Opening Calendar again after a while away starts on the view chosen in Settings, at today,
+    // as it does after a fresh start. A quick look elsewhere and back keeps the place.
+    override fun onStart() {
+        super.onStart()
+        if (leftAt > 0 && SystemClock.elapsedRealtime() - leftAt >= AWAY_MS) model.reopen()
+        leftAt = 0L
     }
 
     /** A reminder that was pressed opens its event. */

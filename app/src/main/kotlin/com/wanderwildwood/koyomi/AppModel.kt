@@ -172,9 +172,27 @@ class AppModel(app: Application) : AndroidViewModel(app) {
         reload()
     }
 
+    /**
+     * Bumped by every press of Today. The anchor alone cannot say "go back": when it already is
+     * today nothing changes, and a list paged down (the Agenda) would stay where it was.
+     */
+    var todayPresses by mutableStateOf(0)
+        private set
+
     fun today() {
         hours = initialHours()
+        todayPresses++
         goTo(LocalDate.now())
+    }
+
+    /**
+     * Back after a while away: the view the reader chose to open on, at today. Only when nothing
+     * is open over the views, so an event or a draft being written is never thrown away.
+     */
+    fun reopen() {
+        if (stack.isNotEmpty()) return
+        view = settings.openOn
+        today()
     }
 
     fun step(forward: Boolean) {
