@@ -4,7 +4,6 @@ import com.wanderwildwood.koyomi.ui.backTarget
 import android.Manifest
 import android.app.Application
 import android.content.Intent
-import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.os.SystemClock
 import androidx.activity.ComponentActivity
@@ -41,15 +40,17 @@ class MainActivity : ComponentActivity() {
     }
 
     private val model: AppModel by viewModels()
+    private val turner = TurnWithPhone(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        turner.set(model.settings.turnWithPhone)
         openFrom(intent)
         // Catch anything due while the app was away, and set the next alarm.
         thread { Alerts.check(applicationContext) }
         setContent {
             // Read again whenever a setting changes, so the switch takes effect at once.
-            LaunchedEffect(model.settingsVersion) { turnWithPhone() }
+            LaunchedEffect(model.settingsVersion) { turner.set(model.settings.turnWithPhone) }
             ThemeMMD(colorScheme = monochrome) {
                 Koyomi(model)
             }
@@ -64,6 +65,12 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         model.permissionsChanged()
+        turner.resume()
+    }
+
+    override fun onPause() {
+        turner.pause()
+        super.onPause()
     }
 
     /** When the app was last left; 0 while it is in front. */
@@ -80,18 +87,6 @@ class MainActivity : ComponentActivity() {
         super.onStart()
         if (leftAt > 0 && SystemClock.elapsedRealtime() - leftAt >= AWAY_MS) model.reopen()
         leftAt = 0L
-    }
-
-    /**
-     * Sideways with the phone by the sensor itself when the setting is on, since the Kompakt
-     * gives no way to switch its own auto-rotate on; otherwise as the phone's setting says.
-     */
-    private fun turnWithPhone() {
-        requestedOrientation = if (model.settings.turnWithPhone) {
-            ActivityInfo.SCREEN_ORIENTATION_SENSOR
-        } else {
-            ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-        }
     }
 
     /** A reminder that was pressed opens its event. */
