@@ -10,6 +10,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalCursorBlinkEnabled
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.Composable
@@ -49,10 +51,14 @@ class MainActivity : ComponentActivity() {
         // Catch anything due while the app was away, and set the next alarm.
         thread { Alerts.check(applicationContext) }
         setContent {
-            // Read again whenever a setting changes, so the switch takes effect at once.
-            LaunchedEffect(model.settingsVersion) { turner.set(model.settings.turnWithPhone) }
-            ThemeMMD(colorScheme = monochrome) {
-                Koyomi(model)
+            // A steady cursor: a blinking one is a repaint twice a second on an e-ink panel
+            // for as long as a field has focus.
+            CompositionLocalProvider(LocalCursorBlinkEnabled provides false) {
+                // Read again whenever a setting changes, so the switch takes effect at once.
+                LaunchedEffect(model.settingsVersion) { turner.set(model.settings.turnWithPhone) }
+                ThemeMMD(colorScheme = monochrome) {
+                    Koyomi(model)
+                }
             }
         }
     }

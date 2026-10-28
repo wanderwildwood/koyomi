@@ -132,7 +132,9 @@ fun RepeatScreen(model: AppModel) {
                                 val on = day in rule.weekdays
                                 Box(
                                     modifier = Modifier
-                                        .size(40.dp)
+                                        .weight(1f)
+                                        .height(48.dp)
+                                        .padding(horizontal = 2.dp)
                                         .background(if (on) Color.Black else Color.White, RoundedCornerShape(6.dp))
                                         .border(1.dp, Color.Black, RoundedCornerShape(6.dp))
                                         .clickable {
