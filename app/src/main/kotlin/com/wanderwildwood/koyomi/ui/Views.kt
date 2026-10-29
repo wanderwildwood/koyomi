@@ -20,6 +20,9 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -72,10 +75,11 @@ import java.time.temporal.WeekFields
 fun ViewsScreen(model: AppModel) {
     @Suppress("UNUSED_VARIABLE") val v = model.settingsVersion
     val (from, to) = model.range()
+    val sideways = onItsSide()
     val title = when (model.view) {
         View.MONTH -> Dates.month(YearMonth.from(model.anchor))
         View.WEEK -> "${Dates.short(from)} – ${Dates.short(to)}"
-        View.DAY -> Dates.dayTitle(model.anchor)
+        View.DAY -> if (sideways) Dates.medium(model.anchor) else Dates.dayTitle(model.anchor)
         View.AGENDA -> stringResource(R.string.agenda_from, Dates.medium(model.anchor))
     }
 
@@ -88,6 +92,70 @@ fun ViewsScreen(model: AppModel) {
         com.wanderwildwood.koyomi.data.CalendarSync.requestNow()
         asked++
         Unit
+    }
+
+    val body: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit = {
+        if (asked > 0) {
+            TextMMD(
+                text = stringResource(R.string.agenda_sync_asked),
+                style = MaterialTheme.typography.labelSmall,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = if (sideways) 2.dp else 6.dp),
+            )
+        }
+        Box(
+            Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .swipePages(model.anchor to model.view, { model.step(false) }, { model.step(true) }),
+        ) {
+            when (model.view) {
+                View.MONTH -> MonthView(model, pull)
+                View.WEEK -> Timeline(model, (0..6).map { from.plusDays(it.toLong()) }, pull)
+                View.DAY -> Timeline(model, listOf(model.anchor), pull)
+                View.AGENDA -> AgendaView(model, pull)
+            }
+        }
+    }
+
+    if (sideways) {
+        // On its side the screen is short, so the title, the four views and the two buttons
+        // share one line and the way through the calendar moves to a column at the right:
+        // everything the portrait screen spends two bars and a foot on is a single 48 dp line.
+        Scaffold(containerColor = MaterialTheme.colorScheme.surface) { padding ->
+            Column(Modifier.fillMaxSize().padding(padding)) {
+                Row(
+                    Modifier.fillMaxWidth().height(SIDEWAYS_HEADER).padding(start = 12.dp, end = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    TextMMD(
+                        text = title,
+                        style = MaterialTheme.typography.titleLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                    CompactTabs(model.view, model::show)
+                    BarButton(Icons.Search, stringResource(R.string.cd_search)) { model.push(Screen.Search) }
+                    BarButton(Icons.Settings, stringResource(R.string.cd_settings)) { model.push(Screen.Settings) }
+                }
+                Row(Modifier.fillMaxSize()) {
+                    Column(Modifier.weight(1f).fillMaxHeight()) { body() }
+                    Column(
+                        Modifier.width(64.dp).fillMaxHeight(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        BarButton(Icons.ChevronLeft, stringResource(R.string.cd_previous)) { model.step(false) }
+                        TodayButton(model, Modifier.size(width = 64.dp, height = 48.dp))
+                        BarButton(Icons.ChevronRight, stringResource(R.string.cd_next)) { model.step(true) }
+                        BarButton(Icons.Add, stringResource(R.string.cd_add)) { model.newEvent() }
+                    }
+                }
+            }
+        }
+        return
     }
 
     Scaffold(
@@ -104,30 +172,53 @@ fun ViewsScreen(model: AppModel) {
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
             ViewTabs(model.view, model::show)
-            if (asked > 0) {
-                TextMMD(
-                    text = stringResource(R.string.agenda_sync_asked),
-                    style = MaterialTheme.typography.labelSmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
-                )
-            }
-            Box(
-                Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .swipePages(model.anchor to model.view, { model.step(false) }, { model.step(true) }),
-            ) {
-                when (model.view) {
-                    View.MONTH -> MonthView(model, pull)
-                    View.WEEK -> Timeline(model, (0..6).map { from.plusDays(it.toLong()) }, pull)
-                    View.DAY -> Timeline(model, listOf(model.anchor), pull)
-                    View.AGENDA -> AgendaView(model, pull)
-                }
-            }
+            body()
             HorizontalDividerMMD(thickness = 1.dp)
             Foot(model)
+        }
+    }
+}
+
+/** True while the screen is wider than it is tall. */
+@Composable
+internal fun onItsSide(): Boolean = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+private val SIDEWAYS_HEADER = 48.dp
+
+@Composable
+private fun TodayButton(model: AppModel, modifier: Modifier) {
+    Box(modifier.clickable { model.today() }, contentAlignment = Alignment.Center) {
+        TextMMD(text = stringResource(R.string.today), style = MaterialTheme.typography.bodyMedium, maxLines = 1, softWrap = false)
+    }
+}
+
+/**
+ * The same four stones as [StoneTabs] at the same size of type, on a 48 dp line with no rule
+ * beneath, for the header of the screen on its side.
+ */
+@Composable
+private fun CompactTabs(current: View, onPick: (View) -> Unit) {
+    val views = listOf(View.MONTH, View.WEEK, View.DAY, View.AGENDA)
+    val labels = listOf(R.string.view_month, R.string.view_week, R.string.view_day, R.string.view_agenda)
+        .map { stringResource(it) }
+    val style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+    Row(
+        Modifier.selectableGroup(),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        labels.forEachIndexed { i, label ->
+            val chosen = views[i] == current
+            Box(
+                Modifier
+                    .height(40.dp)
+                    .then(if (chosen) Modifier.background(Color.Black, RoundedCornerShape(4.dp)) else Modifier)
+                    .selectable(selected = chosen, role = Role.Tab, onClick = { onPick(views[i]) })
+                    .padding(horizontal = 9.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                TextMMD(text = label, style = style, color = if (chosen) Color.White else Color.Black, maxLines = 1, softWrap = false)
+            }
         }
     }
 }
@@ -147,12 +238,7 @@ private fun Foot(model: AppModel) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         BarButton(Icons.ChevronLeft, stringResource(R.string.cd_previous)) { model.step(false) }
-        Box(
-            Modifier.height(48.dp).clickable { model.today() }.padding(horizontal = 12.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            TextMMD(text = stringResource(R.string.today), style = MaterialTheme.typography.bodyMedium)
-        }
+        TodayButton(model, Modifier.height(48.dp).padding(horizontal = 12.dp))
         BarButton(Icons.ChevronRight, stringResource(R.string.cd_next)) { model.step(true) }
         Spacer(Modifier.weight(1f))
         BarButton(Icons.Add, stringResource(R.string.cd_add)) { model.newEvent() }
@@ -174,7 +260,8 @@ private fun MonthView(model: AppModel, onPull: () -> Unit) {
     val weeks = ((ChronoUnit.DAYS.between(first, month.atDay(1)) + month.lengthOfMonth() + 6) / 7).toInt()
 
     Column(Modifier.fillMaxSize().swipeVertical(Unit, onUp = onPull, onDown = {})) {
-        Row(Modifier.fillMaxWidth().padding(top = 6.dp, bottom = 4.dp)) {
+        val sideways = onItsSide()
+        Row(Modifier.fillMaxWidth().padding(top = if (sideways) 2.dp else 6.dp, bottom = if (sideways) 1.dp else 4.dp)) {
             if (showWeeks) Spacer(Modifier.width(WEEK_COLUMN))
             for (i in 0..6) {
                 TextMMD(
@@ -221,6 +308,9 @@ private val WEEK_COLUMN = 28.dp
  * Etar's density, 2026-09-26.
  */
 private val LINE = 13.dp
+
+/** How many event lines a cell [height] dp tall holds under its [number] row of [line] dp lines. */
+internal fun monthRoom(height: Float, number: Float, line: Float): Int = ((height - number) / line).toInt().coerceAtLeast(0)
 
 /** The day's number at the top of its cell. */
 private val NUMBER_ROW = 17.dp
@@ -282,7 +372,7 @@ private fun MonthWeek(
     BoxWithConstraints(modifier) {
         val cell = maxWidth / 7
         val textWidthPx = with(density) { (cell - 4.dp).toPx() }
-        val room = ((maxHeight - NUMBER_ROW) / LINE).toInt().coerceAtLeast(0)
+        val room = monthRoom(maxHeight.value, NUMBER_ROW.value, LINE.value)
         val laneCount = (bars.maxOfOrNull { it.lane } ?: -1) + 1
         // Bars keep their lane all the way across. If the week has more lanes than a day has
         // lines, the last line is kept back for "+N".
@@ -453,13 +543,10 @@ private fun Timeline(model: AppModel, days: List<LocalDate>, onPull: () -> Unit)
 
     Column(Modifier.fillMaxSize()) {
         if (week) {
-            Row(Modifier.fillMaxWidth().padding(top = 4.dp)) {
+            Row(Modifier.fillMaxWidth().padding(top = if (landscape) 0.dp else 4.dp)) {
                 Spacer(Modifier.width(HOUR_COLUMN))
                 days.forEach { d ->
-                    Column(
-                        modifier = Modifier.weight(1f).clickable { model.openDay(d) }.padding(vertical = 2.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
+                    val head: @Composable () -> Unit = {
                         TextMMD(text = Dates.weekdayNarrow(d), style = MaterialTheme.typography.labelSmall)
                         Box(
                             Modifier.size(28.dp).background(if (d == today) Color.Black else Color.White, RoundedCornerShape(6.dp)),
@@ -471,6 +558,19 @@ private fun Timeline(model: AppModel, days: List<LocalDate>, onPull: () -> Unit)
                                 color = if (d == today) Color.White else Color.Black,
                             )
                         }
+                    }
+                    // On its side the letter and the number share a line, to save the height.
+                    if (landscape) {
+                        Row(
+                            modifier = Modifier.weight(1f).clickable { model.openDay(d) },
+                            horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) { head() }
+                    } else {
+                        Column(
+                            modifier = Modifier.weight(1f).clickable { model.openDay(d) }.padding(vertical = 2.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) { head() }
                     }
                 }
                 Spacer(Modifier.width(RAIL_WIDTH))
