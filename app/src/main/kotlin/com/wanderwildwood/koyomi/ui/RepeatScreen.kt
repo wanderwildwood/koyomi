@@ -127,31 +127,17 @@ fun RepeatScreen(model: AppModel) {
                     item {
                         Section(stringResource(R.string.repeat_on_days))
                         val first = model.settings.weekStart
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            (0L..6L).map { first.plus(it) }.forEach { day ->
-                                val on = day in rule.weekdays
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .height(48.dp)
-                                        .padding(horizontal = 2.dp)
-                                        .background(if (on) Color.Black else Color.White, RoundedCornerShape(6.dp))
-                                        .border(1.dp, Color.Black, RoundedCornerShape(6.dp))
-                                        .clickable {
-                                            // Never none: a weekly rule with no day is not a rule.
-                                            val next = if (on) rule.weekdays - day else rule.weekdays + day
-                                            if (next.isNotEmpty()) rule = rule.copy(weekdays = next)
-                                        },
-                                    contentAlignment = Alignment.Center,
-                                ) {
-                                    TextMMD(
-                                        text = day.getDisplayName(TextStyle.SHORT, Locale.getDefault()).take(2),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = if (on) Color.White else Color.Black,
-                                    )
-                                }
-                            }
-                        }
+                        val days = (0L..6L).map { first.plus(it) }
+                        HouseMultiChoiceRow(
+                            options = days.map { it.getDisplayName(TextStyle.SHORT, Locale.getDefault()).take(2) },
+                            selected = days.indices.filter { days[it] in rule.weekdays }.toSet(),
+                            onChange = { picked ->
+                                // Never none: a weekly rule with no day is not a rule.
+                                val next = days.filterIndexed { i, _ -> i in picked }.toSet()
+                                if (next.isNotEmpty()) rule = rule.copy(weekdays = next)
+                            },
+                            compact = true,
+                        )
                     }
                 }
 
@@ -245,13 +231,5 @@ private fun Stepper(text: String, onLess: () -> Unit, onMore: () -> Unit) {
 
 @Composable
 private fun StepButton(label: String, onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .size(48.dp)
-            .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        TextMMD(text = label, style = MaterialTheme.typography.titleLarge)
-    }
+    HouseButton(label, onClick, Modifier.size(48.dp), compact = true)
 }
