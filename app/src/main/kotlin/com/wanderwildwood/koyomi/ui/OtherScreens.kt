@@ -33,6 +33,7 @@ import androidx.core.app.NotificationManagerCompat
 import com.mudita.mmd.components.buttons.ButtonMMD
 import com.mudita.mmd.components.text.TextMMD
 import com.mudita.mmd.components.text_field.TextFieldMMD
+import com.mudita.mmd.components.buttons.OutlinedButtonMMD
 import com.mudita.mmd.components.top_app_bar.TopAppBarMMD
 import com.wanderwildwood.koyomi.AppModel
 import com.wanderwildwood.koyomi.R
@@ -201,7 +202,7 @@ fun SettingsScreen(model: AppModel) {
             // should not have to open the syncing app to say so. Asked on the forum.
             item {
                 var asked by remember { mutableStateOf(false) }
-                LaunchedEffect(asked) { if (asked) { delay(4000); asked = false } }
+                LaunchedEffect(asked) { if (asked) { delay(6000); asked = false } }
                 SettingRow(
                     stringResource(R.string.settings_sync_now),
                     stringResource(if (asked) R.string.settings_sync_asked else R.string.settings_sync_now_hint),
@@ -306,14 +307,7 @@ fun SettingsScreen(model: AppModel) {
                     stringResource(R.string.settings_update),
                     stringResource(R.string.settings_update_note, com.wanderwildwood.koyomi.BuildConfig.VERSION_NAME),
                 ) {
-                    runCatching {
-                        context.startActivity(
-                            Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/wanderwildwood/koyomi/releases/latest"))
-                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-                        )
-                    }.onFailure {
-                        Toast.makeText(context, context.getString(R.string.about_no_browser), Toast.LENGTH_SHORT).show()
-                    }
+                    openLink(context, "https://github.com/wanderwildwood/koyomi/releases/latest", context.getString(R.string.about_no_browser_address, "github.com/wanderwildwood/koyomi/releases/latest"))
                 }
             }
         }
@@ -404,11 +398,7 @@ private fun LazyListScope.calendarSwitches(model: AppModel) {
                 style = MaterialTheme.typography.labelSmall,
                 modifier = Modifier
                     .clickable {
-                        runCatching {
-                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.davx5.com")))
-                        }.onFailure {
-                            Toast.makeText(context, context.getString(R.string.about_no_browser), Toast.LENGTH_SHORT).show()
-                        }
+                        openLink(context, "https://www.davx5.com", context.getString(R.string.about_no_browser_address, "www.davx5.com"))
                     }
                     .padding(vertical = 8.dp),
             )
@@ -448,21 +438,42 @@ private fun LazyListScope.calendarSwitches(model: AppModel) {
 // ----------------------------------------------------------------------------------------
 // Permission
 
-/** Shown until calendar access is granted: what the app needs it for, and one button. */
+/**
+ * Shown until calendar access is granted: what the app needs it for, one button, and About
+ * (Privacy, Terms, Licences) so those can be read before anything is allowed. After a refusal it
+ * says so and offers the app's own settings, because Android stops asking after two.
+ */
 @Composable
-fun PermissionScreen(onAllow: () -> Unit) {
+fun PermissionScreen(denied: Boolean, onAllow: () -> Unit, onOpenSettings: () -> Unit) {
+    var aboutOpen by remember { mutableStateOf(false) }
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
-        topBar = { TopAppBarMMD(title = { TextMMD(text = stringResource(R.string.app_name)) }) },
+        topBar = {
+            TopAppBarMMD(
+                title = { TextMMD(text = stringResource(R.string.app_name)) },
+                actions = { BarButton(Icons.Info, stringResource(R.string.cd_about)) { aboutOpen = true } },
+            )
+        },
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).padding(20.dp)) {
             TextMMD(text = stringResource(R.string.permission_why), style = MaterialTheme.typography.bodyMedium)
             Spacer(Modifier.height(14.dp))
             TextMMD(text = stringResource(R.string.permission_davx5), style = MaterialTheme.typography.labelSmall)
+            if (denied) {
+                Spacer(Modifier.height(14.dp))
+                TextMMD(text = stringResource(R.string.permission_denied), style = MaterialTheme.typography.bodyMedium)
+            }
             Spacer(Modifier.height(24.dp))
             ButtonMMD(onClick = onAllow, modifier = Modifier.fillMaxWidth().height(48.dp)) {
                 TextMMD(text = stringResource(R.string.permission_allow), style = MaterialTheme.typography.bodySmall)
             }
+            if (denied) {
+                Spacer(Modifier.height(12.dp))
+                OutlinedButtonMMD(onClick = onOpenSettings, modifier = Modifier.fillMaxWidth().height(48.dp)) {
+                    TextMMD(text = stringResource(R.string.permission_open_settings), style = MaterialTheme.typography.bodySmall)
+                }
+            }
         }
     }
+    if (aboutOpen) AboutDialog(onDismiss = { aboutOpen = false })
 }

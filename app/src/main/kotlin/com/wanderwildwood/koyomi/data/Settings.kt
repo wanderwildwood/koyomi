@@ -51,7 +51,7 @@ class Settings(context: Context) {
 
     /** Whether today's events are handed to Glance for the lock screen. */
     var lockScreen: Boolean
-        get() = prefs.getBoolean(LOCK_SCREEN, true)
+        get() = prefs.getBoolean(LOCK_SCREEN, false)
         set(v) = prefs.edit().putBoolean(LOCK_SCREEN, v).apply()
 
     /**

@@ -17,6 +17,8 @@ import androidx.activity.viewModels
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalConfiguration
 import android.content.res.Configuration
 import androidx.core.view.WindowInsetsCompat
@@ -131,19 +133,32 @@ class MainActivity : ComponentActivity() {
  */
 @Composable
 internal fun Koyomi(model: AppModel, finish: (() -> Unit)? = null) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var denied by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
     val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         model.permissionsChanged()
+        denied = !model.canRead
     }
     if (!model.canRead) {
-        PermissionScreen {
-            ask.launch(
-                arrayOf(
-                    Manifest.permission.READ_CALENDAR,
-                    Manifest.permission.WRITE_CALENDAR,
-                    "android.permission.POST_NOTIFICATIONS",
-                ),
-            )
-        }
+        PermissionScreen(
+            denied = denied,
+            onAllow = {
+                ask.launch(
+                    arrayOf(
+                        Manifest.permission.READ_CALENDAR,
+                        Manifest.permission.WRITE_CALENDAR,
+                        "android.permission.POST_NOTIFICATIONS",
+                    ),
+                )
+            },
+            onOpenSettings = {
+                runCatching {
+                    context.startActivity(
+                        Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:${context.packageName}")),
+                    )
+                }
+            },
+        )
         return
     }
 

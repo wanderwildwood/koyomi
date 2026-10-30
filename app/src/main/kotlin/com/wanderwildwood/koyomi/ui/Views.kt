@@ -307,17 +307,17 @@ private val WEEK_COLUMN = 28.dp
  * sets it, it holds four, which is what makes a month readable at a glance. He asked for
  * Etar's density, 2026-09-26.
  */
-private val LINE = 13.dp
+private val LINE = 16.dp
 
 /** How many event lines a cell [height] dp tall holds under its [number] row of [line] dp lines. */
 internal fun monthRoom(height: Float, number: Float, line: Float): Int = ((height - number) / line).toInt().coerceAtLeast(0)
 
 /** The day's number at the top of its cell. */
-private val NUMBER_ROW = 17.dp
-private val NUMBER_ROW_SIDEWAYS = 15.dp
+private val NUMBER_ROW = 19.dp
+private val NUMBER_ROW_SIDEWAYS = 17.dp
 
 @Composable
-private fun monthStyle() = MaterialTheme.typography.labelSmall.copy(fontSize = 12.sp, lineHeight = 13.sp)
+private fun monthStyle() = MaterialTheme.typography.labelSmall.copy(fontSize = 14.sp, lineHeight = 16.sp)
 
 /** An all-day or multi-day event laid across a week: first and last column, and its lane. */
 internal data class Bar(val occurrence: Occurrence, val from: Int, val to: Int, val lane: Int)
@@ -418,7 +418,7 @@ private fun MonthWeek(
                         ) {
                             TextMMD(
                                 text = date.dayOfMonth.toString(),
-                                style = lineStyle.copy(fontSize = 13.sp),
+                                style = lineStyle.copy(fontSize = 14.sp),
                                 // The month's own days in bold; the neighbours' plain, since
                                 // there is no grey to set them back with.
                                 fontWeight = if (inMonth || date == today) FontWeight.Bold else FontWeight.Normal,
@@ -482,7 +482,7 @@ private fun MonthWeek(
             ) {
                 TextMMD(
                     text = bar.occurrence.title.ifBlank { stringResource(R.string.untitled) },
-                    style = lineStyle.copy(lineHeight = 12.sp),
+                    style = lineStyle.copy(lineHeight = 14.sp),
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
                     maxLines = 1,

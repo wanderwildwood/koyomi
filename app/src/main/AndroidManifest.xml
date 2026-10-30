@@ -27,6 +27,11 @@
         <intent>
             <action android:name="android.provider.calendar.action.HANDLE_CUSTOM_EVENT" />
         </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="https" />
+        </intent>
     </queries>
 
     <application
