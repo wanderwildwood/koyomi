@@ -261,7 +261,7 @@ private fun MonthView(model: AppModel, onPull: () -> Unit) {
 
     Column(Modifier.fillMaxSize().swipeVertical(Unit, onUp = onPull, onDown = {})) {
         val sideways = onItsSide()
-        Row(Modifier.fillMaxWidth().padding(top = if (sideways) 2.dp else 6.dp, bottom = if (sideways) 1.dp else 4.dp)) {
+        Row(Modifier.fillMaxWidth().padding(top = if (sideways) 0.dp else 6.dp, bottom = if (sideways) 0.dp else 4.dp)) {
             if (showWeeks) Spacer(Modifier.width(WEEK_COLUMN))
             for (i in 0..6) {
                 TextMMD(
@@ -314,6 +314,7 @@ internal fun monthRoom(height: Float, number: Float, line: Float): Int = ((heigh
 
 /** The day's number at the top of its cell. */
 private val NUMBER_ROW = 17.dp
+private val NUMBER_ROW_SIDEWAYS = 15.dp
 
 @Composable
 private fun monthStyle() = MaterialTheme.typography.labelSmall.copy(fontSize = 12.sp, lineHeight = 13.sp)
@@ -365,6 +366,8 @@ private fun MonthWeek(
     val bars = remember(touching, weekStart) {
         layBars(touching.filter { it.allDay || it.firstDay != it.lastDay }, weekStart)
     }
+    // A little shorter on its side, where a whole line more is worth the two dp.
+    val numberRow = if (onItsSide()) NUMBER_ROW_SIDEWAYS else NUMBER_ROW
     val lineStyle = monthStyle()
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
@@ -372,7 +375,7 @@ private fun MonthWeek(
     BoxWithConstraints(modifier) {
         val cell = maxWidth / 7
         val textWidthPx = with(density) { (cell - 4.dp).toPx() }
-        val room = monthRoom(maxHeight.value, NUMBER_ROW.value, LINE.value)
+        val room = monthRoom(maxHeight.value, numberRow.value, LINE.value)
         val laneCount = (bars.maxOfOrNull { it.lane } ?: -1) + 1
         // Bars keep their lane all the way across. If the week has more lanes than a day has
         // lines, the last line is kept back for "+N".
@@ -407,7 +410,7 @@ private fun MonthWeek(
                         }
                         .padding(horizontal = 2.dp),
                 ) {
-                    Row(Modifier.height(NUMBER_ROW), verticalAlignment = Alignment.CenterVertically) {
+                    Row(Modifier.height(numberRow), verticalAlignment = Alignment.CenterVertically) {
                         Box(
                             modifier = Modifier
                                 .background(if (date == today) Color.Black else Color.White, RoundedCornerShape(5.dp))
@@ -451,14 +454,14 @@ private fun MonthWeek(
                             maxLines = lines,
                             softWrap = wraps,
                             overflow = TextOverflow.Clip,
-                            modifier = Modifier.offset(y = NUMBER_ROW + LINE * slot).height(LINE * lines),
+                            modifier = Modifier.offset(y = numberRow + LINE * slot).height(LINE * lines),
                         )
                     }
                     if (hidden > 0 && free.isNotEmpty()) {
                         TextMMD(
                             text = "+$hidden",
                             style = lineStyle,
-                            modifier = Modifier.offset(y = NUMBER_ROW + LINE * free[minOf(next, free.lastIndex)]).height(LINE),
+                            modifier = Modifier.offset(y = numberRow + LINE * free[minOf(next, free.lastIndex)]).height(LINE),
                         )
                     }
                 }
@@ -469,7 +472,7 @@ private fun MonthWeek(
         bars.filter { it.lane < barLimit }.forEach { bar ->
             Box(
                 modifier = Modifier
-                    .offset(x = cell * bar.from + 1.dp, y = NUMBER_ROW + LINE * bar.lane)
+                    .offset(x = cell * bar.from + 1.dp, y = numberRow + LINE * bar.lane)
                     .width(cell * (bar.to - bar.from + 1) - 2.dp)
                     // The whole line: any shorter and 12sp loses its descenders.
                     .height(LINE)

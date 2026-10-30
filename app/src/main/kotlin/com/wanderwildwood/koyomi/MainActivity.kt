@@ -15,7 +15,12 @@ import androidx.compose.ui.platform.LocalCursorBlinkEnabled
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalConfiguration
+import android.content.res.Configuration
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.mudita.mmd.ThemeMMD
 import com.wanderwildwood.koyomi.alerts.Alerts
 import com.wanderwildwood.koyomi.ui.EditScreen
@@ -56,6 +61,17 @@ class MainActivity : ComponentActivity() {
             CompositionLocalProvider(LocalCursorBlinkEnabled provides false) {
                 // Read again whenever a setting changes, so the switch takes effect at once.
                 LaunchedEffect(model.settingsVersion) { turner.set(model.settings.turnWithPhone) }
+                // On its side the status bar goes, for the height; a swipe from the edge shows
+                // it for a moment. Upright it is back. Read again on every turn and every
+                // fresh start, so a recreated or resumed activity gets it right.
+                val sideways = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+                DisposableEffect(sideways) {
+                    val controller = WindowInsetsControllerCompat(window, window.decorView)
+                    controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                    if (sideways) controller.hide(WindowInsetsCompat.Type.statusBars())
+                    else controller.show(WindowInsetsCompat.Type.statusBars())
+                    onDispose { }
+                }
                 ThemeMMD(colorScheme = monochrome) {
                     Koyomi(model)
                 }
