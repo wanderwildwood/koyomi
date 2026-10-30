@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Kalender</string>
+
+    <!-- ============================================================ -->
+    <!-- Words used in many places -->
+
+    <!-- Shown in place of an event's name when it has none -->
+    <string name="untitled">(Ohne Titel)</string>
+    <string name="all_day">Ganztägig</string>
+    <string name="today">Heute</string>
+    <!-- Buttons (verbs) -->
+    <string name="ok">OK</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="save">Speichern</string>
+    <string name="done">Fertig</string>
+
+    <!-- Top bar and foot buttons, read aloud by a screen reader -->
+    <string name="cd_search">Suche</string>
+    <string name="cd_settings">Einstellungen</string>
+    <string name="cd_about">Über</string>
+    <string name="cd_close">Schließen</string>
+    <string name="cd_discard">Verwerfen</string>
+    <string name="settings_update">Nach Updates suchen</string>
+    <string name="settings_update_note">Das ist %1$s. Öffnet die neueste Version im Browser</string>
+    <string name="duplicate">Duplizieren</string>
+    <string name="cd_edit">Bearbeiten</string>
+    <string name="cd_add">Neuer Termin</string>
+    <string name="cd_previous">Zurück</string>
+    <string name="cd_next">Weiter</string>
+
+    <!-- ============================================================ -->
+    <!-- The four views -->
+
+    <string name="view_month">Monat</string>
+    <string name="view_week">Woche</string>
+    <string name="view_day">Tag</string>
+    <string name="view_agenda">Agenda</string>
+    <!-- Agenda top bar. %1$s is a short date, e.g. Fri 25 Sep -->
+    <string name="agenda_from">Ab %1$s</string>
+    <string name="agenda_empty">In den nächsten sechs Monaten nichts.</string>
+    <!-- Under the all-day events of a day, when there are more than fit. %1$d is how many more -->
+    <string name="more_all_day">und %1$d weitere</string>
+
+    <!-- ============================================================ -->
+    <!-- One event -->
+
+    <string name="event_title">Termin</string>
+    <!-- %1$s is the date or dates, e.g. Fri 25 Sep -->
+    <string name="event_all_day">%1$s, ganztägig</string>
+    <string name="event_repeats">Wiederholung</string>
+    <string name="event_where">Ort</string>
+    <string name="event_reminders">Erinnerungen</string>
+    <string name="event_calendar">Kalender</string>
+    <string name="event_notes">Notizen</string>
+    <string name="event_gone">Dieser Termin ist nicht mehr im Kalender.</string>
+    <string name="event_open_in">In %1$s öffnen</string>
+    <string name="event_app_failed">Diese App konnte ihn nicht öffnen.</string>
+    <string name="event_not_deleted">Der Kalender hat das Löschen nicht angenommen.</string>
+
+    <!-- Delete choices, asked in a dialog from the Delete button -->
+    <string name="cd_delete">Löschen</string>
+    <string name="delete_which_one">Diesen Termin löschen?</string>
+    <string name="delete_which">Welchen löschen?</string>
+    <string name="event_read_only_label">Schreibgeschützt</string>
+    <string name="event_read_only">Dieser Kalender kann von diesem Telefon aus nicht geändert werden.</string>
+    <string name="delete">Löschen</string>
+    <string name="delete_one">Nur diesen löschen</string>
+    <string name="delete_following">Diesen und alle späteren löschen</string>
+    <string name="delete_all">Alle löschen</string>
+
+    <!-- Asked before editing an event that repeats -->
+    <string name="edit_which">Was ändern?</string>
+    <string name="edit_this_one">Nur diesen</string>
+    <string name="edit_every_one">Alle</string>
+
+    <!-- ============================================================ -->
+    <!-- Editing -->
+
+    <string name="edit_new">Neuer Termin</string>
+    <string name="edit_title">Termin bearbeiten</string>
+    <string name="edit_one">Diesen bearbeiten</string>
+    <!-- Label of the name field -->
+    <string name="edit_what">Was</string>
+    <string name="edit_starts">Beginnt</string>
+    <string name="edit_ends">Endet</string>
+    <string name="edit_reminders">Erinnerungen</string>
+    <string name="edit_no_calendar">Hier gibt es keinen Kalender, in den geschrieben werden kann. Lege einen auf diesem Telefon an oder füge einen in DAVx5 oder den Konten des Telefons hinzu.</string>
+    <string name="edit_no_calendar_short">Keiner, in den geschrieben werden kann</string>
+    <!-- The name of the calendar Calendar makes on a phone that has none it can write to. -->
+    <string name="calendar_on_this_phone">Auf diesem Telefon</string>
+    <string name="calendar_pc_sync_name">Nur auf diesem Telefon</string>
+    <string name="calendar_make_local">Einen Kalender auf diesem Telefon anlegen</string>
+    <string name="calendar_make_local_note">Termine bleiben auf diesem Telefon; nichts darin erreicht einen Server</string>
+    <string name="edit_not_saved">Der Kalender hat die Änderung nicht angenommen.</string>
+
+    <!-- Reminders. For an event with a time -->
+    <string name="reminder_none">Keine</string>
+    <string name="reminder_at_start">Wenn er beginnt</string>
+    <plurals name="reminder_minutes">
+        <item quantity="one">%1$d Minute vorher</item>
+        <item quantity="other">%1$d Minuten vorher</item>
+    </plurals>
+    <plurals name="reminder_hours">
+        <item quantity="one">%1$d Stunde vorher</item>
+        <item quantity="other">%1$d Stunden vorher</item>
+    </plurals>
+    <plurals name="reminder_days">
+        <item quantity="one">%1$d Tag vorher</item>
+        <item quantity="other">%1$d Tage vorher</item>
+    </plurals>
+    <plurals name="reminder_weeks">
+        <item quantity="one">%1$d Woche vorher</item>
+        <item quantity="other">%1$d Wochen vorher</item>
+    </plurals>
+    <!-- For an all-day event. %1$s is a time of day, e.g. 09:00 -->
+    <string name="reminder_on_day">Am Tag um %1$s</string>
+    <string name="reminder_day_before">Am Tag davor um %1$s</string>
+    <!-- %1$d is a number of days, %2$s a time of day -->
+    <plurals name="reminder_days_before_at">
+        <item quantity="one">%1$d Tag davor um %2$s</item>
+        <item quantity="other">%1$d Tage davor um %2$s</item>
+    </plurals>
+
+    <!-- ============================================================ -->
+    <!-- Repeats: the rule said in words -->
+
+    <string name="repeat_never">Wiederholt sich nicht</string>
+    <!-- A rule from elsewhere that this app shows but does not edit -->
+    <string name="repeat_custom">Wiederholt sich nach einer anderswo gesetzten Regel</string>
+    <string name="repeat_cannot_edit">Ändere es dort, wo es angelegt wurde; hier bleibt es, wie es ist.</string>
+    <plurals name="repeat_daily">
+        <item quantity="one">Jeden Tag</item>
+        <item quantity="other">Alle %1$d Tage</item>
+    </plurals>
+    <string name="repeat_weekdays">Jeden Werktag</string>
+    <!-- %1$d is the interval, %2$s the day or days, e.g. Monday, or Mon, Wed and Fri -->
+    <plurals name="repeat_weekly">
+        <item quantity="one">Jede Woche am %2$s</item>
+        <item quantity="other">Alle %1$d Wochen am %2$s</item>
+    </plurals>
+    <!-- %1$d is the interval, %2$s is repeat_on_day or repeat_on_nth -->
+    <plurals name="repeat_monthly">
+        <item quantity="one">Jeden Monat am %2$s</item>
+        <item quantity="other">Alle %1$d Monate am %2$s</item>
+    </plurals>
+    <plurals name="repeat_yearly">
+        <item quantity="one">Jedes Jahr</item>
+        <item quantity="other">Alle %1$d Jahre</item>
+    </plurals>
+    <!-- %1$d is a day of the month, e.g. 25 -->
+    <string name="repeat_on_day">Tag %1$d</string>
+    <!-- %1$s is from repeat_ordinals, %2$s a weekday, e.g. the fourth Friday -->
+    <string name="repeat_on_nth">%1$s %2$s</string>
+    <!-- Dative, because they follow "am" and "am %2$s" -->
+    <string-array name="repeat_ordinals">
+        <item>ersten</item>
+        <item>zweiten</item>
+        <item>dritten</item>
+        <item>vierten</item>
+        <item>fünften</item>
+        <item>letzten</item>
+    </string-array>
+    <!-- Joins the last day of a list, e.g. Mon, Wed and Fri. %1$s is the list before it -->
+    <string name="repeat_and">%1$s und %2$s</string>
+    <!-- %1$s is the rule, %2$s a date -->
+    <string name="repeat_until">%1$s, bis %2$s</string>
+    <!-- %1$s is the rule, %2$d how many times in all -->
+    <plurals name="repeat_times">
+        <item quantity="one">%1$s, einmal</item>
+        <item quantity="other">%1$s, %2$d Mal</item>
+    </plurals>
+
+    <!-- The repeat screen -->
+    <string name="repeat_pick_daily">Jeden Tag</string>
+    <string name="repeat_pick_weekly">Jede Woche</string>
+    <string name="repeat_pick_monthly">Jeden Monat</string>
+    <string name="repeat_pick_yearly">Jedes Jahr</string>
+    <string name="repeat_how_often">Wie oft</string>
+    <plurals name="unit_days">
+        <item quantity="one">Jeden Tag</item>
+        <item quantity="other">Alle %1$d Tage</item>
+    </plurals>
+    <plurals name="unit_weeks">
+        <item quantity="one">Jede Woche</item>
+        <item quantity="other">Alle %1$d Wochen</item>
+    </plurals>
+    <plurals name="unit_months">
+        <item quantity="one">Jeden Monat</item>
+        <item quantity="other">Alle %1$d Monate</item>
+    </plurals>
+    <plurals name="unit_years">
+        <item quantity="one">Jedes Jahr</item>
+        <item quantity="other">Alle %1$d Jahre</item>
+    </plurals>
+    <string name="repeat_on_days">Am</string>
+    <string name="repeat_which_day">Welcher Tag</string>
+    <!-- %1$d is a day of the month -->
+    <string name="repeat_on_day_long">Am Tag %1$d</string>
+    <!-- %1$s is e.g. the fourth Friday -->
+    <string name="repeat_on">Am %1$s</string>
+    <string name="repeat_ends">Endet</string>
+    <string name="repeat_end_never">Nie</string>
+    <!-- %1$s is a date -->
+    <string name="repeat_end_on">Am %1$s</string>
+    <string name="repeat_end_after">Nach einer Anzahl</string>
+    <plurals name="unit_times">
+        <item quantity="one">Einmal</item>
+        <item quantity="other">%1$d Mal</item>
+    </plurals>
+
+    <!-- ============================================================ -->
+    <!-- Search -->
+
+    <string name="search_title">Suche</string>
+    <string name="search_hint">Name, Ort oder Notizen</string>
+    <string name="search_none">Nichts gefunden zwischen einem Jahr zurück und zwei Jahren voraus.</string>
+
+    <!-- ============================================================ -->
+    <!-- Settings -->
+
+    <string name="settings_title">Einstellungen</string>
+    <string name="settings_calendars">Kalender</string>
+    <string name="settings_sync_now">Kalender jetzt abgleichen</string>
+    <string name="settings_sync_now_hint">Fragt die Apps, die sie abgleichen</string>
+    <string name="settings_sync_asked">Gefragt</string>
+    <!-- One line above the Agenda for a few seconds after a swipe down on its first page -->
+    <string name="agenda_sync_asked">DAVx5 zum Abgleichen aufgefordert</string>
+    <string name="settings_default_calendar">Neue Termine kommen in</string>
+    <string name="settings_first_calendar">Den ersten, in den geschrieben werden kann</string>
+    <string name="settings_all_day">An ganztägige Termine erinnern</string>
+    <string name="settings_all_day_off">Aus</string>
+    <plurals name="settings_all_day_on">
+        <item quantity="one">An für %1$d Kalender</item>
+        <item quantity="other">An für %1$d Kalender</item>
+    </plurals>
+    <string name="all_day_which">Welcher Kalender</string>
+    <string name="all_day_note">Diese App klingelt selbst dafür, deshalb funktioniert es auch für einen Kalender, der nicht geändert werden kann, etwa ein Abonnement. Dem Kalender wird nichts hinzugefügt.</string>
+    <string name="all_day_off">Aus</string>
+    <string name="all_day_evening">Am Abend davor</string>
+    <string name="all_day_morning">Am Morgen des Tages</string>
+    <string name="all_day_both">Beides</string>
+    <string name="all_day_evening_at">Am Abend davor um %1$s</string>
+    <string name="all_day_morning_at">Am Morgen des Tages um %1$s</string>
+    <string name="settings_default_reminder">Neue Termine erinnern</string>
+    <string name="settings_open_on">Öffnet am</string>
+    <string name="settings_week_starts">Woche beginnt am</string>
+    <string name="settings_week_numbers">Kalenderwochen</string>
+    <string name="settings_turn">Mit dem Telefon mitdrehen</string>
+    <string name="settings_wake">Erinnerungen füllen den Bildschirm</string>
+    <!-- Rows shown only when something the reminders need is switched off -->
+    <string name="settings_notifications_off">Benachrichtigungen sind aus, deshalb können Erinnerungen nicht erscheinen</string>
+    <string name="settings_alarms_off">Exakte Wecker sind aus, deshalb kommen Erinnerungen vielleicht zu spät</string>
+    <string name="settings_full_screen_off">Bildschirmfüllende Erinnerungen sind nicht erlaubt</string>
+    <string name="settings_fix">Die Einstellung des Telefons öffnen</string>
+    <!-- Settings, on a Kompakt: DuraSpeed shuts the app down, which cancels its reminders. Pressing it opens DuraSpeed's App info, where Open shows its list -->
+    <string name="settings_duraspeed">Die DuraSpeed-Einstellung des Telefons kann Kalender schließen, und damit seine Erinnerungen. Öffne DuraSpeed, tippe auf Öffnen und schalte Kalender ein: den ohne Kasten um das Symbol, denn Muditas eigener Kalender steht auch in der Liste.</string>
+    <string name="settings_duraspeed_open">DuraSpeed öffnen</string>
+    <!-- Settings, under the DuraSpeed row: pressing it says Calendar is now switched on there -->
+    <string name="settings_duraspeed_done">Ist eingeschaltet</string>
+    <!-- Settings: whether today's events show on the lock screen, through the Glance app -->
+    <string name="settings_lock_screen">Heutige Termine auf dem Sperrbildschirm</string>
+    <!-- Settings, under the row above: once today's events are over, the lock screen names the next one -->
+    <string name="settings_lock_screen_next">Der nächste Termin, wenn die heutigen vorbei sind</string>
+    <!-- On the lock screen, through Glance -->
+    <string name="lock_today">Heute</string>
+    <!-- On the lock screen: the heading over the next event to come, on a later day -->
+    <string name="lock_next">Als Nächstes</string>
+    <!-- On the lock screen, after the day of the next event: "9:00 Dentist" -->
+    <string name="lock_next_timed">%1$s %2$s</string>
+    <string name="lock_all_day">Ganztägig</string>
+    <!-- An event under way since before today: "until 11:00" -->
+    <string name="lock_until">bis %1$s</string>
+    <!-- Under the Calendars heading in Settings: the switches are the phone's own, shared by every calendar app -->
+    <string name="calendars_everywhere">Einen auszublenden blendet ihn in jeder Kalender-App aus.</string>
+    <!-- Under a calendar kept only on this phone, such as the "PC Sync" the phone makes itself -->
+    <string name="calendars_local">Nur auf diesem Telefon: nichts hier Gespeichertes erreicht einen Server.</string>
+    <!-- Settings, when the phone has no calendars at all. Pressing it opens davx5.com -->
+    <string name="calendars_none">Auf diesem Telefon gibt es noch keine Kalender. Für iCloud, Google, Nextcloud oder einen anderen CalDAV-Kalender richte ihn in DAVx5 ein. Seine Kalender erscheinen hier, sobald er abgeglichen hat.</string>
+    <!-- Settings, when the phone has calendars but none syncs with a server. Pressing it opens davx5.com -->
+    <string name="calendars_no_sync">Keiner davon gleicht mit einem Server ab. Für iCloud, Google, Nextcloud oder einen anderen CalDAV-Kalender richte ihn in DAVx5 ein. Seine Kalender erscheinen hier, sobald er abgeglichen hat.</string>
+
+    <!-- ============================================================ -->
+    <!-- First run, before calendar access -->
+
+    <string name="permission_why">Diese App zeigt und ändert die Kalender, die schon auf dem Telefon sind, deshalb muss sie Zugriff darauf bekommen.</string>
+    <string name="permission_davx5">Für einen Nextcloud- oder anderen CalDAV-Kalender richte ihn zuerst in DAVx5 ein. DAVx5 gleicht ab; diese App erreicht nie das Netzwerk.</string>
+    <string name="permission_denied">Der Kalenderzugriff wurde nicht erlaubt. Ohne ihn gibt es nichts anzuzeigen. Öffne die Einstellungen der App, wähle Berechtigungen, dann Kalender, und erlaube es.</string>
+    <string name="permission_open_settings">App-Einstellungen öffnen</string>
+    <string name="permission_allow">Kalenderzugriff erlauben</string>
+
+    <!-- ============================================================ -->
+    <!-- Reminders -->
+
+    <!-- The notification channel's name, shown in the phone's settings -->
+    <string name="alert_channel">Erinnerungen</string>
+    <!-- %1$d is minutes -->
+    <string name="alert_snooze">In %1$d Minuten noch einmal</string>
+    <string name="alert_tomorrow">Morgen: %1$s</string>
+    <string name="alert_today">Heute: %1$s</string>
+    <string name="alert_dismiss">Verwerfen</string>
+    <string name="alert_open">Termin öffnen</string>
+
+    <!-- ============================================================ -->
+    <!-- About dialog. Keep the names of the app, people, projects and licences as they are -->
+
+    <!-- Heading. %1$s is the version number, e.g. 0.1.0 -->
+    <string name="about_title">Kalender %1$s</string>
+    <string name="about_privacy">Er liest und schreibt die Kalender, die schon auf dem Telefon sind, und erreicht nie das Netzwerk. DAVx5 oder das Konto, aus dem der Kalender stammt, gleicht ab.</string>
+    <string name="about_sources">Erinnerungen kommen aus dem Kalenderspeicher des Telefons, deshalb klingeln auch die, die in Nextcloud gesetzt wurden, hier.</string>
+    <string name="about_google">Um einen Google-Kalender einzubinden, gleiche ihn mit DAVx5 ab (oder einem beliebigen CalDAV- oder Nextcloud-Konto). Diese App zeigt, was das Telefon hat.</string>
+    <string name="about_after">Diese App folgt KompaktCalendar von David Anderlohr (GPL 3.0) und Etar (GPL 3.0): in den Regeln für Wiederholungen und darin, wie eine geänderte Ausnahme gespeichert wird. Der Parser für Wiederholungsregeln stammt aus dem Android Open Source Project, Apache 2.0.</string>
+    <!-- The name of the app's licence -->
+    <string name="about_licence">GNU General Public License v3</string>
+    <string name="about_icons">Symbole von Material Symbols, Apache 2.0</string>
+    <!-- The donation link label, beside a drawing of a llama. A fixed phrase: a verb and an object, so the reader knows what pressing it does -->
+    <string name="about_feed_the_llamas">Füttere die Lamas</string>
+    <!-- Toast when the donation link cannot be opened -->
+    <string name="about_no_browser">Auf diesem Telefon gibt es keinen Browser, um das zu öffnen.</string>
+    <!-- Button that closes the About dialog -->
+    <string name="about_no_browser_address">Es ist kein Browser installiert. Die Adresse lautet %1$s.</string>
+    <string name="about_privacy_head">Datenschutz</string>
+    <string name="about_terms_head">Bedingungen</string>
+    <string name="about_terms">Diese App ist freie Software unter der GNU General Public License v3. Sie kommt ohne Gewährleistung: Nutzung auf eigene Gefahr, und behalte eine Kopie von allem, was du nicht verlieren kannst.</string>
+    <string name="about_close">Schließen</string>
+
+    <!-- Opening an .ics file from another app -->
+    <!-- Title of the screen listing the events found in a calendar file -->
+    <string name="import_title">Zum Kalender hinzufügen</string>
+    <!-- Button in the bar that adds every event listed to the chosen calendar -->
+    <string name="import_add">Hinzufügen</string>
+    <!-- When the file could not be read, or held nothing to add -->
+    <string name="import_unreadable">Diese Datei konnte nicht gelesen werden.</string>
+    <string name="import_nothing">In dieser Datei ist kein Termin zum Hinzufügen.</string>
+    <!-- Under an event whose time zone this phone does not know; %1$s is the zone's name in the file -->
+    <string name="import_unknown_zone">Zeitzone „%1$s“ ist hier nicht bekannt; als die des Telefons gelesen</string>
+    <!-- Toasts after Add -->
+    <plurals name="import_added">
+        <item quantity="one">%d Termin hinzugefügt</item>
+        <item quantity="other">%d Termine hinzugefügt</item>
+    </plurals>
+    <plurals name="import_already">
+        <item quantity="one">%d war schon da</item>
+        <item quantity="other">%d waren schon da</item>
+    </plurals>
+    <string name="import_failed">Nichts wurde hinzugefügt. Der Kalender hat sie nicht angenommen.</string>
+    <!-- The folio at the foot of a paged list, "2 / 6"; a tap on it asks for a page -->
+    <string name="folio_of">%1$d / %2$d</string>
+    <string name="folio_go_title">Zu Seite springen</string>
+    <string name="folio_page">Seite %1$d von %2$d</string>
+    <string name="folio_go">Los</string>
+    <string name="folio_cancel">Abbrechen</string>
+    <!-- Licences page, reached from About -->
+    <string name="licences_title">Lizenzen</string>
+    <string name="licences_source_heading">Quellcode</string>
+    <string name="licences_source">Quelle: %1$s</string>
+    <string name="licences_licence_heading">Lizenz</string>
+    <string name="licences_licence">Kalender ist freie Software unter der GNU General Public License, ausschließlich Version 3. Copyright wander wildwood. Der vollständige Text steht unten.</string>
+    <string name="licences_built_heading">Baut auf</string>
+    <string name="licences_gpl">GNU General Public License, Version 3</string>
+    <string name="licences_apache">Apache License, Version 2.0</string>
+    <string name="licences_ofl">SIL Open Font License, Version 1.1</string>
+    <string name="licences_no_browser">Es ist kein Browser installiert.</string>
+    <string name="licences_close">Schließen</string>
+</resources>
