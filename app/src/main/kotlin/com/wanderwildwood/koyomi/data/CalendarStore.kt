@@ -112,6 +112,70 @@ class CalendarStore(private val context: Context) {
         return runCatching { resolver.insert(uri, values)?.let { ContentUris.parseId(it) } }.getOrNull()
     }
 
+    private fun asSyncAdapter(base: Uri, accountName: String): Uri = base.buildUpon()
+        .appendQueryParameter(CalendarContract.CALLER_IS_SYNCADAPTER, "true")
+        .appendQueryParameter(Calendars.ACCOUNT_NAME, accountName)
+        .appendQueryParameter(Calendars.ACCOUNT_TYPE, CalendarContract.ACCOUNT_TYPE_LOCAL)
+        .build()
+
+    /**
+     * A local calendar that cannot be changed from this phone, for a calendar followed by its link.
+     * Its account name is made up and unique, so removing one can never touch another.
+     */
+    fun makeSubscriptionCalendar(name: String): Long? {
+        if (!canWrite()) return null
+        val account = "link-" + java.util.UUID.randomUUID().toString().take(8)
+        val values = ContentValues().apply {
+            put(Calendars.ACCOUNT_NAME, account)
+            put(Calendars.ACCOUNT_TYPE, CalendarContract.ACCOUNT_TYPE_LOCAL)
+            put(Calendars.NAME, name)
+            put(Calendars.CALENDAR_DISPLAY_NAME, name)
+            put(Calendars.CALENDAR_COLOR, 0xFF000000.toInt())
+            put(Calendars.CALENDAR_ACCESS_LEVEL, Calendars.CAL_ACCESS_READ)
+            put(Calendars.OWNER_ACCOUNT, account)
+            put(Calendars.VISIBLE, 1)
+            put(Calendars.SYNC_EVENTS, 1)
+            put(Calendars.CALENDAR_TIME_ZONE, ZoneId.systemDefault().id)
+        }
+        return runCatching { resolver.insert(asSyncAdapter(Calendars.CONTENT_URI, account), values)?.let { ContentUris.parseId(it) } }.getOrNull()
+    }
+
+    private fun accountOf(calendarId: Long): String? = resolver.query(
+        ContentUris.withAppendedId(Calendars.CONTENT_URI, calendarId),
+        arrayOf(Calendars.ACCOUNT_NAME, Calendars.ACCOUNT_TYPE), null, null, null,
+    )?.use { c ->
+        if (c.moveToFirst() && c.getString(1) == CalendarContract.ACCOUNT_TYPE_LOCAL) c.getString(0) else null
+    }
+
+    /**
+     * Swaps every event of a subscribed calendar for [events], in one transaction: the provider
+     * runs a batch inside a single database transaction, so a refusal leaves the old copy whole.
+     * Nothing is merged. Only [calendarId]'s events are touched.
+     */
+    fun replaceSubscriptionEvents(calendarId: Long, events: List<IcsEvent>): Boolean {
+        if (!canWrite()) return false
+        val account = accountOf(calendarId) ?: return false
+        val ops = ArrayList<android.content.ContentProviderOperation>(events.size + 1)
+        ops += android.content.ContentProviderOperation
+            .newDelete(asSyncAdapter(Events.CONTENT_URI, account))
+            .withSelection("${Events.CALENDAR_ID} = ?", arrayOf(calendarId.toString()))
+            .build()
+        val insert = asSyncAdapter(Events.CONTENT_URI, account)
+        for (e in events) {
+            ops += android.content.ContentProviderOperation.newInsert(insert).withValues(eventValues(e, calendarId, subscription = true)).build()
+        }
+        return runCatching { resolver.applyBatch(CalendarContract.AUTHORITY, ops); true }.getOrDefault(false)
+    }
+
+    /** Removes the calendar made for a link, and with it its events and nothing else. */
+    fun deleteSubscriptionCalendar(calendarId: Long): Boolean {
+        if (!canWrite()) return false
+        val account = accountOf(calendarId) ?: return false
+        return runCatching {
+            resolver.delete(asSyncAdapter(ContentUris.withAppendedId(Calendars.CONTENT_URI, calendarId), account), null, null) > 0
+        }.getOrDefault(false)
+    }
+
     fun setVisible(calendarId: Long, visible: Boolean) {
         if (!canWrite()) return
         resolver.update(
@@ -579,31 +643,46 @@ class CalendarStore(private val context: Context) {
      */
     fun insertImported(event: IcsEvent, calendarId: Long, reminders: List<Int>): Long? {
         if (!canWrite()) return null
-        val values = ContentValues().apply {
-            put(Events.CALENDAR_ID, calendarId)
-            put(Events.TITLE, event.title)
-            put(Events.EVENT_LOCATION, event.location)
-            put(Events.DESCRIPTION, event.description)
-            put(Events.ALL_DAY, if (event.allDay) 1 else 0)
-            put(Events.EVENT_TIMEZONE, if (event.allDay) "UTC" else event.zone.id)
-            put(Events.DTSTART, event.startMillis)
-            if (event.rrule != null) {
-                put(Events.RRULE, event.rrule)
-                put(Events.DURATION, event.duration())
-                putNull(Events.DTEND)
-            } else {
-                put(Events.DTEND, event.endMillis)
-            }
-            event.uid?.let { put(Events.UID_2445, it) }
+        val values = eventValues(event, calendarId, subscription = false).apply {
             put(Events.HAS_ALARM, if (reminders.isNotEmpty()) 1 else 0)
-            put(Events.STATUS, Events.STATUS_CONFIRMED)
-            put(Events.HAS_ATTENDEE_DATA, 1)
         }
         val uri = resolver.insert(Events.CONTENT_URI, values) ?: return null
         val id = ContentUris.parseId(uri)
         writeReminders(id, reminders, emptyList(), force = true)
         return id
     }
+
+    private fun eventValues(event: IcsEvent, calendarId: Long, subscription: Boolean): ContentValues = ContentValues().apply {
+        put(Events.CALENDAR_ID, calendarId)
+        put(Events.TITLE, event.title)
+        put(Events.EVENT_LOCATION, event.location)
+        // A feed may carry a whole page of text for one event; the store and the binder do not need it.
+        put(Events.DESCRIPTION, if (subscription) event.description?.take(MAX_FEED_DESCRIPTION) else event.description)
+        put(Events.ALL_DAY, if (event.allDay) 1 else 0)
+        put(Events.EVENT_TIMEZONE, if (event.allDay) "UTC" else event.zone.id)
+        put(Events.DTSTART, event.startMillis)
+        if (event.rrule != null) {
+            put(Events.RRULE, event.rrule)
+            put(Events.DURATION, event.duration())
+            putNull(Events.DTEND)
+            event.exdate?.let { put(Events.EXDATE, it) }
+        } else {
+            put(Events.DTEND, event.endMillis)
+        }
+        event.uid?.let { put(Events.UID_2445, it) }
+        put(Events.HAS_ALARM, 0)
+        put(Events.STATUS, Events.STATUS_CONFIRMED)
+        put(Events.HAS_ATTENDEE_DATA, 1)
+    }
+
+    /** As [hasUid], for an edited occurrence: its UID is the series', so it is told apart by its start. */
+    fun hasUidAt(calendarId: Long, uid: String, start: Long): Boolean = resolver.query(
+        Events.CONTENT_URI,
+        arrayOf(Events._ID),
+        "${Events.CALENDAR_ID} = ? AND ${Events.UID_2445} = ? AND ${Events.DTSTART} = ? AND ${Events.DELETED} = 0",
+        arrayOf(calendarId.toString(), uid, start.toString()),
+        null,
+    )?.use { it.count > 0 } ?: false
 
     /** Is an event with this UID already in [calendarId]? Opening one invitation twice adds it once. */
     fun hasUid(calendarId: Long, uid: String): Boolean = resolver.query(
@@ -647,6 +726,7 @@ class CalendarStore(private val context: Context) {
 }
 
 private const val DAY_MS = 24L * 60 * 60 * 1000
+private const val MAX_FEED_DESCRIPTION = 4000
 
 /** How much of a repeating event an edit or a delete applies to. */
 enum class Scope { ONE, FOLLOWING, ALL }

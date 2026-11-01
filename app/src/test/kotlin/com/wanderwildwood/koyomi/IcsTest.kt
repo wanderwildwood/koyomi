@@ -236,4 +236,69 @@ class IcsTest {
         )
         assertEquals(listOf("Fine"), list.map { it.title })
     }
+
+    @Test
+    fun exdateOnSeveralLinesInSeveralFormsIsKeptInUtc() {
+        val e = Ics.parse(
+            cal(
+                "BEGIN:VEVENT", "UID:x@example.org", "SUMMARY:Choir",
+                "DTSTART;TZID=America/New_York:20261005T190000", "DTEND;TZID=America/New_York:20261005T203000",
+                "RRULE:FREQ=WEEKLY;COUNT=8",
+                "EXDATE;TZID=America/New_York:20261012T190000,20261019T190000",
+                "EXDATE:20261102T000000Z",
+                "END:VEVENT",
+            ),
+            phone,
+        ).single()
+        assertEquals("20261012T230000Z,20261019T230000Z,20261102T000000Z", e.exdate)
+    }
+
+    @Test
+    fun exdateOfAnAllDaySeriesIsDates() {
+        val e = Ics.parse(
+            cal(
+                "BEGIN:VEVENT", "UID:y@example.org", "SUMMARY:Bins",
+                "DTSTART;VALUE=DATE:20261005", "RRULE:FREQ=WEEKLY",
+                "EXDATE;VALUE=DATE:20261012", "EXDATE;VALUE=DATE:20261026",
+                "END:VEVENT",
+            ),
+            phone,
+        ).single()
+        assertEquals("20261012,20261026", e.exdate)
+    }
+
+    @Test
+    fun calendarNameIsTheFeedsOwn() {
+        assertEquals("Ada's rota", Ics.calendarName(cal("X-WR-CALNAME:Ada's rota", "BEGIN:VEVENT", "X-WR-CALNAME:no", "END:VEVENT")))
+        assertNull(Ics.calendarName(cal("BEGIN:VEVENT", "SUMMARY:x", "DTSTART:20261005T190000Z", "END:VEVENT")))
+    }
+
+    @Test
+    fun anEditedOccurrenceWithoutItsSeriesIsKeptAndKnownAsOne() {
+        val list = Ics.parse(
+            cal(
+                "BEGIN:VEVENT", "UID:z@example.org", "SUMMARY:Moved", "RECURRENCE-ID;TZID=America/New_York:20261012T190000",
+                "DTSTART;TZID=America/New_York:20261012T200000", "DTEND;TZID=America/New_York:20261012T210000", "END:VEVENT",
+            ),
+            phone,
+        )
+        assertEquals("20261012T190000", list.single().recurrenceId)
+    }
+
+    @Test
+    fun untilWrittenInLocalTimeBecomesUtc() {
+        val e = Ics.parse(
+            cal(
+                "BEGIN:VEVENT", "UID:u@example.org", "SUMMARY:Swim",
+                "DTSTART;TZID=America/New_York:20260406T220000", "DTEND;TZID=America/New_York:20260406T230000",
+                "RRULE:FREQ=DAILY;UNTIL=20260415T220000;WKST=MO",
+                "END:VEVENT",
+            ),
+            phone,
+        ).single()
+        assertEquals("FREQ=DAILY;UNTIL=20260416T020000Z;WKST=MO", e.rrule)
+        // Already UTC, or a date, stays as written.
+        assertEquals("FREQ=DAILY;UNTIL=20260416T020000Z", Ics.untilInUtc("FREQ=DAILY;UNTIL=20260416T020000Z", phone))
+        assertEquals("FREQ=WEEKLY;UNTIL=20260416", Ics.untilInUtc("FREQ=WEEKLY;UNTIL=20260416", phone))
+    }
 }

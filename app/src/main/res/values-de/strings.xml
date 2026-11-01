@@ -284,7 +284,7 @@
     <!-- First run, before calendar access -->
 
     <string name="permission_why">Diese App zeigt und ändert die Kalender, die schon auf dem Telefon sind, deshalb muss sie Zugriff darauf bekommen.</string>
-    <string name="permission_davx5">Für einen Nextcloud- oder anderen CalDAV-Kalender richte ihn zuerst in DAVx5 ein. DAVx5 gleicht ab; diese App erreicht nie das Netzwerk.</string>
+    <string name="permission_davx5">Für einen Nextcloud- oder anderen CalDAV-Kalender richte ihn zuerst in DAVx5 ein. DAVx5 gleicht ab; diese App lädt nur die Kalenderlinks, die du selbst hinzufügst.</string>
     <string name="permission_denied">Der Kalenderzugriff wurde nicht erlaubt. Ohne ihn gibt es nichts anzuzeigen. Öffne die Einstellungen der App, wähle Berechtigungen, dann Kalender, und erlaube es.</string>
     <string name="permission_open_settings">App-Einstellungen öffnen</string>
     <string name="permission_allow">Kalenderzugriff erlauben</string>
@@ -306,7 +306,7 @@
 
     <!-- Heading. %1$s is the version number, e.g. 0.1.0 -->
     <string name="about_title">Kalender %1$s</string>
-    <string name="about_privacy">Er liest und schreibt die Kalender, die schon auf dem Telefon sind, und erreicht nie das Netzwerk. DAVx5 oder das Konto, aus dem der Kalender stammt, gleicht ab.</string>
+    <string name="about_privacy">Er liest und schreibt die Kalender, die schon auf dem Telefon sind. Sie erreicht das Netzwerk nur, um die Kalenderlinks zu laden, die du hinzufügst, und nutzt die Kamera nur beim Scannen eines Links. DAVx5 oder das Konto, aus dem der Kalender stammt, gleicht ab.</string>
     <string name="about_sources">Erinnerungen kommen aus dem Kalenderspeicher des Telefons, deshalb klingeln auch die, die in Nextcloud gesetzt wurden, hier.</string>
     <string name="about_google">Um einen Google-Kalender einzubinden, gleiche ihn mit DAVx5 ab (oder einem beliebigen CalDAV- oder Nextcloud-Konto). Diese App zeigt, was das Telefon hat.</string>
     <string name="about_after">Diese App folgt KompaktCalendar von David Anderlohr (GPL 3.0) und Etar (GPL 3.0): in den Regeln für Wiederholungen und darin, wie eine geänderte Ausnahme gespeichert wird. Der Parser für Wiederholungsregeln stammt aus dem Android Open Source Project, Apache 2.0.</string>
@@ -356,4 +356,36 @@
     <string name="licences_full_gpl">GNU General Public License, Version 3 (Volltext)</string>
     <string name="licences_full_apache">Apache License, Version 2.0 (Volltext)</string>
     <string name="licences_full_ofl">SIL Open Font License, Version 1.1 (Volltext)</string>
+
+    <!-- Calendars followed by a link (Settings) -->
+    <string name="link_section">Per Link abonniert</string>
+    <string name="link_add_row">Kalenderlink hinzufügen</string>
+    <string name="link_add_row_note">Einem Kalender über seine Internetadresse folgen, etwa von Google oder Outlook</string>
+    <string name="link_title">Kalenderlink hinzufügen</string>
+    <string name="link_why">Füge die Adresse des Kalenders ein oder scanne seinen QR-Code. Sie wird beim Öffnen der App und beim Herunterziehen in den Einstellungen geladen; der Kalender lässt sich hier nicht ändern. Die Adresse ist ein Geheimnis: Sie bleibt nur auf diesem Telefon und ist von Sicherungen ausgenommen.</string>
+    <string name="link_hint">Adresse mit https:// oder webcal://</string>
+    <string name="link_scan">QR scannen</string>
+    <string name="link_add">Hinzufügen</string>
+    <string name="link_fetching">Wird geladen\u2026</string>
+    <string name="link_http_refused">Ein Link mit http:// wird nicht verwendet: Er ginge ungeschützt durchs Netz. Frage nach dem Link mit https://.</string>
+    <string name="link_not_a_link">Das ist keine Kalenderadresse. Sie sollte mit https:// oder webcal:// beginnen.</string>
+    <string name="link_updated">%1$s, aktualisiert %2$s</string>
+    <string name="link_failed">Nicht aktualisiert. %1$s</string>
+    <string name="link_remove">Diesen Kalender entfernen</string>
+    <string name="link_remove_armed">Nochmal drücken, um ihn samt Terminen zu entfernen</string>
+    <string name="link_err_no_host">Der Server wurde nicht gefunden.</string>
+    <string name="link_err_timeout">Der Server hat nicht rechtzeitig geantwortet.</string>
+    <string name="link_err_certificate">Das Zertifikat des Servers wurde nicht akzeptiert.</string>
+    <string name="link_err_unreachable">Der Server ist nicht erreichbar.</string>
+    <string name="link_err_too_big">Der Kalender ist größer als 8 MB.</string>
+    <string name="link_err_open">Der Link konnte nicht geöffnet werden.</string>
+    <string name="link_err_not_calendar">Die Antwort ist kein Kalender.</string>
+    <string name="link_err_not_saved">Der Kalender wurde nicht auf dem Telefon gespeichert.</string>
+    <string name="link_err_no_permission">Zum Speichern ist Kalenderzugriff nötig.</string>
+    <string name="link_scan_title">QR scannen</string>
+    <string name="link_scan_hold">Halte den Code vor die Kamera.</string>
+    <string name="link_scan_not_link">Dieser Code ist keine Kalenderadresse.</string>
+    <string name="link_camera_why">Die Kamera wird nur verwendet, solange dieser Bildschirm offen ist, um den Code zu lesen. Nichts wird gespeichert.</string>
+    <string name="link_camera_denied">Die Kamera wurde nicht erlaubt. Füge die Adresse stattdessen ein oder erlaube die Kamera in den Einstellungen des Telefons.</string>
+    <string name="link_camera_allow">Kamera erlauben</string>
 </resources>

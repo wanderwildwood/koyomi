@@ -158,7 +158,12 @@ fun SettingsScreen(model: AppModel) {
         },
     ) { padding ->
         val state = rememberLazyListState()
-        PagedColumn(Modifier.padding(padding).fillMaxSize(), state = state, contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 12.dp)) {
+        PagedColumn(
+            Modifier.padding(padding).fillMaxSize(),
+            state = state,
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 12.dp),
+            onPullAtTop = { model.refreshSubscriptions(force = true) },
+        ) {
             item { Spacer(Modifier.height(8.dp)) }
 
             // Only what is wrong is shown: a row for a switch that is already on would be
@@ -300,8 +305,8 @@ fun SettingsScreen(model: AppModel) {
                     }
                 }
             }
-            // This app has no network permission, so it cannot ask for itself what is newest;
-            // the row opens the releases page, where the newest version is the first thing on it.
+            // This app only reaches the network for the calendar links it was given, never to ask
+            // what is newest; the row opens the releases page, where the newest version is first.
             item {
                 SettingRow(
                     stringResource(R.string.settings_update),
@@ -386,7 +391,8 @@ private fun LazyListScope.calendarSwitches(model: AppModel) {
     // A local calendar has no account behind it, which its name cannot say, so it says so on
     // its own row. The one most people meet is "PC Sync", made by the phone's own calendar
     // store (MediaTek's), hidden, and easily taken for a way to sync.
-    val (local, synced) = model.calendars.partition { it.accountType == CalendarContract.ACCOUNT_TYPE_LOCAL }
+    val followed = model.subscriptions.associateBy { it.calendarId }
+    val (local, synced) = model.calendars.filter { it.id !in followed }.partition { it.accountType == CalendarContract.ACCOUNT_TYPE_LOCAL }
     // With nothing synced, say where synced calendars come from. Only local calendars is the
     // usual case, not an empty phone: "PC Sync" is there from the start, and an app that
     // syncs into its own database (KashCal with iCloud) adds nothing here at all.
@@ -432,6 +438,44 @@ private fun LazyListScope.calendarSwitches(model: AppModel) {
         item(key = "c${c.id}") {
             SwitchRow(c.name, c.visible, note = stringResource(R.string.calendars_local), compact = true) { model.setVisible(c, it) }
         }
+    }
+    // Calendars followed by a link: read only, fetched again when the app opens and on a pull
+    // down. The address is a secret and is never shown; the server's name is.
+    if (model.subscriptions.isNotEmpty()) {
+        item(key = "links") {
+            TextMMD(
+                text = stringResource(R.string.link_section),
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+        }
+    }
+    model.subscriptions.forEach { sub ->
+        val c = model.calendars.firstOrNull { it.id == sub.calendarId }
+        item(key = "l${sub.calendarId}") {
+            val context = LocalContext.current
+            val note = when {
+                model.fetching -> stringResource(R.string.link_fetching)
+                sub.error != null -> stringResource(R.string.link_failed, sub.error)
+                sub.fetchedAt > 0 -> stringResource(
+                    R.string.link_updated,
+                    com.wanderwildwood.koyomi.data.CalendarLink.hostOf(sub.url),
+                    android.text.format.DateUtils.formatDateTime(
+                        context, sub.fetchedAt,
+                        android.text.format.DateUtils.FORMAT_SHOW_DATE or android.text.format.DateUtils.FORMAT_SHOW_TIME or android.text.format.DateUtils.FORMAT_ABBREV_ALL,
+                    ),
+                )
+                else -> com.wanderwildwood.koyomi.data.CalendarLink.hostOf(sub.url)
+            }
+            Column {
+                SwitchRow(sub.name, c?.visible ?: true, note = note, compact = true) { if (c != null) model.setVisible(c, it) }
+                ArmedRow(stringResource(R.string.link_remove), stringResource(R.string.link_remove_armed)) { model.unfollow(sub) }
+            }
+        }
+    }
+    item(key = "add-link") {
+        SettingRow(stringResource(R.string.link_add_row), stringResource(R.string.link_add_row_note)) { model.push(Screen.AddLink) }
     }
 }
 

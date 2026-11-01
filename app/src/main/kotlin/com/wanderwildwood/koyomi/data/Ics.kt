@@ -28,6 +28,10 @@ data class IcsEvent(
     val zone: ZoneId,
     val rrule: String?,
     val unknownZone: String? = null,
+    /** The store's EXDATE for a repeating event: the days or moments left out, comma-separated. */
+    val exdate: String? = null,
+    /** RECURRENCE-ID of an edited occurrence whose series is not in the file, as written. */
+    val recurrenceId: String? = null,
 ) {
     val startMillis: Long get() = start.toInstant().toEpochMilli()
     val endMillis: Long get() = maxOf(end.toInstant().toEpochMilli(), startMillis)
@@ -116,7 +120,10 @@ object Ics {
                     if (at >= 0) while (stack.size > at) stack.removeLast()
                 }
                 else -> when (stack.lastOrNull()) {
-                    "VEVENT" -> current?.putIfAbsent(p.name, p)
+                    // EXDATE may be written on several lines; each is kept, under its own key.
+                    "VEVENT" -> current?.let { c ->
+                        if (p.name == "EXDATE") c["EXDATE#${c.size}"] = p else c.putIfAbsent(p.name, p)
+                    }
                     "VCALENDAR" -> if (p.name == "METHOD") method = p.value.trim().uppercase()
                     "VTIMEZONE" -> if (p.name == "TZID") zoneId = p.value.trim().trim('"')
                     "STANDARD", "DAYLIGHT" -> part?.putIfAbsent(p.name, p)
@@ -180,9 +187,55 @@ object Ics {
             start = begin,
             end = finish,
             zone = zone,
-            rrule = props["RRULE"]?.value?.trim()?.ifEmpty { null },
+            rrule = props["RRULE"]?.value?.trim()?.ifEmpty { null }?.let { if (allDay) it else untilInUtc(it, zone) },
             unknownZone = if (allDay) null else start.unknownZone,
+            exdate = if (props["RRULE"] == null) null else exdates(props, allDay, local, zones),
+            recurrenceId = props["RECURRENCE-ID"]?.value?.trim()?.ifEmpty { null },
         )
+    }
+
+    /**
+     * A repeat rule's UNTIL, written in the event's own time without a "Z" ("UNTIL=20261031T220000"),
+     * is a moment in that zone; the calendar store reads one with no "Z" as UTC, and so left out
+     * the last occurrence of an evening series (measured on a Pixel: eight series each one short).
+     * RFC 5545 asks for UTC here, but feeds do both, so it is turned into UTC.
+     */
+    fun untilInUtc(rrule: String, zone: ZoneId): String = UNTIL_LOCAL.replace(rrule) { m ->
+        val at = runCatching { LocalDateTime.parse(m.groupValues[2], java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss")) }.getOrNull()
+            ?: return@replace m.value
+        m.groupValues[1] + DATE_TIME_OUT.format(at.atZone(zone).withZoneSameInstant(ZoneOffset.UTC))
+    }
+
+    /**
+     * Every EXDATE of an event as the store keeps them: a date for an all-day series, otherwise
+     * a UTC moment, whatever zone the file wrote it in.
+     */
+    private fun exdates(props: Map<String, Property>, allDay: Boolean, local: ZoneId, zones: ZoneReader): String? {
+        val out = props.filterKeys { it.startsWith("EXDATE#") }.values.flatMap { p ->
+            p.value.split(',').mapNotNull { raw ->
+                val t = time(Property(p.name, p.params, raw.trim()), local, zones) ?: return@mapNotNull null
+                if (allDay) {
+                    DATE_OUT.format(t.at)
+                } else {
+                    DATE_TIME_OUT.format(t.at.atZone(t.zone).withZoneSameInstant(ZoneOffset.UTC))
+                }
+            }
+        }.distinct()
+        return out.joinToString(",").ifEmpty { null }
+    }
+
+    /** X-WR-CALNAME, the name a calendar feed gives itself, if it has one. */
+    fun calendarName(text: String): String? {
+        var depth = 0
+        for (raw in unfold(text)) {
+            val p = property(raw) ?: continue
+            when (p.name) {
+                "BEGIN" -> depth++
+                "END" -> depth--
+                "X-WR-CALNAME" -> if (depth == 1) return unescape(p.value).trim().ifEmpty { null }
+            }
+        }
+        return null
     }
 
     /** A DTSTART or DTEND: the moment as written, and the zone it is read in. */
@@ -394,8 +447,11 @@ object Ics {
     }
 
     private val UTC: ZoneId = ZoneId.of("UTC")
+    private val DATE_OUT = java.time.format.DateTimeFormatter.BASIC_ISO_DATE
+    private val DATE_TIME_OUT = java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'")
     private val DATE = Regex("""^(\d{4})(\d{2})(\d{2})$""")
     private val DATE_TIME = Regex("""^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})?(Z?)$""", RegexOption.IGNORE_CASE)
+    private val UNTIL_LOCAL = Regex("""(UNTIL=)(\d{8}T\d{6})(?=;|$)""", RegexOption.IGNORE_CASE)
     private val OFFSET = Regex("""^([+-])(\d{2})(\d{2})(\d{2})?$""")
     private val BY_DAY = Regex("""^([+-]?\d)?(SU|MO|TU|WE|TH|FR|SA)$""")
     private val WEEKDAYS = listOf("MO", "TU", "WE", "TH", "FR", "SA", "SU")

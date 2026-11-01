@@ -283,7 +283,7 @@
     <!-- First run, before calendar access -->
 
     <string name="permission_why">This app shows and changes the calendars already on the phone, so it needs to be let into them.</string>
-    <string name="permission_davx5">To have a Nextcloud or other CalDAV calendar here, set it up in DAVx5 first. DAVx5 does the syncing; this app never reaches the network.</string>
+    <string name="permission_davx5">To have a Nextcloud or other CalDAV calendar here, set it up in DAVx5 first. DAVx5 does the syncing; this app only fetches the calendar links you add yourself.</string>
     <string name="permission_denied">Calendar access was not given. Without it there is nothing to show. Open the app\'s settings, choose Permissions, then Calendar, and allow it.</string>
     <string name="permission_open_settings">Open app settings</string>
     <string name="permission_allow">Allow calendar access</string>
@@ -305,7 +305,7 @@
 
     <!-- Heading. %1$s is the version number, e.g. 0.1.0 -->
     <string name="about_title">Datebook %1$s</string>
-    <string name="about_privacy">It reads and writes the calendars already on the phone and never reaches the network. DAVx5, or the account the calendar came from, does the syncing.</string>
+    <string name="about_privacy">It reads and writes the calendars already on the phone. It reaches the network only to fetch the calendar links you add, and uses the camera only while scanning one. DAVx5, or the account the calendar came from, does the syncing.</string>
     <string name="about_sources">Reminders come from the phone\'s calendar store, so the ones set in Nextcloud ring here too.</string>
     <string name="about_google">To bring a Google calendar in, sync it with DAVx5 (or any CalDAV or Nextcloud account). This app shows what the phone has.</string>
     <string name="about_after">After KompaktCalendar by David Anderlohr, GPL 3.0, and Etar, GPL 3.0, whose repeat rules and ways of saving a changed occurrence this follows. The repeat-rule parser is the Android Open Source Project\'s, Apache 2.0.</string>
@@ -355,5 +355,37 @@
     <string name="licences_full_gpl">GNU General Public License v3 (full text)</string>
     <string name="licences_full_apache">Apache License 2.0 (full text)</string>
     <string name="licences_full_ofl">SIL Open Font Licence 1.1 (full text)</string>
+
+    <!-- Calendars followed by a link (Settings): a read-only calendar fetched again when the app opens and on a pull down -->
+    <string name="link_section">Followed by link</string>
+    <string name="link_add_row">Add calendar link</string>
+    <string name="link_add_row_note">Follow a calendar from its internet address, such as a Google or Outlook calendar\'s</string>
+    <string name="link_title">Add calendar link</string>
+    <string name="link_why">Paste the calendar\'s address, or scan its QR code. It is fetched when this app opens and when you pull down in Settings, and it cannot be changed from here. The address is a secret: it is kept on this phone only and is left out of backups.</string>
+    <string name="link_hint">https:// or webcal:// address</string>
+    <string name="link_scan">Scan QR</string>
+    <string name="link_add">Add</string>
+    <string name="link_fetching">Fetching\u2026</string>
+    <string name="link_http_refused">A link that starts with http:// is not used: it would travel unprotected. Ask for the https:// one.</string>
+    <string name="link_not_a_link">That is not a calendar address. It should start with https:// or webcal://.</string>
+    <string name="link_updated">%1$s, updated %2$s</string>
+    <string name="link_failed">Not updated. %1$s</string>
+    <string name="link_remove">Remove this calendar</string>
+    <string name="link_remove_armed">Press again to remove it and its events</string>
+    <string name="link_err_no_host">The server could not be found.</string>
+    <string name="link_err_timeout">The server did not answer in time.</string>
+    <string name="link_err_certificate">The server\'s certificate was not accepted.</string>
+    <string name="link_err_unreachable">The server could not be reached.</string>
+    <string name="link_err_too_big">The calendar is larger than 8 MB.</string>
+    <string name="link_err_open">The link could not be opened.</string>
+    <string name="link_err_not_calendar">The reply is not a calendar.</string>
+    <string name="link_err_not_saved">The calendar was not saved on this phone.</string>
+    <string name="link_err_no_permission">Calendar access is needed to save it.</string>
+    <string name="link_scan_title">Scan QR</string>
+    <string name="link_scan_hold">Hold the code in front of the camera.</string>
+    <string name="link_scan_not_link">That code is not a calendar address.</string>
+    <string name="link_camera_why">The camera is used only while this screen is open, to read the code. Nothing is saved.</string>
+    <string name="link_camera_denied">The camera was not allowed. Paste the address instead, or allow the camera in the phone\'s settings.</string>
+    <string name="link_camera_allow">Allow the camera</string>
 </resources>
 

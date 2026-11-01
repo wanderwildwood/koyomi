@@ -1,12 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <!--
-      The phone's own calendar store, which DAVx5 or an account's sync adapter fills. There is
-      no INTERNET permission: this app never reaches the network, and syncing is not its job.
-    -->
+    <!-- The phone's own calendar store, which DAVx5 or an account's sync adapter fills. -->
     <uses-permission android:name="android.permission.READ_CALENDAR" />
     <uses-permission android:name="android.permission.WRITE_CALENDAR" />
+
+    <!--
+      Only to fetch the calendar links the person adds (Settings, Add calendar link), when the
+      app opens and on a pull down. There is no background work and nothing else is sent.
+    -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Only while the QR scanner for a calendar link is open. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- A library under the camera asks for this; nothing here looks at the network's state. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 
     <!-- Reminders: a notification, the event on the whole screen, and an alarm to wake for it. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -37,6 +48,8 @@
     <application
         android:name=".KoyomiApp"
         android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
         android:icon="@drawable/ic_launcher_mudita"
         android:label="@string/app_name"
         android:roundIcon="@drawable/ic_launcher_mudita"

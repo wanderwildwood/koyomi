@@ -31,7 +31,8 @@ import com.wanderwildwood.koyomi.R
  *
  * The line about the network is here because a calendar holds a whole life's appointments,
  * and a stranger cannot tell from outside whether this one sends them anywhere. It does not:
- * DAVx5, or whatever account put the calendar on the phone, does the syncing.
+ * it only fetches the calendar links the person adds, and DAVx5, or whatever account put the
+ * calendar on the phone, does the syncing.
  */
 @Composable
 fun AboutDialog(onDismiss: () -> Unit) {

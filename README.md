@@ -17,7 +17,8 @@ sixteen greys, a slow redraw, and is read outdoors as often as indoors.
 ## Where the calendars come from
 
 It shows and changes the calendars already on the phone — the same store every calendar app
-on Android reads. It has no account and no sync of its own and never reaches the network.
+on Android reads. It has no account and no sync of its own. It reaches the network only to fetch the calendar
+links you add yourself (below), and uses the camera only while the QR scanner is open.
 
 To have a Nextcloud, Fastmail, iCloud or any other CalDAV calendar here, set it up in
 [DAVx5](https://www.davx5.com/) first. DAVx5 keeps the phone's store and the server in step;
@@ -28,6 +29,15 @@ browser. The Kompakt's built-in one is refused by Google ("Error 403: disallowed
 Readers of the KompaktCalendar thread on the Mudita forum found the way past it: install
 [EinkBro](https://github.com/plateaukao/einkbro), make it the default browser, then add the
 Google account in DAVx5.
+
+**A calendar by its link.** Settings → Add calendar link follows any iCalendar address
+(https:// or webcal://; plain http:// is refused), such as a Google or Outlook calendar's
+secret address or a school's or club's. Paste it, or scan the QR code that holds it. It is kept
+as a read-only calendar on the phone, fetched again when the app opens and when you pull down
+in Settings (there is no background fetching), and each fetch replaces that calendar's events
+whole. If a fetch fails the last copy stays and the server's own words are shown. Remove deletes
+that calendar and its events, nothing else. The address is a secret: it is kept only in the
+app's private storage, left out of backups, never logged, and only its server name is shown.
 
 A calendar called **PC Sync** may appear under Settings → Calendars. The phone's own calendar
 store makes it; it belongs to no account, so nothing saved in it leaves the phone.
@@ -83,27 +93,27 @@ installed, behind the ⋮.
 
 ## What it does not do
 
-It does not sync; DAVx5 does. It has no guests, invitations or colours, and no widget. It
+It does not sync accounts; DAVx5 does. It has no guests, invitations or colours, and no widget. It
 does not answer invitations, and it does not keep the reminders written into a calendar
 file: an added event gets the reminder a new one would.
 
 ## On a Mudita Kompakt
 
 DuraSpeed, a MediaTek service on the Kompakt, closes installed apps a few minutes after the
-screen goes dark and keeps them closed until they are opened again. For Calendar that means
+screen goes dark and keeps them closed until they are opened again. For Datebook that means
 reminders do not go off: closing an app this way cancels the alarms it has set. Mudita's own
 apps are on its allow list; this one has to be added, once.
 
 Kompakt's Settings has no way in to DuraSpeed: no menu entry, and no search box to look for it
 in. Its own screen will not open for another app either, but its App info page will. While
-Calendar is at risk, its **Settings** shows a row saying so, with **Open DuraSpeed**; then, on
+Datebook is at risk, its **Settings** shows a row saying so, with **Open DuraSpeed**; then, on
 the phone:
 
 1. Tap **Open** on DuraSpeed's App info page.
-2. Switch **Calendar** on in the list: the one whose icon has no box round it, since Mudita's own
+2. Switch **Datebook** on in the list: the one whose icon has no box round it, since Mudita's own
    calendar is listed as Calendar too. **On means allowed** to run in the background, which is
    easy to read the wrong way round. Switching DuraSpeed off at the top works too, for every app.
-3. Back in Calendar, tap **It's switched on**. Calendar cannot read DuraSpeed's list, so this is
+3. Back in Datebook, tap **It's switched on**. Datebook cannot read DuraSpeed's list, so this is
    how it knows; if DuraSpeed shuts it down anyway, the row comes back.
 
 ## Getting it, and keeping it

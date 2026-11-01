@@ -16,6 +16,8 @@ val LICENCE_COMPONENTS: List<LicenceComponent> = listOf(
     LicenceComponent("KompaktCalendar, the app this began from", "David Anderlohr", "GPL-3.0", "https://codeberg.org/davidanderlohr/KompaktCalendar"),
     LicenceComponent("Etar Calendar, whose repeat rules and saving of a changed occurrence this follows", "the Etar authors", "GPL-3.0", "https://github.com/Etar-Group/Etar-Calendar"),
     LicenceComponent("Android Open Source Project repeat-rule parser (calendarcommon2)", "The Android Open Source Project", "Apache-2.0", "https://source.android.com"),
+    LicenceComponent("ZXing (reads the QR code of a calendar link)", "the ZXing authors", "Apache-2.0", "https://github.com/zxing/zxing"),
+    LicenceComponent("CameraX (the camera while the scanner is open)", "Google", "Apache-2.0", "https://developer.android.com/jetpack/androidx/releases/camera"),
     LicenceComponent("Material Symbols icons", "Google", "Apache-2.0", "https://fonts.google.com/icons"),
 )
 

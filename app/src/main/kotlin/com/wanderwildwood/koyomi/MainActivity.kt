@@ -111,6 +111,8 @@ class MainActivity : ComponentActivity() {
         super.onStart()
         if (leftAt > 0 && SystemClock.elapsedRealtime() - leftAt >= AWAY_MS) model.reopen()
         leftAt = 0L
+        // Followed calendars are fetched again when the app opens; there is no background fetching.
+        model.refreshSubscriptions()
     }
 
     /** A reminder that was pressed opens its event. */
@@ -177,5 +179,7 @@ internal fun Koyomi(model: AppModel, finish: (() -> Unit)? = null) {
         Screen.Search -> SearchScreen(model)
         Screen.Settings -> SettingsScreen(model)
         is Screen.Import -> ImportScreen(model, top)
+        Screen.AddLink -> com.wanderwildwood.koyomi.ui.AddLinkScreen(model)
+        Screen.ScanLink -> com.wanderwildwood.koyomi.ui.ScanLinkScreen(model)
     }
 }

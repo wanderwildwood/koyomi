@@ -16,6 +16,14 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.wanderwildwood.koyomi.alerts.Alerts
 import com.wanderwildwood.koyomi.data.CalendarInfo
+import com.wanderwildwood.koyomi.data.CalendarLink
+import com.wanderwildwood.koyomi.data.Fetched
+import com.wanderwildwood.koyomi.data.HttpFetcher
+import com.wanderwildwood.koyomi.data.Refreshed
+import com.wanderwildwood.koyomi.data.Subscription
+import com.wanderwildwood.koyomi.data.SubscriptionStore
+import com.wanderwildwood.koyomi.data.SubscriptionSync
+import com.wanderwildwood.koyomi.data.SubscriptionTarget
 import com.wanderwildwood.koyomi.data.CalendarStore
 import com.wanderwildwood.koyomi.data.Draft
 import com.wanderwildwood.koyomi.data.EventRecord
@@ -50,6 +58,12 @@ sealed interface Screen {
 
     /** The events of an .ics file another app opened here, to be added to a calendar. */
     data class Import(val uri: Uri) : Screen
+
+    /** Follow a calendar by its link: a field to paste it in, and a button to scan its QR code. */
+    data object AddLink : Screen
+
+    /** The camera, looking for a QR code that holds a calendar link. */
+    data object ScanLink : Screen
 }
 
 /** What another app asked this one for: a new event, an event shown or changed, a file read. */
@@ -62,6 +76,19 @@ sealed interface Request {
 class AppModel(app: Application) : AndroidViewModel(app) {
     val store = CalendarStore(app)
     val settings = Settings(app)
+    private val links = SubscriptionStore(app)
+
+    /** Calendars followed by a link, with when each last arrived and what went wrong if it did not. */
+    var subscriptions by mutableStateOf<List<Subscription>>(links.all())
+        private set
+
+    /** Whether links are being fetched right now. */
+    var fetching by mutableStateOf(false)
+        private set
+    private var lastFetch = 0L
+
+    /** A link the scanner found, waiting for the Add screen to take it. */
+    var scannedLink by mutableStateOf<String?>(null)
 
     var canRead by mutableStateOf(store.canRead())
         private set
@@ -259,6 +286,116 @@ class AppModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    private fun failureText(f: Fetched.Failed): String {
+        val app = getApplication<Application>()
+        return when (f.kind) {
+            Fetched.Kind.SERVER -> f.message
+            Fetched.Kind.NO_HOST -> app.getString(R.string.link_err_no_host)
+            Fetched.Kind.TIMEOUT -> app.getString(R.string.link_err_timeout)
+            Fetched.Kind.CERTIFICATE -> app.getString(R.string.link_err_certificate)
+            Fetched.Kind.UNREACHABLE -> app.getString(R.string.link_err_unreachable)
+            Fetched.Kind.TOO_BIG -> app.getString(R.string.link_err_too_big)
+            Fetched.Kind.OPEN -> app.getString(R.string.link_err_open)
+        }
+    }
+
+    private fun refreshOne(sub: Subscription): Refreshed {
+        val app = getApplication<Application>()
+        return SubscriptionSync.refresh(
+            sub, HttpFetcher(), SubscriptionTarget(store::replaceSubscriptionEvents), ZoneId.systemDefault(),
+            System.currentTimeMillis(), ::failureText,
+            notACalendar = app.getString(R.string.link_err_not_calendar),
+            notSaved = app.getString(R.string.link_err_not_saved),
+        )
+    }
+
+    /**
+     * Fetches every followed link again, one after another, when the app opens (at most once in
+     * five minutes unless [force]) and on a pull down. No background work. A link that fails
+     * keeps its last copy and the server's words.
+     */
+    fun refreshSubscriptions(force: Boolean = false) {
+        if (fetching || !canRead || !store.canWrite()) return
+        val now = System.currentTimeMillis()
+        if (!force && now - lastFetch < 5 * 60 * 1000) return
+        val gone = links.all().filter { s -> calendars.isNotEmpty() && calendars.none { it.id == s.calendarId } }
+        gone.forEach { links.remove(it.calendarId) }
+        val todo = links.all()
+        if (todo.isEmpty()) { subscriptions = todo; return }
+        lastFetch = now
+        fetching = true
+        viewModelScope.launch {
+            var changed = false
+            withContext(Dispatchers.IO) {
+                for (sub in todo) {
+                    val out = refreshOne(sub)
+                    when (out) {
+                        is Refreshed.Done -> { links.put(out.subscription); changed = true }
+                        is Refreshed.Kept -> links.put(out.subscription)
+                    }
+                    subscriptions = links.all()
+                }
+            }
+            fetching = false
+            subscriptions = links.all()
+            if (changed) {
+                reload()
+                viewModelScope.launch(Dispatchers.IO) { Alerts.check(getApplication()) }
+            }
+        }
+    }
+
+    /**
+     * Follows [url] (already through [CalendarLink.normalise]): fetches it once, and only if that
+     * gives a calendar makes the read-only calendar for it. Returns null when it worked, or the
+     * words to show.
+     */
+    suspend fun followLink(url: String): String? {
+        val app = getApplication<Application>()
+        if (!store.canWrite()) return app.getString(R.string.link_err_no_permission)
+        return withContext(Dispatchers.IO) {
+            val first = when (val got = runCatching { HttpFetcher().fetch(url) }.getOrElse { Fetched.Failed(Fetched.Kind.OPEN) }) {
+                is Fetched.Failed -> return@withContext failureText(got)
+                is Fetched.Body -> got.text
+            }
+            if (!first.contains("BEGIN:VCALENDAR", ignoreCase = true)) return@withContext app.getString(R.string.link_err_not_calendar)
+            val name = Ics.calendarName(first) ?: CalendarLink.hostOf(url)
+            val id = store.makeSubscriptionCalendar(name) ?: return@withContext app.getString(R.string.link_err_not_saved)
+            val sub = Subscription(id, url, name)
+            val ok = SubscriptionSync.refresh(
+                sub, { Fetched.Body(first) }, SubscriptionTarget(store::replaceSubscriptionEvents), ZoneId.systemDefault(),
+                System.currentTimeMillis(),
+            )
+            if (ok is Refreshed.Done) {
+                links.put(ok.subscription)
+                null
+            } else {
+                store.deleteSubscriptionCalendar(id)
+                app.getString(R.string.link_err_not_saved)
+            }
+        }.also {
+            subscriptions = links.all()
+            calendars = withContext(Dispatchers.IO) { store.calendars() }
+            if (it == null) {
+                reload()
+                viewModelScope.launch(Dispatchers.IO) { Alerts.check(getApplication()) }
+            }
+        }
+    }
+
+    /** Stops following [sub]: its calendar goes, with its events, and no other calendar is touched. */
+    fun unfollow(sub: Subscription) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                store.deleteSubscriptionCalendar(sub.calendarId)
+                links.remove(sub.calendarId)
+            }
+            subscriptions = links.all()
+            calendars = withContext(Dispatchers.IO) { store.calendars() }
+            reload()
+        }
+    }
+
     fun setVisible(calendar: CalendarInfo, visible: Boolean) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) { store.setVisible(calendar.id, visible) }
@@ -427,7 +564,9 @@ class AppModel(app: Application) : AndroidViewModel(app) {
             var added = 0
             var had = 0
             for (e in events) {
-                val there = e.uid != null && runCatching { store.hasUid(calendarId, e.uid) }.getOrDefault(false)
+                val there = e.uid != null && runCatching {
+                    if (e.recurrenceId != null) store.hasUidAt(calendarId, e.uid, e.startMillis) else store.hasUid(calendarId, e.uid)
+                }.getOrDefault(false)
                 if (there) {
                     had++
                     continue

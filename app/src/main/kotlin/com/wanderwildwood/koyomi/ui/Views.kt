@@ -90,6 +90,7 @@ fun ViewsScreen(model: AppModel) {
     LaunchedEffect(asked) { if (asked > 0) { delay(3000); asked = 0 } }
     val pull = {
         com.wanderwildwood.koyomi.data.CalendarSync.requestNow()
+        model.refreshSubscriptions(force = true)
         asked++
         Unit
     }
