@@ -30,7 +30,7 @@ data class IcsEvent(
     val unknownZone: String? = null,
     /** The store's EXDATE for a repeating event: the days or moments left out, comma-separated. */
     val exdate: String? = null,
-    /** RECURRENCE-ID of an edited occurrence whose series is not in the file, as written. */
+    /** RECURRENCE-ID of an edited occurrence (a plain event of its own), as written. */
     val recurrenceId: String? = null,
 ) {
     val startMillis: Long get() = start.toInstant().toEpochMilli()
@@ -62,8 +62,9 @@ data class IcsEvent(
  * them ("Eastern Standard Time"); a name that is neither is read from the file's own VTIMEZONE,
  * by its offsets and the days its clocks change. RRULE is passed through as written. Reminders, attendees and RSVP are left:
  * an invitation is added as a plain event. A cancelled event, or a file that is a
- * cancellation, adds nothing. A changed occurrence (RECURRENCE-ID) is left out when the series
- * it belongs to is in the same file, since adding both would show that day twice.
+ * cancellation, adds nothing. A changed occurrence (RECURRENCE-ID) whose series is in the same
+ * file is added as its own event and its original start goes into the series' EXDATE, so the
+ * day shows once, at its new time; a cancelled one only adds the EXDATE.
  */
 object Ics {
     /**
@@ -132,11 +133,21 @@ object Ics {
         }
         if (method == "CANCEL") return emptyList()
 
-        val series = found.filter { it["RECURRENCE-ID"] == null && it["RRULE"] != null }.mapNotNull { it["UID"]?.value }.toSet()
-        return found
+        val reader = ZoneReader(zoneOf, custom, local)
+        // The series in the file, by UID. Each edited occurrence of one leaves the series (its
+        // original start joins the series' EXDATE) and, unless cancelled, stands as its own event.
+        val series = found.filter { it["RECURRENCE-ID"] == null && it["RRULE"] != null }.mapNotNull { it["UID"]?.value?.let { u -> u to it } }.toMap()
+        val leftOut = mutableMapOf<String, MutableList<Property>>()
+        for (e in found) {
+            val id = e["RECURRENCE-ID"] ?: continue
+            val uid = e["UID"]?.value ?: continue
+            if (uid in series) leftOut.getOrPut(uid) { mutableListOf() } += id
+        }
+        val events = found
             .filter { it["STATUS"]?.value?.trim()?.uppercase() != "CANCELLED" }
-            .filter { e -> e["RECURRENCE-ID"] == null || e["UID"]?.value !in series }
-            .mapNotNull { event(it, local, ZoneReader(zoneOf, custom, local)) }
+            .mapNotNull { event(it, local, reader, if (it["RECURRENCE-ID"] == null) leftOut[it["UID"]?.value] else null) }
+        // Series first, so that an edit sharing the series' UID is never taken for "the series is already here".
+        return events.filter { it.recurrenceId == null } + events.filter { it.recurrenceId != null }
     }
 
     /**
@@ -147,7 +158,7 @@ object Ics {
         fun of(tzid: String, at: LocalDateTime): ZoneId? = zoneOf(tzid) ?: custom[tzid]?.let { customZone(it, at, local) }
     }
 
-    private fun event(props: Map<String, Property>, local: ZoneId, zones: ZoneReader): IcsEvent? {
+    private fun event(props: Map<String, Property>, local: ZoneId, zones: ZoneReader, edited: List<Property>? = null): IcsEvent? {
         val dtStart = props["DTSTART"] ?: return null
         val start = time(dtStart, local, zones) ?: return null
         val msAllDay = props["X-MICROSOFT-CDO-ALLDAYEVENT"]?.value?.trim().equals("TRUE", ignoreCase = true)
@@ -189,7 +200,7 @@ object Ics {
             zone = zone,
             rrule = props["RRULE"]?.value?.trim()?.ifEmpty { null }?.let { if (allDay) it else untilInUtc(it, zone) },
             unknownZone = if (allDay) null else start.unknownZone,
-            exdate = if (props["RRULE"] == null) null else exdates(props, allDay, local, zones),
+            exdate = if (props["RRULE"] == null) null else exdates(props, allDay, local, zones, edited.orEmpty(), zone),
             recurrenceId = props["RECURRENCE-ID"]?.value?.trim()?.ifEmpty { null },
         )
     }
@@ -210,8 +221,15 @@ object Ics {
      * Every EXDATE of an event as the store keeps them: a date for an all-day series, otherwise
      * a UTC moment, whatever zone the file wrote it in.
      */
-    private fun exdates(props: Map<String, Property>, allDay: Boolean, local: ZoneId, zones: ZoneReader): String? {
-        val out = props.filterKeys { it.startsWith("EXDATE#") }.values.flatMap { p ->
+    private fun exdates(props: Map<String, Property>, allDay: Boolean, local: ZoneId, zones: ZoneReader, edited: List<Property>, seriesZone: ZoneId): String? {
+        // An edited occurrence's RECURRENCE-ID names the start it had; written without a zone it is in the series' own.
+        val floating = edited.map { p ->
+            val v = p.value.trim()
+            if (!v.endsWith("Z", ignoreCase = true) && p.params["TZID"] == null && !DATE.matches(v) && !p.params["VALUE"].equals("DATE", true)) {
+                Property(p.name, p.params + ("TZID" to seriesZone.id), v)
+            } else p
+        }
+        val out = (props.filterKeys { it.startsWith("EXDATE#") }.values + floating).flatMap { p ->
             p.value.split(',').mapNotNull { raw ->
                 val t = time(Property(p.name, p.params, raw.trim()), local, zones) ?: return@mapNotNull null
                 if (allDay) {

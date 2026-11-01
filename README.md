@@ -84,7 +84,9 @@ under its title, while that app is on the phone.
 **Calendar files open here.** An .ics file, from a mail attachment, a download or a file
 manager, lists the events in it with their dates, times and places; choose the calendar and
 press Add. Times keep their own time zone and are shown in the phone's; repeats come across
-as they are written. An invitation is added as a plain event and no reply is sent. Opening
+as they are written. When one repeating event comes with edited single days (a moved
+week, a cancelled one), the moved day is added as an event of its own and its old day is taken out
+of the repeat, as other calendar apps do. An invitation is added as a plain event and no reply is sent. Opening
 the same file twice adds its events once.
 
 **Define in an event's notes.** The notes can be selected, and the menu over them offers

@@ -611,7 +611,7 @@ class CalendarStore(private val context: Context) {
      */
     private fun exclude(record: EventRecord, begin: Long): Boolean {
         val stamp = if (record.allDay) {
-            java.time.format.DateTimeFormatter.BASIC_ISO_DATE.format(Instant.ofEpochMilli(begin).atOffset(ZoneOffset.UTC))
+            java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd").format(Instant.ofEpochMilli(begin).atOffset(ZoneOffset.UTC))
         } else {
             java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'").format(Instant.ofEpochMilli(begin).atOffset(ZoneOffset.UTC))
         }

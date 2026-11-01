@@ -128,17 +128,20 @@ class StressTest {
         assertTrue("$total events", total in 300..400)
     }
 
-    @Test fun editsOfASeriesInTheFileAreLeftOutAndTheRestAreKept() {
+    @Test fun everyEditIsAnEventOfItsOwnAndItsOriginalDayLeavesTheSeries() {
         val text = resource("stress.ics")
         val all = text.lines().count { it == "BEGIN:VEVENT" }
         val edits = text.lines().count { it.startsWith("RECURRENCE-ID") }
-        val withSeries = events.filter { it.recurrenceId == null }.size
         val kept = events.count { it.recurrenceId != null }
-        // 30 edits belong to a series in the file: dropped, so the day shows once. The other 40 stand alone.
+        // 30 edits belong to a series in the file: each is its own event AND its old day is in the series' EXDATE.
         assertEquals(70, edits)
-        assertEquals(all - 30, events.size)
-        assertEquals(40, kept)
-        assertEquals(all - 70, withSeries)
+        assertEquals(all, events.size)
+        assertEquals(70, kept)
+        val seriesEx = events.filter { it.rrule != null && it.recurrenceId == null && it.title.isNotEmpty() && it.exdate != null }
+        assertEquals(54, seriesEx.size)
+        assertEquals(30, events.filter { it.recurrenceId != null }.count { e -> events.any { it.rrule != null && it.uid == e.uid } })
+        // Series come before edits, so importing in order never mistakes the series for "already there".
+        assertTrue(events.indexOfLast { it.recurrenceId == null } < events.indexOfFirst { it.recurrenceId != null })
     }
 
     @Test fun twoEditsSharingAUidKeepTheirOwnDays() {
@@ -148,7 +151,7 @@ class StressTest {
     }
 
     @Test fun exdatesFromSeveralLinesAndZonesAllArrive() {
-        val withEx = events.filter { it.exdate != null }
+        val withEx = events.filter { it.exdate != null && it.recurrenceId == null && it.uid?.let { u -> events.none { e -> e.recurrenceId != null && e.uid == u } } == true }
         assertEquals(24, withEx.size)
         assertTrue(withEx.all { it.exdate!!.split(',').size in 3..4 })
         assertTrue(withEx.filter { it.allDay }.all { e -> e.exdate!!.split(',').all { it.length == 8 } })

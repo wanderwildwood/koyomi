@@ -85,9 +85,29 @@ class IcsTest {
                 "DTSTART;TZID=America/Chicago:20261015T190000", "DTEND;TZID=America/Chicago:20261015T203000", "END:VEVENT",
             ),
             phone,
-        ).single()
-        assertEquals("FREQ=WEEKLY;BYDAY=WE;COUNT=10", e.rrule)
-        assertEquals("P5400S", e.duration())
+        )
+        val s = e.first()
+        assertEquals("FREQ=WEEKLY;BYDAY=WE;COUNT=10", s.rrule)
+        assertEquals("P5400S", s.duration())
+        // The moved occurrence is its own event; the series gives up the Wednesday it left (UTC, 19:00 CDT).
+        assertEquals(2, e.size)
+        assertEquals("20261015T000000Z", s.exdate)
+        assertEquals("Choir (moved)", e[1].title)
+    }
+
+    @Test
+    fun anAllDayEditAndACancelledOneBothTakeTheirDayOutOfTheSeries() {
+        val e = Ics.parse(
+            cal(
+                "BEGIN:VEVENT", "UID:a1", "SUMMARY:Bins", "DTSTART;VALUE=DATE:20261012", "RRULE:FREQ=DAILY;COUNT=10", "END:VEVENT",
+                "BEGIN:VEVENT", "UID:a1", "SUMMARY:Bins late", "RECURRENCE-ID;VALUE=DATE:20261014", "DTSTART;VALUE=DATE:20261015", "END:VEVENT",
+                "BEGIN:VEVENT", "UID:a1", "STATUS:CANCELLED", "SUMMARY:Bins", "RECURRENCE-ID;VALUE=DATE:20261016", "DTSTART;VALUE=DATE:20261016", "END:VEVENT",
+            ),
+            phone,
+        )
+        assertEquals(2, e.size)
+        assertEquals("20261014,20261016", e[0].exdate)
+        assertEquals("Bins late", e[1].title)
     }
 
     @Test

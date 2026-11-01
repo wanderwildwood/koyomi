@@ -17,6 +17,7 @@ whose series is and is not in the file; all-day series; series crossing both DST
 that is a Windows zone name; open-ended series.
 """
 import csv
+import re
 import os
 import datetime as dt
 import sys
@@ -329,7 +330,7 @@ for i in range(24):
         add_series(start=first, allday=True, rule=dict(freq="DAILY", count=30), ex=[x.date() for x in ex], ex_style=style)
     else:
         add_series(start=start, rule=dict(freq="DAILY", count=40), ex=ex, ex_style=style)
-# ---- 9 edited occurrences: series in the file (dropped), series not in the file (kept) (30 + 30)
+# ---- 9 edited occurrences: series in the file (exdate + own event), series not in the file (own event) (30 + 30)
 for i in range(30):
     first = dt.date(2026, 4, 1 + i % 20)
     start = dt.datetime.combine(first, dt.time(11, 0))
@@ -397,13 +398,23 @@ def bump(d):
         counts[(d.year, d.month)] = counts.get((d.year, d.month), 0) + 1
 
 
+# original starts of edits whose series is in the file, per series uid
+edited_out = {}
+for ev in events:
+    t = "\n".join(ev)
+    m = re.search(r"RECURRENCE-ID;TZID=([^:]+):(\d{8}T\d{6})", t)
+    if m:
+        edited_out.setdefault(re.search(r"UID:(\S+)", t).group(1), []).append(dt.datetime.strptime(m.group(2), "%Y%m%dT%H%M%S"))
 for s in series:
     for wall in occurrences(s):
+        if wall in edited_out.get(s["uid"], []):
+            continue
         bump(shown_date(s, wall))
         if os.environ.get('DUMP'):
             k = (s['uid'], shown_date(s, wall).strftime('%Y-%m'))
             dump[k] = dump.get(k, 0) + 1
-# edited occurrences whose series is NOT in the file: one plain event each
+# every edited occurrence is one plain event at its NEW time; for a series in the file its
+# original day is also taken out of the series (below)
 # (re-read from the file text so the table cannot drift from what is written)
 import re
 for ev in events:
@@ -411,8 +422,6 @@ for ev in events:
     if "RECURRENCE-ID" not in text:
         continue
     m = re.search(r"UID:(\S+)", text).group(1)
-    if any(s["uid"] == m for s in series):
-        continue  # series present: the edit is left out, the series shows the day once
     m2 = re.search(r"DTSTART;TZID=([^:]+):(\d{8}T\d{6})", text)
     z = ZoneInfo(m2.group(1))
     d = dt.datetime.strptime(m2.group(2), "%Y%m%dT%H%M%S").replace(tzinfo=z).astimezone(SHOW).date()
