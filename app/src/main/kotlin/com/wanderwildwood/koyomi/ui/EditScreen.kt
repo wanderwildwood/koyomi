@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -73,6 +74,10 @@ fun EditScreen(model: AppModel, screen: Screen.Edit) {
         }
     }
 
+    // Where the keyboard opens on the Where field, the list is set so that field is its first row,
+    // under the header's edge rather than beneath it.
+    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
@@ -97,7 +102,7 @@ fun EditScreen(model: AppModel, screen: Screen.Edit) {
             )
         },
     ) { padding ->
-        PagedColumn(Modifier.fillMaxSize().padding(padding), contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 12.dp)) {
+        PagedColumn(Modifier.fillMaxSize().padding(padding), state = listState, contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 12.dp)) {
             item {
                 Spacer(Modifier.height(8.dp))
                 TextFieldMMD(
@@ -168,7 +173,12 @@ fun EditScreen(model: AppModel, screen: Screen.Edit) {
                     onValueChange = { model.draft = model.draft.copy(location = it) },
                     label = { TextMMD(text = stringResource(R.string.event_where)) },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().onFocusChanged {
+                        if (it.isFocused) scope.launch {
+                            kotlinx.coroutines.delay(250)
+                            listState.scrollToItem(WHERE_ITEM)
+                        }
+                    },
                 )
             }
             item {
@@ -242,6 +252,9 @@ private fun moveStart(d: com.wanderwildwood.koyomi.data.Draft, date: java.time.L
     val days = java.time.temporal.ChronoUnit.DAYS.between(d.startDate, d.endDate)
     return d.copy(startDate = date, endDate = date.plusDays(days))
 }
+
+/** The Where field's place among the rows of the edit page. */
+private const val WHERE_ITEM = 5
 
 private enum class Picking { START_DATE, START_TIME, END_DATE, END_TIME, REMINDERS, CALENDAR }
 

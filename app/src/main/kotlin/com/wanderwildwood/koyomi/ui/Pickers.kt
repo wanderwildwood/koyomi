@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
@@ -131,6 +133,9 @@ fun RemindersDialog(allDay: Boolean, chosen: List<Int>, onDone: (List<Int>) -> U
     EInkDialog(onDismiss = onDismiss) {
         TextMMD(text = stringResource(R.string.edit_reminders), style = MaterialTheme.typography.bodyLarge)
         Spacer(Modifier.height(6.dp))
+        // The choices give way to the buttons: nine rows plus title and buttons are taller than
+        // the Kompakt's window, and the buttons were clipped at its bottom edge.
+        Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())) {
         options.forEach { m ->
             val on = m in picked
             val toggle = { picked = if (on) picked - m else picked + m }
@@ -145,6 +150,7 @@ fun RemindersDialog(allDay: Boolean, chosen: List<Int>, onDone: (List<Int>) -> U
                 Spacer(Modifier.width(8.dp))
                 TextMMD(text = ReminderText.of(context, m, allDay), style = MaterialTheme.typography.bodyMedium)
             }
+        }
         }
         Spacer(Modifier.height(12.dp))
         DialogButtons(onCancel = onDismiss, onOk = { onDone(picked.sorted()); onDismiss() })
