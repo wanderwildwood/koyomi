@@ -158,7 +158,7 @@ fun SettingsScreen(model: AppModel) {
         },
     ) { padding ->
         val state = rememberLazyListState()
-        PagedColumn(Modifier.padding(padding).fillMaxSize().padding(horizontal = 20.dp), state = state) {
+        PagedColumn(Modifier.padding(padding).fillMaxSize(), state = state, contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 12.dp)) {
             item { Spacer(Modifier.height(8.dp)) }
 
             // Only what is wrong is shown: a row for a switch that is already on would be

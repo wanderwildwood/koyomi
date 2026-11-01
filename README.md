@@ -1,4 +1,4 @@
-# 暦 koyomi — Calendar
+# 暦 koyomi — Datebook
 
 A calendar for an E Ink phone: month, week, day and agenda, repeating events of any
 ordinary shape, and reminders that light the screen.

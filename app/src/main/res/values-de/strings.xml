@@ -344,22 +344,16 @@
         <item quantity="other">%d waren schon da</item>
     </plurals>
     <string name="import_failed">Nichts wurde hinzugefügt. Der Kalender hat sie nicht angenommen.</string>
-    <!-- The folio at the foot of a paged list, "2 / 6"; a tap on it asks for a page -->
-    <string name="folio_of">%1$d / %2$d</string>
-    <string name="folio_go_title">Zu Seite springen</string>
-    <string name="folio_page">Seite %1$d von %2$d</string>
-    <string name="folio_go">Los</string>
-    <string name="folio_cancel">Abbrechen</string>
     <!-- Licences page, reached from About -->
     <string name="licences_title">Lizenzen</string>
-    <string name="licences_source_heading">Quellcode</string>
+    <string name="licences_source_head">Quellcode</string>
     <string name="licences_source">Quelle: %1$s</string>
-    <string name="licences_licence_heading">Lizenz</string>
+    <string name="licences_licence_head">Lizenz</string>
     <string name="licences_licence">Kalender ist freie Software unter der GNU General Public License, ausschließlich Version 3. Copyright wander wildwood. Der vollständige Text steht unten.</string>
-    <string name="licences_built_heading">Baut auf</string>
-    <string name="licences_gpl">GNU General Public License, Version 3</string>
-    <string name="licences_apache">Apache License, Version 2.0</string>
-    <string name="licences_ofl">SIL Open Font License, Version 1.1</string>
-    <string name="licences_no_browser">Es ist kein Browser installiert.</string>
-    <string name="licences_close">Schließen</string>
+    <string name="licences_built_head">Baut auf</string>
+    <string name="licences_back">Zurück</string>
+    <string name="licences_full_head">Volltexte</string>
+    <string name="licences_full_gpl">GNU General Public License, Version 3 (Volltext)</string>
+    <string name="licences_full_apache">Apache License, Version 2.0 (Volltext)</string>
+    <string name="licences_full_ofl">SIL Open Font License, Version 1.1 (Volltext)</string>
 </resources>

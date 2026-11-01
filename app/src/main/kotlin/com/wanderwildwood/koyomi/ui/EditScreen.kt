@@ -97,7 +97,7 @@ fun EditScreen(model: AppModel, screen: Screen.Edit) {
             )
         },
     ) { padding ->
-        PagedColumn(Modifier.fillMaxSize().padding(padding).padding(horizontal = 20.dp)) {
+        PagedColumn(Modifier.fillMaxSize().padding(padding), contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 12.dp)) {
             item {
                 Spacer(Modifier.height(8.dp))
                 TextFieldMMD(

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Calendar</string>
+    <string name="app_name">Datebook</string>
 
     <!-- ============================================================ -->
     <!-- Words used in many places -->
@@ -253,7 +253,7 @@
     <string name="settings_full_screen_off">Full-screen reminders are not allowed</string>
     <string name="settings_fix">Open the phone\'s setting</string>
     <!-- Settings, on a Kompakt: DuraSpeed shuts the app down, which cancels its reminders. Pressing it opens DuraSpeed's App info, where Open shows its list -->
-    <string name="settings_duraspeed">The phone\'s DuraSpeed setting can shut Calendar down, and its reminders with it. Open DuraSpeed, tap Open, and switch Calendar on: the one without a box round its icon, since Mudita\'s own calendar is in the list too.</string>
+    <string name="settings_duraspeed">The phone\'s DuraSpeed setting can shut Datebook down, and its reminders with it. Open DuraSpeed, tap Open, and switch Datebook on: the one without a box round its icon, since Mudita\'s own calendar is in the list too.</string>
     <string name="settings_duraspeed_open">Open DuraSpeed</string>
     <!-- Settings, under the DuraSpeed row: pressing it says Calendar is now switched on there -->
     <string name="settings_duraspeed_done">It\'s switched on</string>
@@ -304,7 +304,7 @@
     <!-- About dialog. Keep the names of the app, people, projects and licences as they are -->
 
     <!-- Heading. %1$s is the version number, e.g. 0.1.0 -->
-    <string name="about_title">Calendar %1$s</string>
+    <string name="about_title">Datebook %1$s</string>
     <string name="about_privacy">It reads and writes the calendars already on the phone and never reaches the network. DAVx5, or the account the calendar came from, does the syncing.</string>
     <string name="about_sources">Reminders come from the phone\'s calendar store, so the ones set in Nextcloud ring here too.</string>
     <string name="about_google">To bring a Google calendar in, sync it with DAVx5 (or any CalDAV or Nextcloud account). This app shows what the phone has.</string>
@@ -343,23 +343,17 @@
         <item quantity="other">%d were here already</item>
     </plurals>
     <string name="import_failed">Nothing was added. The calendar did not take them.</string>
-    <!-- The folio at the foot of a paged list, "2 / 6"; a tap on it asks for a page -->
-    <string name="folio_of">%1$d / %2$d</string>
-    <string name="folio_go_title">Go to page</string>
-    <string name="folio_page">Page %1$d of %2$d</string>
-    <string name="folio_go">Go</string>
-    <string name="folio_cancel">Cancel</string>
     <!-- Licences page, reached from About -->
     <string name="licences_title">Licences</string>
-    <string name="licences_source_heading">Source code</string>
+    <string name="licences_source_head">Source code</string>
     <string name="licences_source">Source: %1$s</string>
-    <string name="licences_licence_heading">Licence</string>
-    <string name="licences_licence">Calendar is free software under the GNU General Public License, version 3 only. Copyright wander wildwood. The full text is below.</string>
-    <string name="licences_built_heading">Built with</string>
-    <string name="licences_gpl">GNU General Public License, version 3</string>
-    <string name="licences_apache">Apache License, version 2.0</string>
-    <string name="licences_ofl">SIL Open Font License, version 1.1</string>
-    <string name="licences_no_browser">No browser is installed.</string>
-    <string name="licences_close">Close</string>
+    <string name="licences_licence_head">Licence</string>
+    <string name="licences_licence">Datebook is free software under the GNU General Public License, version 3 only. Copyright wander wildwood.</string>
+    <string name="licences_built_head">Built with</string>
+    <string name="licences_back">Back</string>
+    <string name="licences_full_head">Full texts</string>
+    <string name="licences_full_gpl">GNU General Public License v3 (full text)</string>
+    <string name="licences_full_apache">Apache License 2.0 (full text)</string>
+    <string name="licences_full_ofl">SIL Open Font Licence 1.1 (full text)</string>
 </resources>
 

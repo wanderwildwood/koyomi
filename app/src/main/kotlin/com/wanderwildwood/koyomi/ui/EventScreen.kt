@@ -96,7 +96,7 @@ fun EventScreen(model: AppModel, screen: Screen.Event) {
         val finish = CalendarStore.toLocal(screen.end, r.allDay, zone)
         val calendar = model.calendars.firstOrNull { it.id == r.calendarId }
 
-        PagedColumn(Modifier.fillMaxSize().padding(padding).padding(horizontal = 20.dp)) {
+        PagedColumn(Modifier.fillMaxSize().padding(padding), contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 12.dp)) {
             item {
                 Spacer(Modifier.height(16.dp))
                 TextMMD(

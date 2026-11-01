@@ -861,9 +861,10 @@ private fun AgendaView(model: AppModel, onPull: () -> Unit) {
     LaunchedEffect(model.todayPresses) { if (model.todayPresses > 0) state.scrollToItem(0) }
     Column(Modifier.fillMaxSize()) {
         PagedColumn(
-            Modifier.fillMaxSize().padding(horizontal = 16.dp),
+            Modifier.fillMaxSize(),
             state = state,
             onPullAtTop = onPull,
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 16.dp, end = 12.dp),
         ) {
             byDay.forEach { (day, list) ->
                 item(key = "h$day") {
