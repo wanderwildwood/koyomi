@@ -13,10 +13,10 @@ android {
     defaultConfig {
         applicationId = "com.wanderwildwood.koyomi"
         // The Kompakt runs Android 12 (API 31); nothing here needs anything newer.
-        minSdk = 31
+        minSdk = 30
         targetSdk = 31
-        versionCode = 47
-        versionName = "0.1.46"
+        versionCode = 48
+        versionName = "0.1.47"
     }
 
     // A real keystore in signing/ signs every build type when it is present, so the
