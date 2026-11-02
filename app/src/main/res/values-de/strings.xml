@@ -348,9 +348,7 @@
     <string name="licences_title">Lizenzen</string>
     <string name="licences_source_head">Quellcode</string>
     <string name="licences_source">Quelle: %1$s</string>
-    <string name="licences_licence_head">Lizenz</string>
-    <string name="licences_licence">Kalender ist freie Software unter der GNU General Public License, ausschließlich Version 3. Copyright wander wildwood. Der vollständige Text steht unten.</string>
-    <string name="licences_built_head">Baut auf</string>
+    <string name="licences_licence">Kalender ist freie Software unter der GNU General Public License, ausschließlich Version 3. Copyright wander wildwood. Was darauf aufbaut, behält seine eigenen Lizenzen, jede auf ihrer eigenen Seite.</string>
     <string name="licences_back">Zurück</string>
     <string name="licences_full_head">Volltexte</string>
     <string name="licences_full_gpl">GNU General Public License, Version 3 (Volltext)</string>
