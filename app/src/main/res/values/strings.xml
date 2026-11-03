@@ -342,16 +342,16 @@
     </plurals>
     <string name="import_failed">Nothing was added. The calendar did not take them.</string>
     <!-- Licences page, reached from About -->
-    <string name="licences_title">Licences</string>
+    <string name="licences_title">Licenses</string>
     <string name="licences_source_head">Source code</string>
-    <string name="licences_no_text">%s needs no licence text here.</string>
+    <string name="licences_no_text">%s needs no license text here.</string>
     <string name="licences_source">Source: %1$s</string>
     <string name="licences_licence">Datebook is free software under the GNU General Public License, version 3 only. Copyright wander wildwood.</string>
     <string name="licences_back">Back</string>
     <string name="licences_full_head">Full texts</string>
     <string name="licences_full_gpl">GNU General Public License v3 (full text)</string>
     <string name="licences_full_apache">Apache License 2.0 (full text)</string>
-    <string name="licences_full_ofl">SIL Open Font Licence 1.1 (full text)</string>
+    <string name="licences_full_ofl">SIL Open Font License 1.1 (full text)</string>
 
     <!-- Calendars followed by a link (Settings): a read-only calendar fetched again when the app opens and on a pull down -->
     <string name="link_section">Followed by link</string>
