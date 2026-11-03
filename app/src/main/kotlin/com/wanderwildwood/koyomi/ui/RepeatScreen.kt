@@ -90,7 +90,7 @@ fun RepeatScreen(model: AppModel) {
                     fontWeight = FontWeight.Bold,
                 )
                 Spacer(Modifier.height(8.dp))
-                HorizontalDividerMMD(thickness = 1.dp)
+                DottedRule(start = 0.dp, end = 0.dp)
             }
             item { Radio(stringResource(R.string.repeat_never), !repeats) { repeats = false } }
             listOf(

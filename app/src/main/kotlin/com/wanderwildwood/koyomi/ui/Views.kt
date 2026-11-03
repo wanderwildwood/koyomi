@@ -896,6 +896,7 @@ private fun AgendaView(model: AppModel, onPull: () -> Unit) {
 
 @Composable
 fun AgendaRow(time: String, occurrence: Occurrence, onClick: () -> Unit) {
+    Column {
     Row(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 8.dp),
     ) {
@@ -913,5 +914,7 @@ fun AgendaRow(time: String, occurrence: Occurrence, onClick: () -> Unit) {
                 TextMMD(text = it, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
+    }
+    DottedRule(start = 0.dp, end = 0.dp)
     }
 }

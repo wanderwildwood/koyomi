@@ -125,9 +125,9 @@ fun ImportScreen(model: AppModel, screen: Screen.Import) {
                     value = writable.firstOrNull { it.id == calendarId }?.name ?: stringResource(R.string.edit_no_calendar_short),
                     onClick = { picking = true },
                 )
-                HorizontalDividerMMD(thickness = 1.dp)
+                DottedRule(start = 0.dp, end = 0.dp)
             }
-            list.forEach { e -> item { ImportRow(e) } }
+            list.forEach { e -> item { Column { ImportRow(e); DottedRule(start = 0.dp, end = 0.dp) } } }
         }
     }
 
