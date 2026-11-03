@@ -357,6 +357,17 @@
     <string name="link_section">Followed by link</string>
     <string name="link_add_row">Add calendar link</string>
     <string name="link_add_row_note">Follow a calendar from its internet address, such as a Google or Outlook calendar\'s</string>
+    <string name="links_save">Save the calendar links</string>
+    <string name="links_save_note">Writes the calendars followed by link, with their private addresses, to a file you pick, for a new phone. Anyone who has the file can read those calendars.</string>
+    <string name="links_restore">Follow the links in a saved file</string>
+    <string name="links_restore_note">Adds the calendars from a file saved here. Calendars already followed are left as they are.</string>
+    <string name="links_saved">Calendar links saved.</string>
+    <string name="links_not_saved">The links could not be written.</string>
+    <string name="links_restored">%1$d calendars added; %2$d already followed.</string>
+    <string name="links_not_ours">That file is not a list of calendar links from this app. Nothing was changed.</string>
+    <string name="links_newer">That file was made by a newer version of this app. Update the app and try again. Nothing was changed.</string>
+    <string name="links_damaged">That file is damaged, so it was not used. Nothing was changed.</string>
+    <string name="links_unreadable">That file could not be read. Nothing was changed.</string>
     <string name="link_title">Add calendar link</string>
     <string name="link_why">Paste the calendar\'s address, or scan its QR code. It is fetched when this app opens and when you pull down in Settings, and it cannot be changed from here. The address is a secret: it is kept on this phone only and is left out of backups.</string>
     <string name="link_hint">https:// or webcal:// address</string>

@@ -41,6 +41,7 @@ import com.wanderwildwood.koyomi.Screen
 import com.wanderwildwood.koyomi.data.Occurrence
 import com.wanderwildwood.koyomi.data.View
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 // ----------------------------------------------------------------------------------------
 // Search
@@ -124,6 +125,7 @@ fun SettingsScreen(model: AppModel) {
     val lockScreen = s.lockScreen
     val lockScreenNext = s.lockScreenNext
     var aboutOpen by remember { mutableStateOf(false) }
+    val linkFiles = rememberLinkFiles(model)
     var pickCalendar by remember { mutableStateOf(false) }
     var pickReminder by remember { mutableStateOf(false) }
     var allDayPick by remember { mutableStateOf(false) }
@@ -200,7 +202,7 @@ fun SettingsScreen(model: AppModel) {
 
             // The calendars first, their switches right here: which ones show is changed far
             // more often than anything below, and a screen of its own was a press for nothing.
-            calendarSwitches(model)
+            calendarSwitches(model, linkFiles)
             // Syncing is another app's work -- DAVx5, ICSx5, whatever keeps the calendars --
             // and this row only asks it to do that work now. A reader on a long sync interval
             // who has just changed something elsewhere wants to be sure before looking, and
@@ -381,7 +383,7 @@ fun SettingsScreen(model: AppModel) {
  * calendar app on the phone, because it is the phone's own switch, and the line under the
  * heading says so.
  */
-private fun LazyListScope.calendarSwitches(model: AppModel) {
+private fun LazyListScope.calendarSwitches(model: AppModel, links: LinkFiles) {
     item(key = "calendars") {
         Column(Modifier.padding(top = 6.dp, bottom = 2.dp)) {
             TextMMD(text = stringResource(R.string.settings_calendars), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
@@ -476,6 +478,60 @@ private fun LazyListScope.calendarSwitches(model: AppModel) {
     }
     item(key = "add-link") {
         SettingRow(stringResource(R.string.link_add_row), stringResource(R.string.link_add_row_note)) { model.push(Screen.AddLink) }
+    }
+    // The links are left out of Android's backups (they are secrets), so a new phone gets them
+    // from a file the person keeps. Restoring only adds, so it needs no second press.
+    if (model.subscriptions.isNotEmpty()) {
+        item(key = "save-links") {
+            SettingRow(stringResource(R.string.links_save), stringResource(R.string.links_save_note)) { links.save() }
+        }
+    }
+    item(key = "restore-links") {
+        SettingRow(stringResource(R.string.links_restore), stringResource(R.string.links_restore_note)) { links.restore() }
+    }
+}
+
+/** The two file pickers for the calendar links, made in a composable and used from the list. */
+private class LinkFiles(val save: () -> Unit, val restore: () -> Unit)
+
+@Composable
+private fun rememberLinkFiles(model: AppModel): LinkFiles {
+    val context = LocalContext.current
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val saveLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.CreateDocument("text/plain"),
+    ) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        scope.launch {
+            val ok = model.saveLinks(uri)
+            Toast.makeText(context, if (ok) R.string.links_saved else R.string.links_not_saved, if (ok) Toast.LENGTH_SHORT else Toast.LENGTH_LONG).show()
+        }
+    }
+    val restoreLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        scope.launch {
+            val message = when (val r = model.restoreLinks(uri)) {
+                is AppModel.LinksRestored.Done -> context.getString(R.string.links_restored, r.added, r.already)
+                is AppModel.LinksRestored.Refused -> context.getString(
+                    when (r.kind) {
+                        com.wanderwildwood.koyomi.data.LinkList.Refused.Kind.NOT_A_BACKUP -> R.string.links_not_ours
+                        com.wanderwildwood.koyomi.data.LinkList.Refused.Kind.NEWER -> R.string.links_newer
+                        com.wanderwildwood.koyomi.data.LinkList.Refused.Kind.DAMAGED -> R.string.links_damaged
+                    },
+                )
+                AppModel.LinksRestored.Unreadable -> context.getString(R.string.links_unreadable)
+                AppModel.LinksRestored.NoPermission -> context.getString(R.string.link_err_no_permission)
+            }
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+        }
+    }
+    return remember(saveLauncher, restoreLauncher) {
+        LinkFiles(
+            save = { runCatching { saveLauncher.launch("datebook-links-${java.time.LocalDate.now()}.txt") } },
+            restore = { runCatching { restoreLauncher.launch(arrayOf("text/plain", "application/octet-stream")) } },
+        )
     }
 }
 
