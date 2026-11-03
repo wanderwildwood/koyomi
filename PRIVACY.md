@@ -37,6 +37,12 @@ excluded from backup and device transfer (`res/xml/backup_rules.xml`,
 server's name. Only `https://` is used (`webcal://` is read as `https://`); `http://` is refused.
 Removing a followed calendar deletes that calendar and its events from the phone.
 
+**Save the calendar links** (Settings) writes the followed calendars' names and addresses to a
+plain text file you choose through the phone's file picker, and only when you ask, so a new
+phone can follow them again. That file holds the secrets: keep it somewhere private. **Follow
+the links in a saved file** reads such a file the same way, checks all of it first, and only
+adds calendars; it removes nothing.
+
 ## What is stored
 
 The events themselves live in the phone's calendar store, not in this app. The app keeps

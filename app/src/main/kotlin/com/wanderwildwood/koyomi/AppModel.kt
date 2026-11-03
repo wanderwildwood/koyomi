@@ -29,6 +29,7 @@ import com.wanderwildwood.koyomi.data.Draft
 import com.wanderwildwood.koyomi.data.EventRecord
 import com.wanderwildwood.koyomi.data.Ics
 import com.wanderwildwood.koyomi.data.IcsEvent
+import com.wanderwildwood.koyomi.data.LinkList
 import com.wanderwildwood.koyomi.data.Occurrence
 import com.wanderwildwood.koyomi.data.Prefill
 import com.wanderwildwood.koyomi.data.Scope
@@ -72,6 +73,8 @@ sealed interface Request {
     data class Show(val eventId: Long, val begin: Long?, val end: Long?, val edit: Boolean) : Request
     data class Import(val uri: Uri) : Request
 }
+
+private const val MAX_LINK_FILE = 1024 * 1024
 
 class AppModel(app: Application) : AndroidViewModel(app) {
     val store = CalendarStore(app)
@@ -381,6 +384,68 @@ class AppModel(app: Application) : AndroidViewModel(app) {
                 viewModelScope.launch(Dispatchers.IO) { Alerts.check(getApplication()) }
             }
         }
+    }
+
+    /** Writes the followed links to [uri], the file the person picked; false, with the file removed, when that fails. */
+    suspend fun saveLinks(uri: Uri): Boolean = withContext(Dispatchers.IO) {
+        val app = getApplication<Application>()
+        val text = LinkList.write(links.all())
+        val ok = runCatching {
+            app.contentResolver.openOutputStream(uri, "wt")?.use { it.write(text.toByteArray(Charsets.UTF_8)) } ?: error("no stream")
+        }.isSuccess
+        if (!ok) runCatching { android.provider.DocumentsContract.deleteDocument(app.contentResolver, uri) }
+        ok
+    }
+
+    sealed interface LinksRestored {
+        data class Done(val added: Int, val already: Int) : LinksRestored
+        data class Refused(val kind: LinkList.Refused.Kind) : LinksRestored
+        data object Unreadable : LinksRestored
+        data object NoPermission : LinksRestored
+    }
+
+    /**
+     * Follows every link in the file at [uri] that is not followed already. The whole file is
+     * read and checked first. Each calendar is made straight away under the name in the file and
+     * then fetched like the others, so a link stays followed even when the phone is offline now:
+     * it shows the server's words and fills on the next pull.
+     */
+    suspend fun restoreLinks(uri: Uri): LinksRestored {
+        val app = getApplication<Application>()
+        if (!store.canWrite()) return LinksRestored.NoPermission
+        val result = withContext(Dispatchers.IO) {
+            val text = runCatching {
+                app.contentResolver.openInputStream(uri)?.use { input ->
+                    // Read up to one byte past the cap (readNBytes is API 33), so too big can be told from just fits.
+                    val out = java.io.ByteArrayOutputStream()
+                    val buf = ByteArray(8192)
+                    while (out.size() <= MAX_LINK_FILE) {
+                        val n = input.read(buf)
+                        if (n < 0) break
+                        out.write(buf, 0, n)
+                    }
+                    if (out.size() > MAX_LINK_FILE) null else out.toString(Charsets.UTF_8.name())
+                }
+            }.getOrNull()
+            if (text == null) return@withContext LinksRestored.Unreadable
+            val all = try {
+                LinkList.read(text)
+            } catch (e: LinkList.Refused) {
+                return@withContext LinksRestored.Refused(e.kind)
+            }
+            val todo = LinkList.notYetFollowed(all, links.all())
+            var added = 0
+            for (link in todo) {
+                val id = store.makeSubscriptionCalendar(link.name) ?: continue
+                links.put(Subscription(id, link.url, link.name))
+                added++
+            }
+            LinksRestored.Done(added, all.size - todo.size)
+        }
+        subscriptions = links.all()
+        calendars = withContext(Dispatchers.IO) { store.calendars() }
+        if (result is LinksRestored.Done && result.added > 0) refreshSubscriptions(force = true)
+        return result
     }
 
     /** Stops following [sub]: its calendar goes, with its events, and no other calendar is touched. */

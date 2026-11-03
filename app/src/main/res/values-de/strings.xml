@@ -357,6 +357,17 @@
     <string name="link_section">Per Link abonniert</string>
     <string name="link_add_row">Kalenderlink hinzufügen</string>
     <string name="link_add_row_note">Einem Kalender über seine Internetadresse folgen, etwa von Google oder Outlook</string>
+    <string name="links_save">Kalenderlinks sichern</string>
+    <string name="links_save_note">Schreibt die per Link abonnierten Kalender mit ihren privaten Adressen in eine Datei deiner Wahl, für ein neues Telefon. Wer die Datei hat, kann diese Kalender lesen.</string>
+    <string name="links_restore">Links aus einer gesicherten Datei folgen</string>
+    <string name="links_restore_note">Fügt die Kalender aus einer hier gesicherten Datei hinzu. Bereits abonnierte Kalender bleiben, wie sie sind.</string>
+    <string name="links_saved">Kalenderlinks gesichert.</string>
+    <string name="links_not_saved">Die Links konnten nicht geschrieben werden.</string>
+    <string name="links_restored">%1$d Kalender hinzugefügt; %2$d schon abonniert.</string>
+    <string name="links_not_ours">Diese Datei ist keine Liste von Kalenderlinks aus dieser App. Nichts wurde geändert.</string>
+    <string name="links_newer">Diese Datei stammt von einer neueren Version dieser App. Aktualisiere die App und versuche es erneut. Nichts wurde geändert.</string>
+    <string name="links_damaged">Diese Datei ist beschädigt und wurde nicht verwendet. Nichts wurde geändert.</string>
+    <string name="links_unreadable">Diese Datei konnte nicht gelesen werden. Nichts wurde geändert.</string>
     <string name="link_title">Kalenderlink hinzufügen</string>
     <string name="link_why">Füge die Adresse des Kalenders ein oder scanne seinen QR-Code. Sie wird beim Öffnen der App und beim Herunterziehen in den Einstellungen geladen; der Kalender lässt sich hier nicht ändern. Die Adresse ist ein Geheimnis: Sie bleibt nur auf diesem Telefon und ist von Sicherungen ausgenommen.</string>
     <string name="link_hint">Adresse mit https:// oder webcal://</string>
