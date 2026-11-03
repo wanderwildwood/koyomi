@@ -7,7 +7,7 @@ ordinary shape, and reminders that light the screen.
 the printed year that told you the days, the moons and when to plant.
 
 Built for the [Mudita Kompakt](https://mudita.com/products/kompakt/), whose 4.3" panel has
-sixteen greys, a slow redraw, and is read outdoors as often as indoors.
+sixteen grays, a slow redraw, and is read outdoors as often as indoors.
 
 | | |
 |---|---|
@@ -85,7 +85,7 @@ under its title, while that app is on the phone.
 manager, lists the events in it with their dates, times and places; choose the calendar and
 press Add. Times keep their own time zone and are shown in the phone's; repeats come across
 as they are written. When one repeating event comes with edited single days (a moved
-week, a cancelled one), the moved day is added as an event of its own and its old day is taken out
+week, a canceled one), the moved day is added as an event of its own and its old day is taken out
 of the repeat, as other calendar apps do. An invitation is added as a plain event and no reply is sent. Opening
 the same file twice adds its events once.
 
@@ -95,7 +95,7 @@ installed, behind the ⋮.
 
 ## What it does not do
 
-It does not sync accounts; DAVx5 does. It has no guests, invitations or colours, and no widget. It
+It does not sync accounts; DAVx5 does. It has no guests, invitations or colors, and no widget. It
 does not answer invitations, and it does not keep the reminders written into a calendar
 file: an added event gets the reminder a new one would.
 
@@ -156,7 +156,7 @@ E Ink component library, including its date picker and time input.
 
 Icons are [Material Symbols](https://fonts.google.com/icons), Apache License 2.0.
 
-## Licence
+## License
 
 **GNU General Public License, version 3.** See [LICENSE](LICENSE).
 
