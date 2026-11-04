@@ -35,6 +35,7 @@ import com.wanderwildwood.koyomi.ui.SettingsScreen
 import com.wanderwildwood.koyomi.ui.ViewsScreen
 import com.wanderwildwood.koyomi.ui.monochrome
 import kotlin.concurrent.thread
+import com.wanderwildwood.koyomi.ui.ArmedScope
 
 class KoyomiApp : Application() {
     override fun onCreate() {
@@ -75,7 +76,7 @@ class MainActivity : ComponentActivity() {
                     onDispose { }
                 }
                 ThemeMMD(colorScheme = monochrome) {
-                    Koyomi(model)
+                    ArmedScope { Koyomi(model) }
                 }
             }
         }

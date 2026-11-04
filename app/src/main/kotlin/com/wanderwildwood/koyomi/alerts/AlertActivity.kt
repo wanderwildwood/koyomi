@@ -29,6 +29,7 @@ import com.wanderwildwood.koyomi.ui.Dates
 import com.wanderwildwood.koyomi.ui.monochrome
 import java.time.ZoneId
 import kotlin.concurrent.thread
+import com.wanderwildwood.koyomi.ui.ArmedScope
 
 /**
  * A reminder on the whole screen, over the lock screen if need be. A notification on a phone
@@ -72,53 +73,55 @@ class AlertActivity : ComponentActivity() {
 
         setContent {
             ThemeMMD(colorScheme = monochrome) {
-                Surface(color = MaterialTheme.colorScheme.surface, modifier = Modifier.fillMaxSize()) {
-                    Column(Modifier.systemBarsPadding().padding(24.dp)) {
-                        // Below where the heads-up notification lands for its few seconds.
-                        Spacer(Modifier.height(140.dp))
-                        TextMMD(
-                            text = Alerts.titleFor(LocalContext.current, record.title, kind),
-                            style = MaterialTheme.typography.headlineMedium,
-                        )
-                        Spacer(Modifier.height(12.dp))
-                        TextMMD(
-                            text = Dates.span(LocalContext.current, start, finish, record.allDay),
-                            style = MaterialTheme.typography.bodyLarge,
-                        )
-                        record.location?.let {
-                            Spacer(Modifier.height(6.dp))
-                            TextMMD(text = it, style = MaterialTheme.typography.bodyLarge)
-                        }
-                        Spacer(Modifier.weight(1f))
-                        ButtonMMD(
-                            onClick = { inBackground { Alerts.dismiss(applicationContext, eventId, begin, kind) } },
-                            modifier = Modifier.fillMaxWidth().height(56.dp),
-                        ) { TextMMD(text = stringResource(R.string.alert_dismiss), style = MaterialTheme.typography.bodyMedium) }
-                        Spacer(Modifier.height(12.dp))
-                        OutlinedButtonMMD(
-                            onClick = { inBackground { Alerts.snooze(applicationContext, eventId, begin, end, kind) } },
-                            modifier = Modifier.fillMaxWidth().height(56.dp),
-                        ) {
+                ArmedScope {
+                    Surface(color = MaterialTheme.colorScheme.surface, modifier = Modifier.fillMaxSize()) {
+                        Column(Modifier.systemBarsPadding().padding(24.dp)) {
+                            // Below where the heads-up notification lands for its few seconds.
+                            Spacer(Modifier.height(140.dp))
                             TextMMD(
-                                text = stringResource(R.string.alert_snooze, Alerts.SNOOZE_MINUTES),
-                                style = MaterialTheme.typography.bodyMedium,
+                                text = Alerts.titleFor(LocalContext.current, record.title, kind),
+                                style = MaterialTheme.typography.headlineMedium,
                             )
-                        }
-                        Spacer(Modifier.height(12.dp))
-                        OutlinedButtonMMD(
-                            onClick = {
-                                startActivity(
-                                    Intent(this@AlertActivity, MainActivity::class.java)
-                                        .putExtra(Alerts.EXTRA_EVENT, eventId)
-                                        .putExtra(Alerts.EXTRA_BEGIN, begin)
-                                        .putExtra(Alerts.EXTRA_END, end)
-                                        .also { if (kind != null) it.putExtra(Alerts.EXTRA_KIND, kind.code) }
-                                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
+                            Spacer(Modifier.height(12.dp))
+                            TextMMD(
+                                text = Dates.span(LocalContext.current, start, finish, record.allDay),
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                            record.location?.let {
+                                Spacer(Modifier.height(6.dp))
+                                TextMMD(text = it, style = MaterialTheme.typography.bodyLarge)
+                            }
+                            Spacer(Modifier.weight(1f))
+                            ButtonMMD(
+                                onClick = { inBackground { Alerts.dismiss(applicationContext, eventId, begin, kind) } },
+                                modifier = Modifier.fillMaxWidth().height(56.dp),
+                            ) { TextMMD(text = stringResource(R.string.alert_dismiss), style = MaterialTheme.typography.bodyMedium) }
+                            Spacer(Modifier.height(12.dp))
+                            OutlinedButtonMMD(
+                                onClick = { inBackground { Alerts.snooze(applicationContext, eventId, begin, end, kind) } },
+                                modifier = Modifier.fillMaxWidth().height(56.dp),
+                            ) {
+                                TextMMD(
+                                    text = stringResource(R.string.alert_snooze, Alerts.SNOOZE_MINUTES),
+                                    style = MaterialTheme.typography.bodyMedium,
                                 )
-                                inBackground { Alerts.dismiss(applicationContext, eventId, begin, kind) }
-                            },
-                            modifier = Modifier.fillMaxWidth().height(56.dp),
-                        ) { TextMMD(text = stringResource(R.string.alert_open), style = MaterialTheme.typography.bodyMedium) }
+                            }
+                            Spacer(Modifier.height(12.dp))
+                            OutlinedButtonMMD(
+                                onClick = {
+                                    startActivity(
+                                        Intent(this@AlertActivity, MainActivity::class.java)
+                                            .putExtra(Alerts.EXTRA_EVENT, eventId)
+                                            .putExtra(Alerts.EXTRA_BEGIN, begin)
+                                            .putExtra(Alerts.EXTRA_END, end)
+                                            .also { if (kind != null) it.putExtra(Alerts.EXTRA_KIND, kind.code) }
+                                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
+                                    )
+                                    inBackground { Alerts.dismiss(applicationContext, eventId, begin, kind) }
+                                },
+                                modifier = Modifier.fillMaxWidth().height(56.dp),
+                            ) { TextMMD(text = stringResource(R.string.alert_open), style = MaterialTheme.typography.bodyMedium) }
+                        }
                     }
                 }
             }

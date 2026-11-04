@@ -13,6 +13,7 @@ import androidx.compose.runtime.LaunchedEffect
 import com.mudita.mmd.ThemeMMD
 import com.wanderwildwood.koyomi.data.Prefill
 import com.wanderwildwood.koyomi.ui.monochrome
+import com.wanderwildwood.koyomi.ui.ArmedScope
 
 /**
  * Where other apps' "add to calendar" lands, and their "show this event" and "open this .ics".
@@ -34,8 +35,10 @@ class RequestActivity : ComponentActivity() {
         }
         setContent {
             ThemeMMD(colorScheme = monochrome) {
-                if (model.canRead) LaunchedEffect(Unit) { model.open(request) }
-                Koyomi(model, finish = ::finish)
+                ArmedScope {
+                    if (model.canRead) LaunchedEffect(Unit) { model.open(request) }
+                    Koyomi(model, finish = ::finish)
+                }
             }
         }
     }
