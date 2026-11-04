@@ -468,7 +468,7 @@
     <string name="about_write_to">Schreib an %1$s</string>
     <string name="about_no_mail_app">Keine E-Mail-App installiert. Die Adresse ist %1$s.</string>
     <string name="privacy_who_title">Wer wir sind</string>
-    <string name="privacy_who">Diese App stammt von wander wildwood, einem unabhängigen Entwickler: eine Person, keine Firma. Damit ist wander wildwood Verantwortlicher für alles, was die App selbst verarbeitet, und das ist sehr wenig: Was du eingibst, bleibt auf diesem Telefon, außer du schickst es selbst woandershin oder die App sendet es wie oben beschrieben an die Dienste, deren Kalenderlinks du hinzufügst (zum Beispiel Google Kalender), und nichts davon erreicht den Entwickler.</string>
+    <string name="privacy_who">Diese App stammt von wander wildwood, einem unabhängigen Entwickler: eine Person, keine Firma. Damit ist wander wildwood Verantwortlicher für alles, was die App selbst verarbeitet, und das ist sehr wenig: Was du eingibst, bleibt auf diesem Telefon, außer du schickst es selbst woandershin. Hinaus gehen nur die oben beschriebenen Anfragen: eine Abrufanfrage für jeden Kalenderlink, den du hinzufügst (zum Beispiel an Google Kalender), die nichts aus deinen Kalendern enthält; und nur wenn du dich bei deinem eigenen Kalenderserver anmeldest, der Abgleich mit diesem Server, der deine Anmeldung und die Kalender enthält, die du dort abgleichen lässt. Nichts davon erreicht den Entwickler.</string>
     <string name="privacy_contact_title">So erreichst du uns</string>
     <string name="privacy_contact">Schreib an email@wanderthe.dev, zu deinen Daten oder zu allem anderen.</string>
     <string name="privacy_rights_title">Deine Rechte</string>

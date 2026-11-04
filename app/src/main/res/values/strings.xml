@@ -433,7 +433,7 @@
     <string name="about_write_to">Write to %1$s</string>
     <string name="about_no_mail_app">No email app is installed. The address is %1$s.</string>
     <string name="privacy_who_title">Who we are</string>
-    <string name="privacy_who">This app is made by wander wildwood, an independent developer: one person, not a company. That makes wander wildwood the data controller for anything the app itself handles, and that is very little: what you put in stays on this phone unless you send it somewhere yourself, or the app sends it to the services whose calendar links you add (Google Calendar, for example) as described above, and nothing comes to the developer.</string>
+    <string name="privacy_who">This app is made by wander wildwood, an independent developer: one person, not a company. That makes wander wildwood the data controller for anything the app itself handles, and that is very little: what you put in stays on this phone unless you send it somewhere yourself. The only things that go out are the requests described above: a download request for each calendar link you add (to Google Calendar, for example), which carries nothing from your calendars; and, only if you sign in to your own calendar server, the sync with that server, which carries your sign-in and the calendars you chose to sync there. Nothing comes to the developer.</string>
     <string name="privacy_contact_title">How to contact us</string>
     <string name="privacy_contact">Write to email@wanderthe.dev, about your data or anything else.</string>
     <string name="privacy_rights_title">Your rights</string>

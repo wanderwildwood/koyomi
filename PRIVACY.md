@@ -108,7 +108,7 @@ which only this app can hold, and it grants access to nothing.
 <!-- shared-about privacy section -->
 ## Who we are
 
-Datebook is made by wander wildwood, an independent developer: one person, not a company. wander wildwood is the data controller for anything the app itself handles, and that is very little. Datebook keeps what you put in it on your phone, apart from what it sends to the services whose calendar links you add (Google Calendar, for example) as described above, and sends nothing to the developer, so the developer holds no data about you.
+Datebook is made by wander wildwood, an independent developer: one person, not a company. wander wildwood is the data controller for anything the app itself handles, and that is very little. What you put in Datebook stays on your phone. The only things that go out are the requests described above: a download request for each calendar link you add (to Google Calendar, for example), which carries nothing from your calendars; and, only if you sign in to your own calendar server, the sync with that server, which carries your sign-in and the calendars you chose to sync there. Nothing is sent to the developer, so the developer holds no data about you.
 
 ## How to contact us
 
