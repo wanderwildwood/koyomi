@@ -161,6 +161,7 @@ abstract class Syncer<StoreType : LocalDataStore<CollectionType>, CollectionType
                     else -> {
                         logger.log(Level.SEVERE, "Couldn't sync ${dataStore.authority}", e)
                         syncResult.hardError = true
+                        syncResult.message = e.localizedMessage ?: e::class.java.simpleName
                     }
                 }
             } finally {

@@ -13,7 +13,9 @@ data class SyncResult(
     var authenticationFailed: Boolean = false,
     var hardError: Boolean = false,
     var softError: Boolean = false,
-    var delayUntil: Long = 0
+    var delayUntil: Long = 0,
+    /** What went wrong, in the server's or the system's own words, for the status line. */
+    var message: String? = null
 ) {
 
     /**

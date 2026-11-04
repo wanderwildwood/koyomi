@@ -68,6 +68,9 @@ class AccountStore(context: Context) {
         return manager.getAccountsByType(addressBookType).filter { properties.getAppAccount(it) == account }
     }
 
+    /** The user name signed in with, without touching the sealed password. */
+    fun user(account: Account): String? = manager.getUserData(account, KEY_USER)
+
     fun server(account: Account): Url? = manager.getUserData(account, KEY_SERVER)?.toUrlOrNull()
 
     fun credentials(account: Account): Credentials? {
@@ -131,13 +134,14 @@ class AccountStore(context: Context) {
      * What the last sync of [account] came to, for the "last synced" line: [lastGood] is when one
      * last finished cleanly (0 for never), [problem] what went wrong with the latest, if anything.
      */
-    data class Status(val lastGood: Long, val problem: Problem?) {
+    data class Status(val lastGood: Long, val problem: Problem?, val detail: String? = null) {
         enum class Problem { UNREACHABLE, PASSWORD, ERROR }
     }
 
     fun status(account: Account): Status = Status(
         manager.getUserData(account, KEY_LAST_GOOD)?.toLongOrNull() ?: 0L,
         manager.getUserData(account, KEY_LAST_PROBLEM)?.let { p -> Status.Problem.entries.firstOrNull { it.name == p } },
+        manager.getUserData(account, KEY_LAST_DETAIL),
     )
 
     /** Notes how a sync of [account] went. A soft error is almost always no network, or no server. */
@@ -150,12 +154,19 @@ class AccountStore(context: Context) {
             else -> null
         }
         if (problem == null) manager.setUserData(account, KEY_LAST_GOOD, System.currentTimeMillis().toString())
+        val before = status(account).problem
         manager.setUserData(account, KEY_LAST_PROBLEM, problem?.name)
+        manager.setUserData(account, KEY_LAST_DETAIL, if (problem == null) null else result.message?.take(300))
+        // A refused password stops every later sync, unseen: say so once, when it starts.
+        if (problem == Status.Problem.PASSWORD && before != Status.Problem.PASSWORD)
+            com.wanderwildwood.davsync.sync.SyncNotice.passwordRefused(context, account)
+        if (problem != Status.Problem.PASSWORD) com.wanderwildwood.davsync.sync.SyncNotice.clear(context, account)
     }
 
     companion object {
         private const val KEY_LAST_GOOD = "davsync_last_good"
         private const val KEY_LAST_PROBLEM = "davsync_last_problem"
+        private const val KEY_LAST_DETAIL = "davsync_last_detail"
         private const val KEY_SERVER = "davsync_server"
         private const val KEY_USER = "davsync_user"
         private const val KEY_PASSWORD = "davsync_password"

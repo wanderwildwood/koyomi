@@ -155,6 +155,7 @@ abstract class SyncManager<LocalType : LocalResource>(
                 is SyncExceptionHandler.SyncErrorResult.SoftError -> {
                     syncResult.softError = true
                     result.delayUntil?.let { syncResult.delayUntil = it.epochSecond }
+                    result.message?.let { syncResult.message = it }
                 }
 
                 SyncExceptionHandler.SyncErrorResult.AuthenticationError -> {
@@ -162,8 +163,10 @@ abstract class SyncManager<LocalType : LocalResource>(
                     syncResult.hardError = true
                 }
 
-                SyncExceptionHandler.SyncErrorResult.HardError ->
+                is SyncExceptionHandler.SyncErrorResult.HardError -> {
                     syncResult.hardError = true
+                    result.message?.let { syncResult.message = it }
+                }
 
                 SyncExceptionHandler.SyncErrorResult.NoError -> {
                     // leave syncResult empty (success state)

@@ -98,6 +98,22 @@ object SignIn {
     }
 
     /**
+     * Puts in a new password for [account], but only once the server has taken it: the same
+     * check as signing in, against the account's own server and user name. On anything but a
+     * good answer the old password stays.
+     */
+    suspend fun changePassword(
+        davSync: DavSync, account: android.accounts.Account, password: String, service: DavResourceFinder.Service,
+    ): SignInResult {
+        val server = davSync.accounts.server(account) ?: return SignInResult.Bad(Problem.BAD_ADDRESS)
+        val user = davSync.accounts.user(account) ?: return SignInResult.Bad(Problem.OTHER)
+        val result = check(davSync, server.toString(), user, password, service)
+        if (result is SignInResult.Good && !davSync.accounts.updatePassword(account, password))
+            return SignInResult.Bad(Problem.KEYSTORE)
+        return result
+    }
+
+    /**
      * Whether [address] may be used: any https one, or an http one whose host is on a home or VPN
      * network (a private or Tailscale address, "localhost", a name with no dots, or one ending
      * .local, .lan, .home.arpa, .internal or .ts.net). Plain http to a public host would send the

@@ -28,7 +28,32 @@
     <string name="davsync_syncing">Syncing…</string>
     <string name="davsync_unreachable">The server could not be reached; changes made here wait on the phone and go with the next sync. Last synced %1$s.</string>
     <string name="davsync_unreachable_never">The server could not be reached; changes made here wait on the phone and go with the next sync.</string>
-    <string name="davsync_refused">The server refused the password. Remove the account and sign in again with a new app password.</string>
+    <string name="davsync_refused">The server refused the password. Make a new app password on the server and put it in with Change password, below.</string>
     <string name="davsync_failed">The last sync had a problem; it tries again on the next one. Last synced %1$s.</string>
     <string name="davsync_failed_never">The last sync had a problem; it tries again on the next one.</string>
+    <!-- The server's or the system's own words about what went wrong, under the status line. -->
+    <string name="davsync_said">The server said: %1$s</string>
+
+    <!-- Already synced on this phone by another app. -->
+    <string name="davsync_elsewhere_calendar">Already synced by DAVx5 on this phone. Turn it off there first, then on here.</string>
+    <string name="davsync_maybe_calendar">DAVx5 also syncs a calendar by this name. If it is this one, turn it off there first, or its events will show twice.</string>
+    <string name="davsync_elsewhere_book">DAVx5 also syncs an address book by this name. If it is this one, turn it off there first, or everyone in it will show twice.</string>
+    <string name="davsync_moving_calendars">Moving from DAVx5: turn a calendar off in DAVx5, then turn it on here. Everything stays on the server, and this phone fetches it again.</string>
+    <string name="davsync_moving_contacts">Moving from DAVx5: turn an address book off in DAVx5, then turn it on here. Everyone stays on the server, and this phone fetches them again.</string>
+
+    <!-- A new password for an account that is already signed in. -->
+    <string name="davsync_change_password">Change password</string>
+    <string name="davsync_change_password_note">When the server has a new app password for this phone</string>
+    <string name="davsync_new_password">New app password</string>
+    <string name="davsync_save">Save</string>
+    <string name="davsync_cancel">Cancel</string>
+    <string name="davsync_checking">Asking the server…</string>
+    <string name="davsync_password_saved">Saved. Syncing again.</string>
+    <string name="davsync_password_refused">The server refused that password; nothing was changed.</string>
+    <string name="davsync_password_unchecked">The server could not be asked, so nothing was changed. Try again when it answers.</string>
+
+    <!-- The notification when a background sync is refused. -->
+    <string name="davsync_channel">Sync problems</string>
+    <string name="davsync_refused_title">Sign in again to sync</string>
+    <string name="davsync_refused_notice">The server refused the password for %1$s, so nothing syncs until a new one is put in (Settings, then the server page, then Change password).</string>
 </resources>

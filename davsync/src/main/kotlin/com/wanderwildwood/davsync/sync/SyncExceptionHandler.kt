@@ -39,8 +39,8 @@ class SyncExceptionHandler(
     sealed interface SyncErrorResult {
         /** Credentials were rejected; syncing other collections of the account is pointless. */
         data object AuthenticationError : SyncErrorResult
-        data object HardError : SyncErrorResult
-        data class SoftError(val delayUntil: Instant? = null) : SyncErrorResult
+        data class HardError(val message: String? = null) : SyncErrorResult
+        data class SoftError(val delayUntil: Instant? = null, val message: String? = null) : SyncErrorResult
         data object NoError : SyncErrorResult
     }
 
@@ -71,7 +71,7 @@ class SyncExceptionHandler(
 
             is SyncErrorAction.SoftError -> {
                 logger.log(Level.WARNING, action.logMessage, exception)
-                SyncErrorResult.SoftError(action.delayUntil)
+                SyncErrorResult.SoftError(action.delayUntil, action.notifyMessage)
             }
 
             is SyncErrorAction.AuthenticationError -> {
@@ -81,7 +81,7 @@ class SyncExceptionHandler(
 
             is SyncErrorAction.HardError -> {
                 logger.log(Level.SEVERE, action.logMessage, exception)
-                SyncErrorResult.HardError
+                SyncErrorResult.HardError(action.notifyMessage)
             }
 
             is SyncErrorAction.Rethrow ->

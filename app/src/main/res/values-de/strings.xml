@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Kalender</string>
 
     <!-- ============================================================ -->
@@ -395,4 +395,74 @@
     <string name="link_camera_why">Die Kamera wird nur verwendet, solange dieser Bildschirm offen ist, um den Code zu lesen. Nichts wird gespeichert.</string>
     <string name="link_camera_denied">Die Kamera wurde nicht erlaubt. Füge die Adresse stattdessen ein oder erlaube die Kamera in den Einstellungen des Telefons.</string>
     <string name="link_camera_allow">Kamera erlauben</string>
+
+    <!-- Kalenderserver (davsync) -->
+    <string name="licences_no_text">%s braucht hier keinen Lizenztext.</string>
+    <string name="licences_full_mpl">Mozilla Public License 2.0 (Volltext)</string>
+    <string name="licences_full_bsd">BSD-Lizenz (Volltext)</string>
+    <string name="licences_full_mit">MIT-Lizenz (Volltext)</string>
+    <string name="server_row">Kalenderserver</string>
+    <string name="server_row_note">Mit Nextcloud oder einem anderen CalDAV-Server abgleichen, ohne DAVx5</string>
+    <string name="server_title">Kalenderserver</string>
+    <string name="server_why">Deine Kalender bleiben auf deinem eigenen Server; dieses Telefon hält eine Kopie und schickt deine Änderungen zurück.</string>
+    <string name="server_address">Serveradresse</string>
+    <string name="server_user">Benutzername</string>
+    <string name="server_password">App-Passwort</string>
+    <string name="server_password_note">Nur auf diesem Telefon gespeichert, im Schlüsselspeicher versiegelt.</string>
+    <string name="server_show">Zeigen</string>
+    <string name="server_hide">Verbergen</string>
+    <string name="server_sign_in">Anmelden</string>
+    <string name="server_test">Testen</string>
+    <string name="server_checking">Frage den Server…</string>
+    <string name="server_good">Der Server hat geantwortet und hat Kalender. Melde dich an, um ihn zu behalten.</string>
+    <string name="server_not_kept">Der Server hat geantwortet, aber das Konto konnte auf diesem Telefon nicht gespeichert werden. Ist es schon angemeldet, entferne es zuerst.</string>
+    <string name="server_bad_address">Das ist keine Serveradresse.</string>
+    <string name="server_plain_http">Eine http://-Adresse schickt das Passwort ungeschützt. Nimm https:// oder einen Server in deinem eigenen Netz.</string>
+    <string name="server_not_found">Unter diesem Namen wurde kein Server gefunden.</string>
+    <string name="server_unreachable">Der Server hat nicht geantwortet. Prüfe die Adresse und das Netz.</string>
+    <string name="server_certificate">Das Zertifikat des Servers wurde nicht akzeptiert.</string>
+    <string name="server_wrong_password">Der Server hat Benutzername oder Passwort nicht akzeptiert.</string>
+    <string name="server_no_caldav">Unter dieser Adresse wurde kein Kalenderdienst (CalDAV) gefunden.</string>
+    <string name="server_no_calendars">Der Server hat für diesen Benutzer keine Kalender.</string>
+    <string name="server_other">Beim Fragen des Servers ist etwas schiefgegangen.</string>
+    <string name="server_read_only">Nur lesen</string>
+    <string name="server_sync_now">Jetzt abgleichen</string>
+    <string name="server_sync_now_note">Außerdem stündlich und nach jeder Änderung</string>
+    <string name="server_remove">Konto entfernen</string>
+    <string name="server_remove_armed">Noch einmal tippen: entfernt seine Kalender von diesem Telefon (der Server behält sie)</string>
+    <string name="server_add">Weiteren Server hinzufügen</string>
+    <string name="davsync_use_app" tools:ignore="ExtraTranslation">Bitte füge das Konto in der App selbst hinzu.</string>
+    <string name="davsync_conflict_copy" tools:ignore="ExtraTranslation">%1$s (Kopie vom Telefon)</string>
+    <string name="davsync_kind" tools:ignore="ExtraTranslation">Art des Servers</string>
+    <string name="davsync_kind_other" tools:ignore="ExtraTranslation">Andere</string>
+    <string name="davsync_zoho_region" tools:ignore="ExtraTranslation">Wo dein Zoho-Konto liegt</string>
+    <string name="davsync_note_nextcloud" tools:ignore="ExtraTranslation">Adresse und Benutzername deiner Nextcloud. Ein App-Passwort für dieses Telefon machst du in Nextcloud: Einstellungen, Sicherheit, Geräte &amp; Sitzungen.</string>
+    <string name="davsync_note_icloud" tools:ignore="ExtraTranslation">Die E-Mail deines Apple-Accounts und ein app-spezifisches Passwort für dieses Telefon, gemacht auf account.apple.com unter Anmeldung und Sicherheit.</string>
+    <string name="davsync_note_zoho" tools:ignore="ExtraTranslation">Deine Zoho-E-Mail und ein anwendungsspezifisches Passwort für dieses Telefon, gemacht in deinem Zoho-Konto unter Sicherheit.</string>
+    <string name="davsync_note_other" tools:ignore="ExtraTranslation">Die Adresse des Servers (meist reicht sein Name), dein Benutzername und ein Passwort; am besten ein App-Passwort für dieses Telefon, wo der Server welche hat.</string>
+    <string name="davsync_pick" tools:ignore="ExtraTranslation">Schalte die ein, die auf diesem Telefon sein sollen. Lass die aus, die schon eine andere App (DAVx5) abgleicht, sonst erscheinen sie doppelt.</string>
+    <string name="davsync_never_synced" tools:ignore="ExtraTranslation">Noch nicht abgeglichen.</string>
+    <string name="davsync_synced" tools:ignore="ExtraTranslation">Zuletzt abgeglichen: %1$s.</string>
+    <string name="davsync_syncing" tools:ignore="ExtraTranslation">Wird abgeglichen…</string>
+    <string name="davsync_unreachable" tools:ignore="ExtraTranslation">Der Server war nicht erreichbar; Änderungen von hier warten auf dem Telefon und gehen mit dem nächsten Abgleich. Zuletzt abgeglichen: %1$s.</string>
+    <string name="davsync_unreachable_never" tools:ignore="ExtraTranslation">Der Server war nicht erreichbar; Änderungen von hier warten auf dem Telefon und gehen mit dem nächsten Abgleich.</string>
+    <string name="davsync_refused" tools:ignore="ExtraTranslation">Der Server hat das Passwort abgelehnt. Mach auf dem Server ein neues App-Passwort und gib es unten bei „Passwort ändern“ ein.</string>
+    <string name="davsync_failed" tools:ignore="ExtraTranslation">Beim letzten Abgleich gab es ein Problem; der nächste versucht es wieder. Zuletzt abgeglichen: %1$s.</string>
+    <string name="davsync_failed_never" tools:ignore="ExtraTranslation">Beim letzten Abgleich gab es ein Problem; der nächste versucht es wieder.</string>
+    <string name="davsync_said" tools:ignore="ExtraTranslation">Der Server sagte: %1$s</string>
+    <string name="davsync_elsewhere_calendar" tools:ignore="ExtraTranslation">Wird auf diesem Telefon schon von DAVx5 abgeglichen. Schalte ihn dort zuerst aus, dann hier ein.</string>
+    <string name="davsync_maybe_calendar" tools:ignore="ExtraTranslation">DAVx5 gleicht auch einen Kalender mit diesem Namen ab. Ist es dieser, schalte ihn dort zuerst aus, sonst erscheinen seine Termine doppelt.</string>
+    <string name="davsync_moving_calendars" tools:ignore="ExtraTranslation">Umzug von DAVx5: Schalte einen Kalender in DAVx5 aus und hier ein. Alles bleibt auf dem Server, und dieses Telefon holt es wieder.</string>
+    <string name="davsync_change_password" tools:ignore="ExtraTranslation">Passwort ändern</string>
+    <string name="davsync_change_password_note" tools:ignore="ExtraTranslation">Wenn der Server ein neues App-Passwort für dieses Telefon hat</string>
+    <string name="davsync_new_password" tools:ignore="ExtraTranslation">Neues App-Passwort</string>
+    <string name="davsync_save" tools:ignore="ExtraTranslation">Speichern</string>
+    <string name="davsync_cancel" tools:ignore="ExtraTranslation">Abbrechen</string>
+    <string name="davsync_checking" tools:ignore="ExtraTranslation">Frage den Server…</string>
+    <string name="davsync_password_saved" tools:ignore="ExtraTranslation">Gespeichert. Es wird wieder abgeglichen.</string>
+    <string name="davsync_password_refused" tools:ignore="ExtraTranslation">Der Server hat dieses Passwort abgelehnt; nichts wurde geändert.</string>
+    <string name="davsync_password_unchecked" tools:ignore="ExtraTranslation">Der Server war nicht zu fragen, also wurde nichts geändert. Versuch es wieder, wenn er antwortet.</string>
+    <string name="davsync_channel" tools:ignore="ExtraTranslation">Probleme beim Abgleich</string>
+    <string name="davsync_refused_title" tools:ignore="ExtraTranslation">Für den Abgleich neu anmelden</string>
+    <string name="davsync_refused_notice" tools:ignore="ExtraTranslation">Der Server hat das Passwort für %1$s abgelehnt, also wird nichts abgeglichen, bis ein neues eingegeben ist (Einstellungen, dann die Serverseite, dann „Passwort ändern“).</string>
 </resources>
