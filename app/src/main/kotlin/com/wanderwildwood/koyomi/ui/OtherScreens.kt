@@ -134,7 +134,7 @@ fun SettingsScreen(model: AppModel) {
     // Re-read on every return from the phone's settings, where these are changed.
     var checks by remember { mutableStateOf(0) }
     val notificationsOn = remember(checks) { NotificationManagerCompat.from(context).areNotificationsEnabled() }
-    val exactOn = remember(checks) { context.getSystemService(android.app.AlarmManager::class.java).canScheduleExactAlarms() }
+    val exactOn = remember(checks) { com.wanderwildwood.koyomi.alerts.Alerts.exactAlarmsAllowed(context.getSystemService(android.app.AlarmManager::class.java)) }
     val fullScreenOn = remember(checks) {
         android.os.Build.VERSION.SDK_INT < 34 ||
             context.getSystemService(android.app.NotificationManager::class.java).canUseFullScreenIntent()
@@ -475,6 +475,9 @@ private fun LazyListScope.calendarSwitches(model: AppModel, links: LinkFiles) {
                 ArmedRow(stringResource(R.string.link_remove), stringResource(R.string.link_remove_armed)) { model.unfollow(sub) }
             }
         }
+    }
+    item(key = "server") {
+        SettingRow(stringResource(R.string.server_row), stringResource(R.string.server_row_note)) { model.push(Screen.Server) }
     }
     item(key = "add-link") {
         SettingRow(stringResource(R.string.link_add_row), stringResource(R.string.link_add_row_note)) { model.push(Screen.AddLink) }

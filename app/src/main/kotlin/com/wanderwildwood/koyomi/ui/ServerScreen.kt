@@ -1,0 +1,338 @@
+package com.wanderwildwood.koyomi.ui
+
+import android.accounts.Account
+import android.content.ContentResolver
+import android.os.Handler
+import android.os.Looper
+import android.provider.CalendarContract
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.dp
+import com.mudita.mmd.components.buttons.ButtonMMD
+import com.mudita.mmd.components.buttons.OutlinedButtonMMD
+import com.mudita.mmd.components.text.TextMMD
+import com.mudita.mmd.components.text_field.TextFieldMMD
+import com.mudita.mmd.components.top_app_bar.TopAppBarMMD
+import com.wanderwildwood.davsync.DavSync
+import com.wanderwildwood.davsync.accounts.StatusText
+import com.wanderwildwood.davsync.signin.Provider
+import com.wanderwildwood.davsync.model.Collection
+import com.wanderwildwood.davsync.servicedetection.DavResourceFinder
+import com.wanderwildwood.davsync.signin.Problem
+import com.wanderwildwood.davsync.signin.SignIn
+import com.wanderwildwood.davsync.signin.SignInResult
+import com.wanderwildwood.koyomi.AppModel
+import com.wanderwildwood.koyomi.R
+import kotlinx.coroutines.launch
+
+/**
+ * Settings > Calendar server: Datebook's own sync with a CalDAV server, in place of DAVx5.
+ *
+ * With no account yet it is the typed sign-in, as in Memo: the server address, the user name
+ * and an app password. Test asks the server and says in plain words what is wrong; Sign in does
+ * the same and keeps the account when it is good. Nothing is saved before the server answers.
+ * Once signed in, the account's calendars are listed, each with its own switch; Sync now asks
+ * the phone to sync, and Remove takes the account and its calendars off the phone (the server
+ * keeps everything).
+ */
+@Composable
+fun ServerScreen(model: AppModel) {
+    val context = LocalContext.current
+    val davSync = remember { DavSync(context) }
+    // AccountManager is not Compose state; a counter bumped after each change redraws the list.
+    var version by remember { mutableIntStateOf(0) }
+    val accounts = remember(version) { davSync.accounts.accounts() }
+    var adding by remember { mutableStateOf(false) }
+    // The framework runs the sync; its start and end redraw the "last synced" line.
+    DisposableEffect(Unit) {
+        val main = Handler(Looper.getMainLooper())
+        val handle = ContentResolver.addStatusChangeListener(
+            ContentResolver.SYNC_OBSERVER_TYPE_ACTIVE or ContentResolver.SYNC_OBSERVER_TYPE_PENDING,
+        ) { main.post { version++ } }
+        onDispose { ContentResolver.removeStatusChangeListener(handle) }
+    }
+
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.surface,
+        topBar = {
+            TopAppBarMMD(
+                title = { TextMMD(text = stringResource(R.string.server_title)) },
+                navigationIcon = { BarButton(Icons.Close, stringResource(R.string.cd_close)) { model.pop() } },
+            )
+        },
+    ) { padding ->
+        if (accounts.isEmpty() || adding) {
+            SignInForm(davSync, Modifier.padding(padding)) { account ->
+                davSync.accounts.enableSync(account, CalendarContract.AUTHORITY)
+                davSync.accounts.requestSync(account, CalendarContract.AUTHORITY)
+                adding = false
+                version++
+            }
+        } else {
+            PagedColumn(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                contentPadding = PaddingValues(start = 20.dp, end = 12.dp),
+            ) {
+                for (account in accounts) {
+                    item(key = "account-${account.name}") {
+                        TextMMD(
+                            text = account.name,
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),
+                        )
+                    }
+                    val calendars = davSync.accounts.collections(account, Collection.TYPE_CALENDAR).filter { it.supportsVEVENT != false }
+                    item(key = "status-${account.name}") {
+                        val syncing = ContentResolver.isSyncActive(account, CalendarContract.AUTHORITY)
+                        TextMMD(
+                            text = StatusText.of(context, davSync.accounts.status(account), syncing) +
+                                (if (calendars.none { it.sync }) "\n" + stringResource(com.wanderwildwood.davsync.R.string.davsync_pick) else ""),
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(bottom = 8.dp),
+                        )
+                    }
+                    for (c in calendars) {
+                        item(key = "cal-${account.name}-${c.id}") {
+                            SwitchRow(
+                                c.title(),
+                                c.sync,
+                                note = if (c.readOnly()) stringResource(R.string.server_read_only) else null,
+                                compact = true,
+                            ) { on ->
+                                davSync.accounts.setSync(account, c.id, on)
+                                davSync.accounts.requestSync(account, CalendarContract.AUTHORITY)
+                                version++
+                            }
+                        }
+                    }
+                    item(key = "sync-${account.name}") {
+                        SettingRow(stringResource(R.string.server_sync_now), stringResource(R.string.server_sync_now_note)) {
+                            davSync.accounts.requestSync(account, CalendarContract.AUTHORITY)
+                        }
+                    }
+                    item(key = "remove-${account.name}") {
+                        ArmedRow(stringResource(R.string.server_remove), stringResource(R.string.server_remove_armed)) {
+                            davSync.accounts.remove(account)
+                            version++
+                        }
+                    }
+                }
+                item(key = "add") {
+                    SettingRow(stringResource(R.string.server_add), null) { adding = true }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SignInForm(davSync: DavSync, modifier: Modifier, onSignedIn: (Account) -> Unit) {
+    val scope = rememberCoroutineScope()
+    var address by remember { mutableStateOf("") }
+    var user by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var shown by remember { mutableStateOf(false) }
+    var busy by remember { mutableStateOf(false) }
+    var status by remember { mutableStateOf<Int?>(null) }
+    var provider by remember { mutableStateOf(Provider.NEXTCLOUD) }
+    var region by remember { mutableStateOf(Provider.ZOHO_REGIONS.first()) }
+
+    fun choose(p: Provider, r: String = region) {
+        val was = provider.address(DavResourceFinder.Service.CALDAV, region)
+        provider = p; region = r
+        val now = p.address(DavResourceFinder.Service.CALDAV, r)
+        // A filled-in address follows the choice; a typed one is left alone.
+        if (now != null) address = now else if (address == was) address = ""
+        status = null
+    }
+
+    fun go(keep: Boolean) {
+        busy = true
+        status = R.string.server_checking
+        scope.launch {
+            val result = SignIn.check(davSync, address, user, password, DavResourceFinder.Service.CALDAV)
+            busy = false
+            status = when (result) {
+                is SignInResult.Good -> if (keep) {
+                    val account = SignIn.keep(davSync, result)
+                    if (account != null) {
+                        onSignedIn(account)
+                        null
+                    } else R.string.server_not_kept
+                } else R.string.server_good
+                is SignInResult.Bad -> when (result.problem) {
+                    Problem.BAD_ADDRESS -> R.string.server_bad_address
+                    Problem.PLAIN_HTTP -> R.string.server_plain_http
+                    Problem.NOT_FOUND -> R.string.server_not_found
+                    Problem.UNREACHABLE -> R.string.server_unreachable
+                    Problem.CERTIFICATE -> R.string.server_certificate
+                    Problem.WRONG_PASSWORD -> R.string.server_wrong_password
+                    Problem.NO_SERVICE -> R.string.server_no_caldav
+                    Problem.NOTHING_FOUND -> R.string.server_no_calendars
+                    Problem.KEYSTORE -> R.string.server_not_kept
+                    Problem.OTHER -> R.string.server_other
+                }
+            }
+        }
+    }
+
+    val ready = address.isNotBlank() && user.isNotBlank() && password.isNotEmpty() && !busy
+
+    PagedColumn(
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(start = 20.dp, end = 12.dp),
+    ) {
+        item(key = "why") {
+            TextMMD(
+                text = stringResource(R.string.server_why),
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(top = 12.dp),
+            )
+        }
+        item(key = "kind") {
+            ChoiceRow(
+                label = stringResource(com.wanderwildwood.davsync.R.string.davsync_kind),
+                choices = Provider.entries.map { stringResource(it.label) },
+                chosen = provider.ordinal,
+                enabled = !busy,
+            ) { choose(Provider.entries[it]) }
+        }
+        if (provider == Provider.ZOHO) item(key = "region") {
+            ChoiceRow(
+                label = stringResource(com.wanderwildwood.davsync.R.string.davsync_zoho_region),
+                choices = Provider.ZOHO_REGIONS.map { ".$it" },
+                chosen = Provider.ZOHO_REGIONS.indexOf(region),
+                enabled = !busy,
+                perLine = 3,
+            ) { choose(Provider.ZOHO, Provider.ZOHO_REGIONS[it]) }
+        }
+        item(key = "note") {
+            TextMMD(
+                text = stringResource(provider.note),
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+        }
+        item(key = "address") {
+            TextFieldMMD(
+                value = address,
+                onValueChange = { address = it.replace("\n", "").trim(); status = null },
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                label = { TextMMD(text = stringResource(R.string.server_address)) },
+                placeholder = { TextMMD(text = "cloud.example.org") },
+                singleLine = true,
+                enabled = !busy,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Next, autoCorrectEnabled = false),
+            )
+        }
+        item(key = "user") {
+            TextFieldMMD(
+                value = user,
+                onValueChange = { user = it.replace("\n", ""); status = null },
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                label = { TextMMD(text = stringResource(R.string.server_user)) },
+                singleLine = true,
+                enabled = !busy,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next, autoCorrectEnabled = false),
+            )
+        }
+        item(key = "password") {
+            Column(Modifier.padding(top = 16.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    TextFieldMMD(
+                        value = password,
+                        onValueChange = { password = it.replace("\n", ""); status = null },
+                        modifier = Modifier.weight(1f),
+                        label = { TextMMD(text = stringResource(R.string.server_password)) },
+                        singleLine = true,
+                        enabled = !busy,
+                        visualTransformation = if (shown) VisualTransformation.None else PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Go, autoCorrectEnabled = false),
+                        keyboardActions = KeyboardActions(onGo = { if (ready) go(keep = true) }),
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    OutlinedButtonMMD(onClick = { shown = !shown }, modifier = Modifier.widthIn(min = 72.dp).height(48.dp)) {
+                        TextMMD(
+                            text = stringResource(if (shown) R.string.server_hide else R.string.server_show),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
+                TextMMD(
+                    text = stringResource(R.string.server_password_note),
+                    style = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            }
+        }
+        status?.let { s ->
+            item(key = "status") {
+                TextMMD(text = stringResource(s), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 16.dp))
+            }
+        }
+        item(key = "buttons") {
+            Column(Modifier.padding(top = 20.dp, bottom = 20.dp)) {
+                ButtonMMD(onClick = { go(keep = true) }, enabled = ready, modifier = Modifier.fillMaxWidth().height(56.dp)) {
+                    TextMMD(text = stringResource(R.string.server_sign_in))
+                }
+                Spacer(Modifier.height(8.dp))
+                OutlinedButtonMMD(onClick = { go(keep = false) }, enabled = ready, modifier = Modifier.fillMaxWidth().height(56.dp)) {
+                    TextMMD(text = stringResource(R.string.server_test))
+                }
+            }
+        }
+    }
+}
+
+/** A label over a row of plain buttons, one of them chosen (filled). [perLine] to a line. */
+@Composable
+private fun ChoiceRow(label: String, choices: List<String>, chosen: Int, enabled: Boolean, perLine: Int = 2, onChoose: (Int) -> Unit) {
+    Column(Modifier.padding(top = 16.dp)) {
+        TextMMD(text = label, style = MaterialTheme.typography.labelMedium)
+        for (line in choices.indices.chunked(perLine)) {
+            Row(Modifier.fillMaxWidth().padding(top = 6.dp)) {
+                for (i in line) {
+                    val mod = Modifier.weight(1f).height(44.dp).padding(end = if (i == line.last()) 0.dp else 6.dp)
+                    val pad = PaddingValues(horizontal = 4.dp)
+                    if (i == chosen)
+                        ButtonMMD(onClick = { onChoose(i) }, enabled = enabled, modifier = mod, contentPadding = pad) {
+                            TextMMD(text = choices[i], style = MaterialTheme.typography.bodySmall, maxLines = 1)
+                        }
+                    else
+                        OutlinedButtonMMD(onClick = { onChoose(i) }, enabled = enabled, modifier = mod, contentPadding = pad) {
+                            TextMMD(text = choices[i], style = MaterialTheme.typography.bodySmall, maxLines = 1)
+                        }
+                }
+                repeat(perLine - line.size) { Spacer(Modifier.weight(1f)) }
+            }
+        }
+    }
+}

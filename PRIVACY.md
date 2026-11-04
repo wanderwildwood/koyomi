@@ -1,8 +1,8 @@
 # Privacy
 
 Datebook reads and writes the calendars already on the phone. It reaches the network only to
-fetch the calendar links you add yourself, and uses the camera only while you scan a QR code
-for one.
+fetch the calendar links you add yourself and, if you sign in to your own calendar server, to
+sync with that server. It uses the camera only while you scan a QR code for a link.
 
 That is the whole policy. The rest of this page is the evidence for it, because a privacy
 policy that cannot be checked is just a promise.
@@ -15,18 +15,40 @@ policy that cannot be checked is just a promise.
   point of the app.
 - `POST_NOTIFICATIONS`, `USE_FULL_SCREEN_INTENT`, `SCHEDULE_EXACT_ALARM` and
   `RECEIVE_BOOT_COMPLETED` — for reminders: to show one, to show it on the whole screen, to
-  wake on time for it, and to set the next one again after the phone restarts.
+  wake on time for it, and to set the next one again after the phone restarts. The restart
+  permission also keeps the few-hourly fetch of calendar links scheduled.
 
-- `INTERNET` — only to fetch the calendar links you add (Settings → Add calendar link): a plain
-  download of that address, when the app opens and when you pull down in Settings. Nothing from
-  your calendars is sent; the only thing that leaves the phone is the request for the link. There is
-  no background fetching, and no other address is ever contacted (`data/Subscriptions.kt` is the
-  only network code).
+- `INTERNET` — for two things only:
+  - the calendar links you add (Settings → Add calendar link): a plain download of that address,
+    every few hours, when the app opens and when you pull down in Settings. Nothing from your calendars is sent;
+    the only thing that leaves the phone is the request for the link (`data/Subscriptions.kt`, `data/LinkRefresh.kt`).
+  - your own calendar server, once you sign in to it (Settings → Calendar server): the calendars
+    you chose are kept the same on the phone and on that server, in both directions, hourly, after
+    each change and when you ask. That server, the one whose address you typed, is the only one
+    contacted (`davsync/`, see below).
+- `READ_SYNC_SETTINGS`, `WRITE_SYNC_SETTINGS`, `READ_SYNC_STATS` — to turn on and read the sync
+  of Datebook's own calendar account. They give no access to anything else.
 - `CAMERA` — only while the QR scanner is open, to read a calendar link from a code. Nothing is
   recorded or saved, and the camera is let go when the scanner closes.
 
-Syncing a server account is still done by DAVx5, or by whichever account put the calendar on the
-phone, under that app's own permissions.
+## Your calendar server
+
+Signing in (Settings → Calendar server) asks for the server's address, your user name and a
+password; an app password made for this phone is best, where the server has them. Nothing is
+kept until the server has answered. The password is then sealed with a key in the phone's
+keystore, which cannot be exported, and kept only in the phone's own account store, which no
+other app can read; it is sent only to that server's domain, and over `https://` unless the
+address is on your home network or a VPN (a private or Tailscale address). The account appears
+in the phone's settings under Accounts, and Remove account takes it and its calendars off the
+phone; the server keeps everything.
+
+The sync code is DAVx5's (bitfire, GPL-3.0), copied into this app in `dav4jvm/`, `synctools/`
+and `davsync/`, not a separate app or service. If an event was changed on the phone and on the
+server at once, the server's version is kept and the phone's is saved beside it as "(phone's
+copy)", so nothing is lost.
+
+Calendars from DAVx5, or from whichever account put them on the phone, are still synced by that
+app, under its own permissions.
 
 ## Calendar links
 

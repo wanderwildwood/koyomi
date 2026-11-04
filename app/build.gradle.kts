@@ -13,10 +13,10 @@ android {
     defaultConfig {
         applicationId = "com.wanderwildwood.koyomi"
         // The Kompakt runs Android 12 (API 31); nothing here needs anything newer.
-        minSdk = 30
+        minSdk = 25  // below 26 so java.time is desugared, as DAVx5 builds (custom time zones)
         targetSdk = 31
-        versionCode = 50
-        versionName = "0.1.49"
+        versionCode = 51
+        versionName = "0.1.50"
     }
 
     // A real keystore in signing/ signs every build type when it is present, so the
@@ -70,6 +70,7 @@ android {
     }
 
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -102,6 +103,8 @@ android {
 }
 
 dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs_nio:2.1.5")
+    implementation(project(":davsync"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)

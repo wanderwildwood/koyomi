@@ -1,0 +1,38 @@
+/*
+ * Copyright © All Contributors. See LICENSE and AUTHORS in the root directory for details.
+ */
+
+package at.bitfire.synctools.mapping.tasks.handler
+
+import android.content.ContentValues
+import android.content.Entity
+import at.bitfire.synctools.icalendar.plusAssign
+import at.bitfire.synctools.mapping.UnknownProperty
+import at.bitfire.synctools.mapping.tasks.mimeType
+import at.bitfire.synctools.storage.tasks.DmfsTasksContract.UNKNOWN_PROPERTY_DATA
+import net.fortuna.ical4j.model.component.VToDo
+import org.json.JSONException
+import java.util.logging.Logger
+
+class UnknownPropertiesHandler : DmfsTaskEntityHandler {
+
+    private val logger
+        get() = Logger.getLogger(javaClass.name)
+
+    override fun process(from: Entity, main: Entity, to: VToDo) {
+        for (row in from.subValues.filter { it.mimeType == UnknownProperty.CONTENT_ITEM_TYPE }) {
+            processUnknownProperty(row.values, to)
+        }
+    }
+
+    private fun processUnknownProperty(values: ContentValues, to: VToDo) {
+        values.getAsString(UNKNOWN_PROPERTY_DATA)?.let { properties ->
+            try {
+                to += UnknownProperty.fromJsonString(properties)
+            } catch (e: JSONException) {
+                // Ignore properties with invalid JSON
+                logger.warning("Got an unknown property with invalid JSON: $e")
+            }
+        }
+    }
+}

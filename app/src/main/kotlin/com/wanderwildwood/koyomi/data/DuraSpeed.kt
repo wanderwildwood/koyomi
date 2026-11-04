@@ -43,7 +43,8 @@ object DuraSpeed {
         if (!present(context)) return false
         val on = isOn(context) != false
         val am = context.getSystemService(ActivityManager::class.java)
-        val stop = runCatching { am.getHistoricalProcessExitReasons(context.packageName, 0, 0) }
+        // Exit reasons are kept from Android 11; before that no stop can be seen.
+        val stop = if (android.os.Build.VERSION.SDK_INT < 30) null else runCatching { am.getHistoricalProcessExitReasons(context.packageName, 0, 0) }
             .getOrDefault(emptyList())
             .filter {
                 it.reason == ApplicationExitInfo.REASON_USER_REQUESTED &&

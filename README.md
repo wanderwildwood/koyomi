@@ -33,8 +33,8 @@ Google account in DAVx5.
 **A calendar by its link.** Settings → Add calendar link follows any iCalendar address
 (https:// or webcal://; plain http:// is refused), such as a Google or Outlook calendar's
 secret address or a school's or club's. Paste it, or scan the QR code that holds it. It is kept
-as a read-only calendar on the phone, fetched again when the app opens and when you pull down
-in Settings (there is no background fetching), and each fetch replaces that calendar's events
+as a read-only calendar on the phone, fetched again every few hours in the background, when the
+app opens and when you pull down in Settings, and each fetch replaces that calendar's events
 whole. If a fetch fails the last copy stays and the server's own words are shown. Remove deletes
 that calendar and its events, nothing else. The address is a secret: it is kept only in the
 app's private storage, left out of backups, never logged, and only its server name is shown.

@@ -1,0 +1,404 @@
+/*
+ * Copyright © All Contributors. See LICENSE and AUTHORS in the root directory for details.
+ */
+package com.wanderwildwood.davsync.servicedetection
+
+import at.bitfire.dav4jvm.Property
+import at.bitfire.dav4jvm.ktor.DavResource
+import at.bitfire.dav4jvm.ktor.Response
+import at.bitfire.dav4jvm.ktor.exception.DavException
+import at.bitfire.dav4jvm.ktor.exception.HttpException
+import at.bitfire.dav4jvm.ktor.exception.UnauthorizedException
+import at.bitfire.dav4jvm.ktor.resolve
+import at.bitfire.dav4jvm.ktor.responses
+import at.bitfire.dav4jvm.ktor.withTrailingSlash
+import at.bitfire.dav4jvm.property.caldav.CalDAV
+import at.bitfire.dav4jvm.property.caldav.CalendarHomeSet
+import at.bitfire.dav4jvm.property.caldav.CalendarUserAddressSet
+import at.bitfire.dav4jvm.property.carddav.AddressbookHomeSet
+import at.bitfire.dav4jvm.property.carddav.CardDAV
+import at.bitfire.dav4jvm.property.common.HrefListProperty
+import at.bitfire.dav4jvm.property.webdav.CurrentUserPrincipal
+import at.bitfire.dav4jvm.property.webdav.ResourceType
+import at.bitfire.dav4jvm.property.webdav.WebDAV
+import com.wanderwildwood.davsync.model.Collection
+import io.ktor.client.HttpClient
+import io.ktor.http.URLProtocol
+import io.ktor.http.Url
+import java.io.InterruptedIOException
+import java.net.SocketTimeoutException
+import java.net.URI
+import java.net.URISyntaxException
+import java.util.LinkedList
+import java.util.logging.Level
+import java.util.logging.Logger
+import javax.annotation.WillNotClose
+
+/**
+ * Does initial resource detection when an account is added. It uses the (user given) base URL to find
+ *
+ * - services (CalDAV and/or CardDAV),
+ * - principal,
+ * - homeset/collections (multistatus responses are handled through dav4jvm).
+ *
+ * @param baseURI        user-given base URI (either mailto: URI or http(s):// URL)
+ * @param credentials    optional login credentials (username/password, client certificate, OAuth state)
+ * @param httpClient     Ktor HttpClient configured with authentication; caller owns and closes it
+ * @param log            logger for service detection; caller should also pass it to the HTTP client builder
+ */
+class DavResourceFinder(
+    private val baseURI: URI,
+    @WillNotClose private val httpClient: HttpClient,
+    private val log: Logger
+) {
+
+
+    enum class Service(val wellKnownName: String) {
+        CALDAV("caldav"),
+        CARDDAV("carddav");
+
+        override fun toString() = wellKnownName
+    }
+
+    private var encountered401 = false
+
+
+    /**
+     * Finds the initial configuration (= runs the service detection process).
+     *
+     * In case of an error, it returns an empty [Configuration] with error logs
+     * instead of throwing an [Exception].
+     *
+     * @return service information – if there's neither a CalDAV service nor a CardDAV service,
+     * service detection was not successful
+     */
+    suspend fun findInitialConfiguration(): Configuration {
+        var cardDavConfig: Configuration.ServiceInfo? = null
+        var calDavConfig: Configuration.ServiceInfo? = null
+
+        try {
+            try {
+                cardDavConfig = findInitialConfiguration(Service.CARDDAV)
+            } catch (e: Exception) {
+                log.log(Level.INFO, "CardDAV service detection failed", e)
+                processException(e)
+            }
+
+            try {
+                calDavConfig = findInitialConfiguration(Service.CALDAV)
+            } catch (e: Exception) {
+                log.log(Level.INFO, "CalDAV service detection failed", e)
+                processException(e)
+            }
+        } catch (_: Exception) {
+            // we have been interrupted; reset results so that an error message will be shown
+            cardDavConfig = null
+            calDavConfig = null
+        }
+
+        return Configuration(
+            cardDAV = cardDavConfig,
+            calDAV = calDavConfig,
+            encountered401 = encountered401
+        )
+    }
+
+    private suspend fun findInitialConfiguration(service: Service): Configuration.ServiceInfo? {
+        // domain for service discovery
+        var discoveryFQDN: String? = null
+
+        // discovered information goes into this config
+        val config = Configuration.ServiceInfo()
+
+        // Start discovering
+        log.info("Finding initial ${service.wellKnownName} service configuration")
+        when (baseURI.scheme.lowercase()) {
+            "http", "https" -> {
+                val baseURL = Url(baseURI)
+
+                // remember domain for service discovery
+                if (baseURL.protocol == URLProtocol.HTTPS) {
+                    // service discovery will only be tried for https URLs, because only secure service discovery is implemented
+                    discoveryFQDN = baseURL.host
+                }
+
+                // Actual discovery process
+                checkBaseURL(baseURL, service, config)
+
+                // If principal was not found already, try well known URI
+                if (config.principal == null)
+                    try {
+                        config.principal = getCurrentUserPrincipal(
+                            baseURL.resolve("/.well-known/${service.wellKnownName}")!!,
+                            service
+                        )
+                    } catch (e: Exception) {
+                        log.log(Level.FINE, "Well-known URL detection failed", e)
+                        processException(e)
+                    }
+            }
+            "mailto" -> {
+                val mailbox = baseURI.schemeSpecificPart
+                val posAt = mailbox.lastIndexOf("@")
+                if (posAt != -1)
+                    discoveryFQDN = mailbox.substring(posAt + 1)
+            }
+        }
+
+        // Second try: If user-given URL didn't reveal a principal, search for it (SERVICE DISCOVERY)
+        // DAVx5 tries DNS SRV/TXT records for the domain here; left out (no dnsjava).
+
+        // detect email address
+        if (service == Service.CALDAV)
+            config.principal?.let { principal ->
+                config.emails.addAll(queryEmailAddress(principal))
+            }
+
+        // return config or null if config doesn't contain useful information
+        val serviceAvailable =
+            config.principal != null || config.homeSets.isNotEmpty() || config.collections.isNotEmpty()
+        return if (serviceAvailable)
+            config
+        else
+            null
+    }
+
+    /**
+     * Entry point of the actual discovery process.
+     *
+     * Queries the user-given URL (= base URL) to detect whether it contains a current-user-principal
+     * or whether it is a homeset or collection.
+     *
+     * @param baseURL   base URL provided by the user
+     * @param service   service to detect configuration for
+     * @param config    found configuration will be written to this object
+     */
+    private suspend fun checkBaseURL(baseURL: Url, service: Service, config: Configuration.ServiceInfo) {
+        log.info("Checking user-given URL: $baseURL")
+
+        val davBaseURL = DavResource(httpClient, baseURL, log)
+        try {
+            when (service) {
+                Service.CARDDAV -> {
+                    davBaseURL.propfind(
+                        0,
+                        WebDAV.ResourceType, WebDAV.DisplayName,
+                        WebDAV.CurrentUserPrincipal,
+                        CardDAV.AddressbookHomeSet,
+                        CardDAV.AddressbookDescription
+                    ).responses().collect { response ->
+                        scanResponse(CardDAV.Addressbook, response, config)
+                    }
+                }
+                Service.CALDAV -> {
+                    davBaseURL.propfind(
+                        0,
+                        WebDAV.ResourceType,
+                        WebDAV.DisplayName,
+                        WebDAV.CurrentUserPrincipal,
+                        WebDAV.CurrentUserPrivilegeSet,
+                        CalDAV.CalendarHomeSet,
+                        CalDAV.SupportedCalendarComponentSet,
+                        CalDAV.CalendarColor,
+                        CalDAV.CalendarDescription,
+                        CalDAV.CalendarTimezone
+                    ).responses().collect { response ->
+                        scanResponse(CalDAV.Calendar, response, config)
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            log.log(Level.FINE, "PROPFIND/OPTIONS on user-given URL failed", e)
+            processException(e)
+        }
+    }
+
+    /**
+     * Queries a user's email address using CalDAV scheduling: calendar-user-address-set.
+     * @param principal principal URL of the user
+     * @return list of found email addresses (empty if none)
+     */
+    suspend fun queryEmailAddress(principal: Url): List<String> {
+        val mailboxes = LinkedList<String>()
+        try {
+            DavResource(httpClient, principal, log).propfind(0, CalDAV.CalendarUserAddressSet)
+                .responses()
+                .collect { response ->
+                    response[CalendarUserAddressSet::class.java]?.let { addressSet ->
+                        for (href in addressSet.hrefs)
+                            try {
+                                val uri = URI(href)
+                                if (uri.scheme.equals("mailto", true))
+                                    mailboxes.add(uri.schemeSpecificPart)
+                            } catch (e: URISyntaxException) {
+                                log.log(Level.WARNING, "Couldn't parse user address", e)
+                            }
+                    }
+                }
+        } catch (e: Exception) {
+            log.log(Level.WARNING, "Couldn't query user email address", e)
+            processException(e)
+        }
+        return mailboxes
+    }
+
+    /**
+     * Depending on [resourceType] (CalDAV or CardDAV), this method checks whether [davResponse] references
+     * - an address book or calendar (actual resource), and/or
+     * - an "address book home set" or a "calendar home set", and/or
+     * - whether it's a principal.
+     *
+     * Respectively, this method will add the response to [config.collections], [config.homesets] and/or [config.principal].
+     * Collection URLs will be stored with trailing "/".
+     *
+     * @param resourceType  type of service to search for in the response
+     * @param davResponse   response whose properties are evaluated
+     * @param config        structure storing the references
+     */
+    suspend fun scanResponse(resourceType: Property.Name, davResponse: Response, config: Configuration.ServiceInfo) {
+        var principal: Url? = null
+
+        // Type mapping
+        val homeSetClass: Class<out HrefListProperty>
+        val serviceType: Service
+        when (resourceType) {
+            CardDAV.Addressbook -> {
+                homeSetClass = AddressbookHomeSet::class.java
+                serviceType = Service.CARDDAV
+            }
+            CalDAV.Calendar -> {
+                homeSetClass = CalendarHomeSet::class.java
+                serviceType = Service.CALDAV
+            }
+            else -> throw IllegalArgumentException()
+        }
+
+        // check for current-user-principal
+        davResponse[CurrentUserPrincipal::class.java]?.href?.let { currentUserPrincipal ->
+            principal = davResponse.requestedUrl.resolve(currentUserPrincipal)
+        }
+
+        davResponse[ResourceType::class.java]?.let {
+            // Is it a calendar or an address book, ...
+            if (it.types.contains(resourceType))
+                Collection.fromDavResponse(davResponse)?.let { info ->
+                    log.info("Found resource of type $resourceType at ${info.url}")
+                    config.collections[info.url] = info
+                }
+
+            // ... and/or a principal?
+            if (it.types.contains(WebDAV.Principal))
+                principal = davResponse.href
+        }
+
+        // Is it an addressbook-home-set or calendar-home-set?
+        davResponse[homeSetClass]?.let { homeSet ->
+            for (href in homeSet.hrefs) {
+                val location = davResponse.requestedUrl.resolve(href)?.withTrailingSlash() ?: continue
+                log.info("Found home-set of type $resourceType at $location")
+                config.homeSets += location
+            }
+        }
+
+        // Is there a principal too?
+        principal?.let {
+            if (providesService(it, serviceType))
+                config.principal = principal
+            else
+                log.warning("Principal $principal doesn't provide $serviceType service")
+        }
+    }
+
+    /**
+     * Sends an OPTIONS request to determine whether a URL provides a given service.
+     *
+     * @param url      URL to check; often a principal URL
+     * @param service  service to check for
+     *
+     * @return whether the URL provides the given service
+     */
+    suspend fun providesService(url: Url, service: Service): Boolean {
+        var provided = false
+        try {
+            val capabilities = DavResource(httpClient, url, log).options().davCapabilities
+            if ((service == Service.CARDDAV && capabilities.contains("addressbook")) ||
+                (service == Service.CALDAV && capabilities.contains("calendar-access")))
+                provided = true
+        } catch (e: Exception) {
+            log.log(Level.SEVERE, "Couldn't detect services on $url", e)
+            if (e !is HttpException && e !is DavException)
+                throw e
+        }
+        return provided
+    }
+
+
+    /**
+     * Try to find the principal URL by performing service discovery on a given domain name.
+     * Only secure services (caldavs, carddavs) will be discovered!
+     *
+     * @param domain         domain name, e.g. "icloud.com"
+     * @param service        service to discover (CALDAV or CARDDAV)
+     * @return principal URL, or null if none found
+     */
+
+    /**
+     * Queries a given URL for current-user-principal
+     *
+     * @param url       URL to query with PROPFIND (Depth: 0)
+     * @param service   required service (may be null, in which case no service check is done)
+     * @return          current-user-principal URL that provides required service, or null if none
+     */
+    suspend fun getCurrentUserPrincipal(url: Url, service: Service?): Url? {
+        var principal: Url? = null
+        DavResource(httpClient, url, log).propfind(0, WebDAV.CurrentUserPrincipal)
+            .responses()
+            .collect { response ->
+                response[CurrentUserPrincipal::class.java]?.href?.let { href ->
+                    val resolved = response.requestedUrl.resolve(href) ?: return@let
+                    log.info("Found current-user-principal: $resolved")
+
+                    // service check
+                    if (service != null && !providesService(resolved, service))
+                        log.warning("Principal $resolved doesn't provide $service service")
+                    else
+                        principal = resolved
+                }
+            }
+        return principal
+    }
+
+    /**
+     * Processes a thrown exception like this:
+     *
+     *   - If the Exception is an [UnauthorizedException] (HTTP 401), [encountered401] is set to *true*.
+     *   - Re-throws the exception if it signals that the current thread was interrupted to stop the current operation.
+     */
+    private fun processException(e: Exception) {
+        if (e is UnauthorizedException)
+            encountered401 = true
+        else if ((e is InterruptedIOException && e !is SocketTimeoutException) || e is InterruptedException)
+            throw e
+    }
+
+
+    // data classes
+
+    data class Configuration(
+        val cardDAV: ServiceInfo?,
+        val calDAV: ServiceInfo?,
+
+        val encountered401: Boolean
+    ) {
+
+        data class ServiceInfo(
+            var principal: Url? = null,
+            val homeSets: MutableSet<Url> = HashSet(),
+            val collections: MutableMap<Url, Collection> = HashMap(),
+
+            val emails: MutableList<String> = LinkedList()
+        )
+
+    }
+
+}

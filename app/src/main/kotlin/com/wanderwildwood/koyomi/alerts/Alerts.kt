@@ -50,6 +50,7 @@ object Alerts {
     const val SNOOZE_MINUTES = 10
 
     fun createChannel(context: Context) {
+        if (android.os.Build.VERSION.SDK_INT < 26) return   // no channels before Android 8
         val channel = NotificationChannel(
             CHANNEL,
             context.getString(R.string.alert_channel),
@@ -185,12 +186,16 @@ object Alerts {
             Intent(context, AlertReceiver::class.java).setAction(ACTION_CHECK),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-        if (am.canScheduleExactAlarms()) {
+        if (exactAlarmsAllowed(am)) {
             am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi)
         } else {
             am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi)
         }
     }
+
+    /** Exact alarms need the person's leave from Android 12; before that every app may set them. */
+    fun exactAlarmsAllowed(am: AlarmManager): Boolean =
+        android.os.Build.VERSION.SDK_INT < 31 || am.canScheduleExactAlarms()
 
     fun notificationId(eventId: Long, begin: Long, kind: AllDayKind? = null): Int =
         (eventId * 31 + begin / 60_000).hashCode().let { if (kind == null) it else it * 31 + kind.code }

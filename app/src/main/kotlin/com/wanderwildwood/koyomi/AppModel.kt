@@ -30,6 +30,7 @@ import com.wanderwildwood.koyomi.data.EventRecord
 import com.wanderwildwood.koyomi.data.Ics
 import com.wanderwildwood.koyomi.data.IcsEvent
 import com.wanderwildwood.koyomi.data.LinkList
+import com.wanderwildwood.koyomi.data.LinkRefresh
 import com.wanderwildwood.koyomi.data.Occurrence
 import com.wanderwildwood.koyomi.data.Prefill
 import com.wanderwildwood.koyomi.data.Scope
@@ -62,6 +63,8 @@ sealed interface Screen {
 
     /** Follow a calendar by its link: a field to paste it in, and a button to scan its QR code. */
     data object AddLink : Screen
+    /** Settings > Calendar server: Datebook's own CalDAV sync account. */
+    data object Server : Screen
 
     /** The camera, looking for a QR code that holds a calendar link. */
     data object ScanLink : Screen
@@ -289,36 +292,18 @@ class AppModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    private fun failureText(f: Fetched.Failed): String {
-        val app = getApplication<Application>()
-        return when (f.kind) {
-            Fetched.Kind.SERVER -> f.message
-            Fetched.Kind.NO_HOST -> app.getString(R.string.link_err_no_host)
-            Fetched.Kind.TIMEOUT -> app.getString(R.string.link_err_timeout)
-            Fetched.Kind.CERTIFICATE -> app.getString(R.string.link_err_certificate)
-            Fetched.Kind.UNREACHABLE -> app.getString(R.string.link_err_unreachable)
-            Fetched.Kind.TOO_BIG -> app.getString(R.string.link_err_too_big)
-            Fetched.Kind.OPEN -> app.getString(R.string.link_err_open)
-        }
-    }
+    private fun failureText(f: Fetched.Failed): String = LinkRefresh.failureText(getApplication(), f)
 
-    private fun refreshOne(sub: Subscription): Refreshed {
-        val app = getApplication<Application>()
-        return SubscriptionSync.refresh(
-            sub, HttpFetcher(), SubscriptionTarget(store::replaceSubscriptionEvents), ZoneId.systemDefault(),
-            System.currentTimeMillis(), ::failureText,
-            notACalendar = app.getString(R.string.link_err_not_calendar),
-            notSaved = app.getString(R.string.link_err_not_saved),
-        )
-    }
+    private fun refreshOne(sub: Subscription): Refreshed = LinkRefresh.refreshOne(getApplication(), sub)
 
     /**
      * Fetches every followed link again, one after another, when the app opens (at most once in
-     * five minutes unless [force]) and on a pull down. No background work. A link that fails
-     * keeps its last copy and the server's words.
+     * five minutes unless [force]) and on a pull down; [LinkRefresh] also fetches them in the
+     * background every few hours. A link that fails keeps its last copy and the server's words.
      */
     fun refreshSubscriptions(force: Boolean = false) {
         if (fetching || !canRead || !store.canWrite()) return
+        runCatching { LinkRefresh.schedule(getApplication()) }
         val now = System.currentTimeMillis()
         if (!force && now - lastFetch < 5 * 60 * 1000) return
         val gone = links.all().filter { s -> calendars.isNotEmpty() && calendars.none { it.id == s.calendarId } }
@@ -371,6 +356,7 @@ class AppModel(app: Application) : AndroidViewModel(app) {
             )
             if (ok is Refreshed.Done) {
                 links.put(ok.subscription)
+                runCatching { LinkRefresh.schedule(getApplication()) }
                 null
             } else {
                 store.deleteSubscriptionCalendar(id)
@@ -454,6 +440,7 @@ class AppModel(app: Application) : AndroidViewModel(app) {
             withContext(Dispatchers.IO) {
                 store.deleteSubscriptionCalendar(sub.calendarId)
                 links.remove(sub.calendarId)
+                runCatching { LinkRefresh.schedule(getApplication()) }
             }
             subscriptions = links.all()
             calendars = withContext(Dispatchers.IO) { store.calendars() }

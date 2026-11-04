@@ -172,7 +172,7 @@ object AllDayReminders {
         runCatching {
             when {
                 !soon -> am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, now + REFRESH_MS, pi)
-                am.canScheduleExactAlarms() -> am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, next, pi)
+                Alerts.exactAlarmsAllowed(am) -> am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, next, pi)
                 else -> am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, next, pi)
             }
         }.onFailure { Log.w(TAG, "Could not set the all-day alarm", it) }

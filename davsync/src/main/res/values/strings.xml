@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Each app overrides these two with its own account types and product name. -->
+    <string name="davsync_account_type" translatable="false">com.wanderwildwood.davsync.account</string>
+    <string name="davsync_account_type_address_book" translatable="false">com.wanderwildwood.davsync.address_book</string>
+    <string name="davsync_product_name" translatable="false">davsync</string>
+
+    <string name="davsync_use_app">Please add the account from the app itself.</string>
+    <!-- Title of an event or name of a contact kept as a copy when the server had changed it too. -->
+    <string name="davsync_conflict_copy">%1$s (phone\'s copy)</string>
+
+    <!-- Sign-in: the kind of server, which fills in its address where it has a fixed one. -->
+    <string name="davsync_kind">Kind of server</string>
+    <string name="davsync_kind_nextcloud">Nextcloud</string>
+    <string name="davsync_kind_icloud">iCloud</string>
+    <string name="davsync_kind_zoho">Zoho</string>
+    <string name="davsync_kind_other">Other</string>
+    <string name="davsync_zoho_region">Where your Zoho account is</string>
+    <string name="davsync_note_nextcloud">Your Nextcloud\'s address and user name. Make an app password for this phone in Nextcloud: Settings, Security, Devices &amp; sessions.</string>
+    <string name="davsync_note_icloud">Your Apple Account email, and an app-specific password made for this phone at account.apple.com, under Sign-In and Security.</string>
+    <string name="davsync_note_zoho">Your Zoho email, and an application-specific password made for this phone in your Zoho account, under Security.</string>
+    <string name="davsync_note_other">The server\'s address (its name is usually enough), your user name, and a password; an app password made for this phone is best, where the server has them.</string>
+
+    <!-- Under an account, once signed in. -->
+    <string name="davsync_pick">Turn on the ones to keep on this phone. Leave off any another app (DAVx5) already syncs, or they will show twice.</string>
+    <string name="davsync_never_synced">Not synced yet.</string>
+    <string name="davsync_synced">Last synced %1$s.</string>
+    <string name="davsync_syncing">Syncing…</string>
+    <string name="davsync_unreachable">The server could not be reached; changes made here wait on the phone and go with the next sync. Last synced %1$s.</string>
+    <string name="davsync_unreachable_never">The server could not be reached; changes made here wait on the phone and go with the next sync.</string>
+    <string name="davsync_refused">The server refused the password. Remove the account and sign in again with a new app password.</string>
+    <string name="davsync_failed">The last sync had a problem; it tries again on the next one. Last synced %1$s.</string>
+    <string name="davsync_failed_never">The last sync had a problem; it tries again on the next one.</string>
+</resources>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    A calendar or contacts server at home is often reached by plain http: an address on the home
+    network, or a Tailscale one, where there is no certificate to be had and Tailscale already
+    encrypts the traffic itself. Android has refused cleartext by default since API 28, so
+    without this a request to such a server fails before it leaves the phone.
+
+    The app decides, not this file: the server sign-in takes http:// only for a private or
+    Tailscale address, or a name on the home network (davsync SignIn.plainHttpAllowed), and
+    everything else asks for https. Permitting cleartext does not weaken https. (As in Memo.)
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

@@ -180,6 +180,7 @@ internal fun Koyomi(model: AppModel, finish: (() -> Unit)? = null) {
         Screen.Settings -> SettingsScreen(model)
         is Screen.Import -> ImportScreen(model, top)
         Screen.AddLink -> com.wanderwildwood.koyomi.ui.AddLinkScreen(model)
+        Screen.Server -> com.wanderwildwood.koyomi.ui.ServerScreen(model)
         Screen.ScanLink -> com.wanderwildwood.koyomi.ui.ScanLinkScreen(model)
     }
 }

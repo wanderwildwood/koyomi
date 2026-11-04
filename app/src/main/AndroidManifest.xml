@@ -7,10 +7,16 @@
     <uses-permission android:name="android.permission.WRITE_CALENDAR" />
 
     <!--
-      Only to fetch the calendar links the person adds (Settings, Add calendar link), when the
-      app opens and on a pull down. There is no background work and nothing else is sent.
+      To fetch the calendar links the person adds (Settings, Add calendar link), when the app
+      opens and on a pull down; and, only once the person signs in to their own calendar server
+      (Settings, Calendar server), to sync with that server, in the background as well.
+      Nothing goes anywhere else.
     -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Datebook's own calendar sync account (CalDAV): turning its sync on and reading its state. -->
+    <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
+    <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
+    <uses-permission android:name="android.permission.READ_SYNC_STATS" />
 
     <!-- Only while the QR scanner for a calendar link is open. -->
     <uses-permission android:name="android.permission.CAMERA" />
@@ -52,6 +58,7 @@
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@drawable/ic_launcher_mudita"
         android:label="@string/app_name"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:roundIcon="@drawable/ic_launcher_mudita"
         android:supportsRtl="true"
         android:theme="@style/Theme.App">
@@ -181,6 +188,33 @@
             android:name=".glance.TodayOnLockScreen"
             android:authorities="com.wanderwildwood.koyomi.glance"
             android:exported="true" />
+        <!-- Followed calendar links fetched again every few hours (data/LinkRefresh.kt). -->
+        <service
+            android:name=".data.LinkRefreshJob"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+        <!-- Calendar sync with a CalDAV server (davsync, after DAVx5) -->
+        <service
+            android:name="com.wanderwildwood.davsync.account.AccountAuthenticatorService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.accounts.AccountAuthenticator" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accounts.AccountAuthenticator"
+                android:resource="@xml/davsync_authenticator" />
+        </service>
+        <service
+            android:name="com.wanderwildwood.davsync.sync.adapter.CalendarsSyncAdapterService"
+            android:exported="true"
+            tools:ignore="ExportedService">
+            <intent-filter>
+                <action android:name="android.content.SyncAdapter" />
+            </intent-filter>
+            <meta-data
+                android:name="android.content.SyncAdapter"
+                android:resource="@xml/davsync_sync_calendars" />
+        </service>
     </application>
 
 </manifest>

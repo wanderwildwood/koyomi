@@ -85,7 +85,7 @@
     <string name="edit_starts">Starts</string>
     <string name="edit_ends">Ends</string>
     <string name="edit_reminders">Reminders</string>
-    <string name="edit_no_calendar">There is no calendar here that can be written to. Make one on this phone, or add one in DAVx5 or the phone\'s accounts.</string>
+    <string name="edit_no_calendar">There is no calendar here that can be written to. Make one on this phone, sign in to your calendar server (Settings, Calendar server), or add one in the phone\'s accounts.</string>
     <string name="edit_no_calendar_short">None that can be written to</string>
     <!-- The name of the calendar Calendar makes on a phone that has none it can write to. -->
     <string name="calendar_on_this_phone">On this phone</string>
@@ -224,7 +224,7 @@
     <string name="settings_sync_now_hint">Asks the apps that sync them</string>
     <string name="settings_sync_asked">Asked</string>
     <!-- One line above the Agenda for a few seconds after a swipe down on its first page -->
-    <string name="agenda_sync_asked">Asked DAVx5 to sync</string>
+    <string name="agenda_sync_asked">Asked the calendars to sync</string>
     <string name="settings_default_calendar">New events go in</string>
     <string name="settings_first_calendar">The first that can be written to</string>
     <string name="settings_all_day">Remind me about all-day events</string>
@@ -275,15 +275,15 @@
     <!-- Under a calendar kept only on this phone, such as the "PC Sync" the phone makes itself -->
     <string name="calendars_local">On this phone only: nothing saved here reaches a server.</string>
     <!-- Settings, when the phone has no calendars at all. Pressing it opens davx5.com -->
-    <string name="calendars_none">There are no calendars on this phone yet. To have iCloud, Google, Nextcloud or another CalDAV calendar here, set it up in DAVx5. Its calendars show here once it has synced.</string>
+    <string name="calendars_none">There are no calendars on this phone yet. To have a Nextcloud or other CalDAV calendar here, sign in under Settings, Calendar server. Calendars from DAVx5 or another account show here too, once they have synced.</string>
     <!-- Settings, when the phone has calendars but none syncs with a server. Pressing it opens davx5.com -->
-    <string name="calendars_no_sync">None of these syncs with a server. To have iCloud, Google, Nextcloud or another CalDAV calendar here, set it up in DAVx5. Its calendars show here once it has synced.</string>
+    <string name="calendars_no_sync">None of these syncs with a server. To have a Nextcloud or other CalDAV calendar here, sign in under Settings, Calendar server. Calendars from DAVx5 or another account show here too, once they have synced.</string>
 
     <!-- ============================================================ -->
     <!-- First run, before calendar access -->
 
     <string name="permission_why">This app shows and changes the calendars already on the phone, so it needs to be let into them.</string>
-    <string name="permission_davx5">To have a Nextcloud or other CalDAV calendar here, set it up in DAVx5 first. DAVx5 does the syncing; this app only fetches the calendar links you add yourself.</string>
+    <string name="permission_davx5">To have a Nextcloud or other CalDAV calendar here, sign in under Settings, Calendar server, once calendars are allowed. Calendars from DAVx5 or another account show here too.</string>
     <string name="permission_denied">Calendar access was not given. Without it there is nothing to show. Open the app\'s settings, choose Permissions, then Calendar, and allow it.</string>
     <string name="permission_open_settings">Open app settings</string>
     <string name="permission_allow">Allow calendar access</string>
@@ -305,9 +305,9 @@
 
     <!-- Heading. %1$s is the version number, e.g. 0.1.0 -->
     <string name="about_title">Datebook %1$s</string>
-    <string name="about_privacy">It reads and writes the calendars already on the phone. It reaches the network only to fetch the calendar links you add, and uses the camera only while scanning one. DAVx5, or the account the calendar came from, does the syncing.</string>
+    <string name="about_privacy">It reads and writes the calendars already on the phone. It reaches the network only to fetch the calendar links you add and, if you sign in to your own calendar server, to sync with that server; it uses the camera only while scanning a link. Nothing goes anywhere else.</string>
     <string name="about_sources">Reminders come from the phone\'s calendar store, so the ones set in Nextcloud ring here too.</string>
-    <string name="about_google">To bring a Google calendar in, sync it with DAVx5 (or any CalDAV or Nextcloud account). This app shows what the phone has.</string>
+    <string name="about_google">To bring a Google calendar in, follow its secret address (Add calendar link), or sync it with DAVx5 or another account. This app shows what the phone has.</string>
     <string name="about_after">After KompaktCalendar by David Anderlohr, GPL 3.0, and Etar, GPL 3.0, whose repeat rules and ways of saving a changed occurrence this follows. The repeat-rule parser is the Android Open Source Project\'s, Apache 2.0.</string>
     <!-- The name of the app's licence -->
     <string name="about_licence">GNU General Public License v3</string>
@@ -352,8 +352,11 @@
     <string name="licences_full_gpl">GNU General Public License v3 (full text)</string>
     <string name="licences_full_apache">Apache License 2.0 (full text)</string>
     <string name="licences_full_ofl">SIL Open Font License 1.1 (full text)</string>
+    <string name="licences_full_mpl">Mozilla Public License 2.0 (full text)</string>
+    <string name="licences_full_bsd">BSD License (full text)</string>
+    <string name="licences_full_mit">MIT License (full text)</string>
 
-    <!-- Calendars followed by a link (Settings): a read-only calendar fetched again when the app opens and on a pull down -->
+    <!-- Calendars followed by a link (Settings): a read-only calendar fetched again every few hours, when the app opens and on a pull down -->
     <string name="link_section">Followed by link</string>
     <string name="link_add_row">Add calendar link</string>
     <string name="link_add_row_note">Follow a calendar from its internet address, such as a Google or Outlook calendar\'s</string>
@@ -369,7 +372,7 @@
     <string name="links_damaged">That file is damaged, so it was not used. Nothing was changed.</string>
     <string name="links_unreadable">That file could not be read. Nothing was changed.</string>
     <string name="link_title">Add calendar link</string>
-    <string name="link_why">Paste the calendar\'s address, or scan its QR code. It is fetched when this app opens and when you pull down in Settings, and it cannot be changed from here. The address is a secret: it is kept on this phone only and is left out of backups.</string>
+    <string name="link_why">Paste the calendar\'s address, or scan its QR code. It is fetched again every few hours, when this app opens and when you pull down in Settings, and it cannot be changed from here. The address is a secret: it is kept on this phone only and is left out of backups.</string>
     <string name="link_hint">https:// or webcal:// address</string>
     <string name="link_scan">Scan QR</string>
     <string name="link_add">Add</string>
@@ -395,5 +398,36 @@
     <string name="link_camera_why">The camera is used only while this screen is open, to read the code. Nothing is saved.</string>
     <string name="link_camera_denied">The camera was not allowed. Paste the address instead, or allow the camera in the phone\'s settings.</string>
     <string name="link_camera_allow">Allow the camera</string>
-</resources>
 
+    <!-- Settings > Calendar server: Datebook's own CalDAV sync (davsync) -->
+    <string name="server_row">Calendar server</string>
+    <string name="server_row_note">Sync with Nextcloud or another CalDAV server, without DAVx5</string>
+    <string name="server_title">Calendar server</string>
+    <string name="server_why">Your calendars stay on your own server; this phone keeps a copy and sends your changes back.</string>
+    <string name="server_address">Server address</string>
+    <string name="server_user">User name</string>
+    <string name="server_password">App password</string>
+    <string name="server_password_note">Kept on this phone only, sealed in its keystore.</string>
+    <string name="server_show">Show</string>
+    <string name="server_hide">Hide</string>
+    <string name="server_sign_in">Sign in</string>
+    <string name="server_test">Test</string>
+    <string name="server_checking">Asking the server\u2026</string>
+    <string name="server_good">The server answered and has calendars. Sign in to keep it.</string>
+    <string name="server_not_kept">The server answered, but the account could not be kept on this phone. If it is already signed in, remove it first.</string>
+    <string name="server_bad_address">That is not a server address.</string>
+    <string name="server_plain_http">An http:// address sends the password unprotected. Use https://, or a server on your own network.</string>
+    <string name="server_not_found">No server by that name was found.</string>
+    <string name="server_unreachable">The server did not answer. Check the address and the network.</string>
+    <string name="server_certificate">The server\'s certificate was not accepted.</string>
+    <string name="server_wrong_password">The server did not accept the user name or password.</string>
+    <string name="server_no_caldav">No calendars service (CalDAV) was found at that address.</string>
+    <string name="server_no_calendars">The server has no calendars for this user.</string>
+    <string name="server_other">Something went wrong while asking the server.</string>
+    <string name="server_read_only">Read only</string>
+    <string name="server_sync_now">Sync now</string>
+    <string name="server_sync_now_note">Also every hour, and after each change</string>
+    <string name="server_remove">Remove account</string>
+    <string name="server_remove_armed">Tap again: removes its calendars from this phone (the server keeps them)</string>
+    <string name="server_add">Add another server</string>
+</resources>

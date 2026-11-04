@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- isAlwaysSyncable: a new account's calendars are syncable at once (DAVx5's sync_calendars.xml). -->
+<sync-adapter xmlns:android="http://schemas.android.com/apk/res/android"
+    android:contentAuthority="com.android.calendar"
+    android:accountType="@string/davsync_account_type"
+    android:userVisible="true"
+    android:supportsUploading="true"
+    android:allowParallelSyncs="true"
+    android:isAlwaysSyncable="true" />

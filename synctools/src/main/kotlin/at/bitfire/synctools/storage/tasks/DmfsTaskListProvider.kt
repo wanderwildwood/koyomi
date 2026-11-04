@@ -1,0 +1,159 @@
+/*
+ * Copyright © All Contributors. See LICENSE and AUTHORS in the root directory for details.
+ */
+
+package at.bitfire.synctools.storage.tasks
+
+import android.accounts.Account
+import android.content.ContentUris
+import android.content.ContentValues
+import at.bitfire.synctools.storage.LocalStorageClient
+import at.bitfire.synctools.storage.LocalStorageException
+import at.bitfire.synctools.storage.TaskProvider
+import at.bitfire.synctools.storage.tasks.DmfsTasksContract.asSyncAdapter
+import at.bitfire.synctools.storage.toContentValues
+import org.dmfs.tasks.contract.TaskContract
+import java.util.LinkedList
+import java.util.logging.Level
+import java.util.logging.Logger
+
+/**
+ * Manages locally stored tasklists (represented by [DmfsTaskList]) in
+ * DmfsTask tasks provider.
+ *
+ * @param account   Account that all operations are bound to
+ * @param client    content provider client
+ */
+class DmfsTaskListProvider(
+    val account: Account,
+    internal val client: LocalStorageClient,
+    val providerName: TaskProvider.ProviderName
+) {
+
+    private val logger
+        get() = Logger.getLogger(DmfsTaskList::class.java.name)
+
+
+    // DmfsTaskList CRUD
+
+    fun createTaskList(values: ContentValues): Long {
+        logger.log(Level.FINE, "Creating {0} local task list with {1}", arrayOf(providerName.authority, values))
+
+        values.put(TaskContract.ACCOUNT_NAME, account.name)
+        values.put(TaskContract.ACCOUNT_TYPE, account.type)
+
+        val uri = client.insert(taskListsUri, values)
+            ?: throw LocalStorageException("Couldn't create task list (empty result from provider)")
+
+        return ContentUris.parseId(uri)
+    }
+
+    /**
+     * Creates a new task list and directly returns it.
+     *
+     * @param values    values to create the task list from (account name and type are inserted)
+     *
+     * @return the created task list
+     * @throws LocalStorageException when the content provider returns nothing or an error
+     */
+    fun createAndGetTaskList(values: ContentValues): DmfsTaskList {
+        val id = createTaskList(values)
+        return getTaskList(id)
+            ?: throw LocalStorageException("Couldn't query ${providerName.authority} task list that was just created")
+    }
+
+    /**
+     * Queries existing task lists.
+     *
+     * @param where         selection
+     * @param whereArgs     arguments for selection
+     * @param sortOrder     sort order
+     *
+     * @return list of task lists
+     * @throws LocalStorageException when the content provider returns an error
+     */
+    fun findTaskLists(
+        where: String? = null,
+        whereArgs: Array<String>? = null,
+        sortOrder: String? = null
+    ): List<DmfsTaskList> {
+        val result = LinkedList<DmfsTaskList>()
+        client.query(taskListsUri, null, where, whereArgs, sortOrder)?.use { cursor ->
+            while (cursor.moveToNext())
+                result += DmfsTaskList(this, cursor.toContentValues(), providerName)
+        }
+        return result
+    }
+
+    /**
+     * Queries existing task lists and returns the first task list that matches the search criteria.
+     *
+     * @param where         selection
+     * @param whereArgs     arguments for selection
+     * @param sortOrder     sort order
+     *
+     * @return first task list that matches the search criteria (or `null`)
+     * @throws LocalStorageException when the content provider returns an error
+     */
+    fun findFirstTaskList(where: String?, whereArgs: Array<String>?, sortOrder: String? = null): DmfsTaskList? {
+        client.query(taskListsUri, null, where, whereArgs, sortOrder)?.use { cursor ->
+            if (cursor.moveToNext())
+                return DmfsTaskList(this, cursor.toContentValues(), providerName)
+        }
+        return null
+    }
+
+    /**
+     * Gets the row values of an existing task list by its ID.
+     *
+     * @param id    task list ID
+     *
+     * @return task list row (or `null` if not found)
+     * @throws LocalStorageException when the content provider returns an error
+     */
+    fun getTaskListRow(id: Long, projection: Array<String>? = null): ContentValues? {
+        client.query(taskListUri(id), projection, null, null, null)?.use { cursor ->
+            if (cursor.moveToNext())
+                return cursor.toContentValues()
+        }
+        return null
+    }
+
+    /**
+     * Gets an existing task list by its ID.
+     *
+     * @param id    task list ID
+     *
+     * @return task list (or `null` if not found)
+     * @throws LocalStorageException when the content provider returns an error
+     */
+    fun getTaskList(id: Long): DmfsTaskList? =
+        getTaskListRow(id)?.let { values ->
+            DmfsTaskList(this, values, providerName)
+        }
+
+    fun updateTaskList(id: Long, info: ContentValues): Int {
+        logger.log(Level.FINE, "Updating {0} task list {1} with {2}", arrayOf(providerName.authority, id, info))
+        return client.update(taskListUri(id), info, null, null)
+    }
+
+    /**
+     * Deletes this task list from the local task list provider.
+     *
+     * @return `true` if the task list was deleted, `false` otherwise (like it was not there before the call)
+     */
+    fun deleteTaskList(id: Long): Boolean {
+        logger.log(Level.FINE, "Deleting {0} task list {1}", arrayOf<Any>(providerName.authority, id))
+        return client.delete(taskListUri(id), null, null) > 0
+    }
+
+
+    // helpers
+
+    internal val taskListsUri
+        get() = TaskContract.TaskLists.getContentUri(providerName.authority).asSyncAdapter(account)
+
+    internal fun taskListUri(id: Long) =
+        ContentUris.withAppendedId(taskListsUri, id)
+
+}
