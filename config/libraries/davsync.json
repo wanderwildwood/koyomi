@@ -1,0 +1,14 @@
+{
+  "uniqueId": "davsync",
+  "name": "Server sync, adapted from DAVx5",
+  "description": "The accounts, sign-in, server discovery and sync adapters, adapted from DAVx5's core (the davsync/ module).",
+  "developers": [
+    {
+      "name": "bitfire web engineering and the DAVx5 contributors"
+    }
+  ],
+  "website": "https://github.com/bitfireAT/davx5-ose",
+  "licenses": [
+    "GPL-3.0-or-later"
+  ]
+}

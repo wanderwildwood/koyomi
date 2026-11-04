@@ -1,0 +1,8 @@
+{
+  "uniqueId": "com.fasterxml.jackson.core:jackson-core",
+  "licenses": [
+    "Apache-2.0",
+    "jackson-core-notice",
+    "jackson-core-fastdoubleparser"
+  ]
+}

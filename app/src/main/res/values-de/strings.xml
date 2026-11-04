@@ -399,8 +399,7 @@
     <!-- Kalenderserver (davsync) -->
     <string name="licences_no_text">%s braucht hier keinen Lizenztext.</string>
     <string name="licences_full_mpl">Mozilla Public License 2.0 (Volltext)</string>
-    <string name="licences_full_bsd">BSD-Lizenz (Volltext)</string>
-    <string name="licences_full_mit">MIT-Lizenz (Volltext)</string>
+    <string name="licences_full_lgpl">GNU Lesser General Public License 2.1 (Volltext)</string>
     <string name="server_row">Kalenderserver</string>
     <string name="server_row_note">Mit Nextcloud oder einem anderen CalDAV-Server abgleichen, ohne DAVx5</string>
     <string name="server_title">Kalenderserver</string>

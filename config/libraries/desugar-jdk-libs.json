@@ -1,0 +1,14 @@
+{
+  "uniqueId": "com.android.tools:desugar_jdk_libs_nio",
+  "name": "Java library desugaring (desugar_jdk_libs_nio)",
+  "description": "Parts of the Java library (java.time, java.nio) for older Android versions, compiled into the app (coreLibraryDesugaring 2.1.5, which the dependency list does not see).",
+  "developers": [
+    {
+      "name": "Google"
+    }
+  ],
+  "website": "https://github.com/google/desugar_jdk_libs",
+  "licenses": [
+    "desugar-jdk-libs-gpl2-cpe"
+  ]
+}

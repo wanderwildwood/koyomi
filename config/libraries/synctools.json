@@ -1,0 +1,14 @@
+{
+  "uniqueId": "synctools",
+  "name": "DAVx5 synctools",
+  "description": "DAVx5's code that maps contacts and calendars to Android's stores, copied into the app as the synctools/ module.",
+  "developers": [
+    {
+      "name": "bitfire web engineering and the DAVx5 contributors"
+    }
+  ],
+  "website": "https://github.com/bitfireAT/davx5-ose",
+  "licenses": [
+    "GPL-3.0-or-later"
+  ]
+}

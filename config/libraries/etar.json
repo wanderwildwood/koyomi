@@ -1,0 +1,14 @@
+{
+  "uniqueId": "etar-calendar",
+  "name": "Etar Calendar",
+  "description": "Whose repeat rules and ways of saving a changed occurrence this app follows.",
+  "developers": [
+    {
+      "name": "the Etar authors"
+    }
+  ],
+  "website": "https://github.com/Etar-Group/Etar-Calendar",
+  "licenses": [
+    "GPL-3.0-only"
+  ]
+}

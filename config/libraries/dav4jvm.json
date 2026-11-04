@@ -1,0 +1,14 @@
+{
+  "uniqueId": "dav4jvm",
+  "name": "dav4jvm",
+  "description": "The WebDAV, CalDAV and CardDAV client the server sync talks through, copied into the app as the dav4jvm/ module (tag 5.0.0).",
+  "developers": [
+    {
+      "name": "bitfire web engineering"
+    }
+  ],
+  "website": "https://github.com/bitfireAT/dav4jvm",
+  "licenses": [
+    "MPL-2.0"
+  ]
+}

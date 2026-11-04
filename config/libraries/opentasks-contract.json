@@ -1,0 +1,14 @@
+{
+  "uniqueId": "opentasks-contract",
+  "name": "OpenTasks task contract",
+  "description": "The OpenTasks provider's contract classes, carried inside DAVx5 synctools.",
+  "developers": [
+    {
+      "name": "dmfs GmbH"
+    }
+  ],
+  "website": "https://github.com/dmfs/opentasks",
+  "licenses": [
+    "Apache-2.0"
+  ]
+}

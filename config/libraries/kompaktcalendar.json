@@ -1,0 +1,14 @@
+{
+  "uniqueId": "kompaktcalendar",
+  "name": "KompaktCalendar",
+  "description": "The app this one began from.",
+  "developers": [
+    {
+      "name": "David Anderlohr"
+    }
+  ],
+  "website": "https://codeberg.org/davidanderlohr/KompaktCalendar",
+  "licenses": [
+    "GPL-3.0-only"
+  ]
+}

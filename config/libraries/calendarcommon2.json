@@ -1,0 +1,14 @@
+{
+  "uniqueId": "calendarcommon2",
+  "name": "Android repeat-rule parser (calendarcommon2)",
+  "description": "The Android Open Source Project's parser for repeat rules (RRULE), copied into the app as source.",
+  "developers": [
+    {
+      "name": "The Android Open Source Project"
+    }
+  ],
+  "website": "https://android.googlesource.com/platform/frameworks/opt/calendar/",
+  "licenses": [
+    "Apache-2.0"
+  ]
+}
