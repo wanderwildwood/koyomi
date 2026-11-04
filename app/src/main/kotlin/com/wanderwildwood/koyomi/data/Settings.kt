@@ -9,7 +9,7 @@ import java.util.Locale
 enum class View { MONTH, WEEK, DAY, AGENDA }
 
 /** The handful of choices this app remembers, in plain SharedPreferences. */
-class Settings(context: Context) {
+class Settings(private val context: Context) {
     private val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
 
     var openOn: View
@@ -49,10 +49,18 @@ class Settings(context: Context) {
         get() = prefs.getBoolean(WAKE_SCREEN, true)
         set(v) = prefs.edit().putBoolean(WAKE_SCREEN, v).apply()
 
-    /** Whether today's events are handed to Glance for the lock screen. */
+    /**
+     * Whether today's events are handed to Glance for the lock screen. Off for a new install,
+     * since 0.1.41; on for an install from before then, which had it on without ever saving
+     * the choice and would otherwise have lost its events from the lock screen with the update.
+     */
     var lockScreen: Boolean
-        get() = prefs.getBoolean(LOCK_SCREEN, false)
+        get() = prefs.getBoolean(LOCK_SCREEN, lockScreenDefault(firstInstall()))
         set(v) = prefs.edit().putBoolean(LOCK_SCREEN, v).apply()
+
+    private fun firstInstall(): Long = runCatching {
+        context.packageManager.getPackageInfo(context.packageName, 0).firstInstallTime
+    }.getOrDefault(Long.MAX_VALUE)
 
     /**
      * Whether the lock screen, once today has nothing left, names the next event to come.
@@ -107,3 +115,9 @@ class Settings(context: Context) {
         const val TURN_WITH_PHONE = "turn_with_phone"
     }
 }
+
+/** When 0.1.41, the first with lock-screen events off until switched on, was released. */
+internal const val LOCK_SCREEN_OFF_SINCE = 1_793_370_921_000L // 2026-10-30T14:35:21Z
+
+/** The lock-screen switch while it has never been touched, by when the app was installed. */
+internal fun lockScreenDefault(firstInstall: Long): Boolean = firstInstall < LOCK_SCREEN_OFF_SINCE
