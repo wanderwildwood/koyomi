@@ -465,4 +465,14 @@
     <string name="davsync_channel" tools:ignore="ExtraTranslation">Probleme beim Abgleich</string>
     <string name="davsync_refused_title" tools:ignore="ExtraTranslation">Für den Abgleich neu anmelden</string>
     <string name="davsync_refused_notice" tools:ignore="ExtraTranslation">Der Server hat das Passwort für %1$s abgelehnt, also wird nichts abgeglichen, bis ein neues eingegeben ist (Einstellungen, dann die Serverseite, dann „Passwort ändern“).</string>
+    <!-- shared-about: contact row + privacy section (edit in /opt/projects/shared-about) -->
+    <string name="about_write_to">Schreib an %1$s</string>
+    <string name="about_no_mail_app">Keine E-Mail-App installiert. Die Adresse ist %1$s.</string>
+    <string name="privacy_who_title">Wer wir sind</string>
+    <string name="privacy_who">Diese App stammt von wander wildwood, einem unabhängigen Entwickler: eine Person, keine Firma. Damit ist wander wildwood Verantwortlicher für alles, was die App selbst verarbeitet, und das ist sehr wenig: Was du eingibst, bleibt auf diesem Telefon, außer du schickst es selbst woandershin oder die App sendet es wie oben beschrieben an die Dienste, deren Kalenderlinks du hinzufügst (zum Beispiel Google Kalender), und nichts davon erreicht den Entwickler.</string>
+    <string name="privacy_contact_title">So erreichst du uns</string>
+    <string name="privacy_contact">Schreib an email@wanderthe.dev, zu deinen Daten oder zu allem anderen.</string>
+    <string name="privacy_rights_title">Deine Rechte</string>
+    <string name="privacy_rights">Nach der DSGVO kannst du Auskunft über die Daten verlangen, die über dich gespeichert sind, sie berichtigen oder löschen lassen, ihre Verarbeitung einschränken lassen oder ihr widersprechen, eine Kopie mitnehmen, eine Einwilligung widerrufen und dich bei einer Datenschutzbehörde beschweren. Da die App alles, was sie speichert, nur auf deinem Telefon ablegt, kannst du das meiste davon selbst tun: Termine in der App ändern oder löschen, einen Kalenderlink oder dein Serverkonto in den Einstellungen entfernen, die App-Daten in den Android-Einstellungen löschen oder die App deinstallieren. Für das, was die Dienste, deren Kalenderlinks du hinzufügst (zum Beispiel Google Kalender), erhalten, gelten deren eigene Datenschutzerklärungen. Ein eigener Server gehört dir: Was er speichert, bestimmst du.</string>
+    <!-- /shared-about -->
 </resources>
