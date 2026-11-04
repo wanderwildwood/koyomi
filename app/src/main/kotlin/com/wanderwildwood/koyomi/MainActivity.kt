@@ -33,6 +33,7 @@ import com.wanderwildwood.koyomi.ui.RepeatScreen
 import com.wanderwildwood.koyomi.ui.SearchScreen
 import com.wanderwildwood.koyomi.ui.SettingsScreen
 import com.wanderwildwood.koyomi.ui.ViewsScreen
+import com.wanderwildwood.koyomi.ui.houseTypography
 import com.wanderwildwood.koyomi.ui.monochrome
 import kotlin.concurrent.thread
 import com.wanderwildwood.koyomi.ui.ArmedScope
@@ -75,7 +76,7 @@ class MainActivity : ComponentActivity() {
                     else controller.show(WindowInsetsCompat.Type.statusBars())
                     onDispose { }
                 }
-                ThemeMMD(colorScheme = monochrome) {
+                ThemeMMD(colorScheme = monochrome, typography = houseTypography) {
                     ArmedScope { Koyomi(model) }
                 }
             }

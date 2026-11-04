@@ -26,6 +26,7 @@ import com.wanderwildwood.koyomi.R
 import com.wanderwildwood.koyomi.data.AllDayKind
 import com.wanderwildwood.koyomi.data.CalendarStore
 import com.wanderwildwood.koyomi.ui.Dates
+import com.wanderwildwood.koyomi.ui.houseTypography
 import com.wanderwildwood.koyomi.ui.monochrome
 import java.time.ZoneId
 import kotlin.concurrent.thread
@@ -72,7 +73,7 @@ class AlertActivity : ComponentActivity() {
         }
 
         setContent {
-            ThemeMMD(colorScheme = monochrome) {
+            ThemeMMD(colorScheme = monochrome, typography = houseTypography) {
                 ArmedScope {
                     Surface(color = MaterialTheme.colorScheme.surface, modifier = Modifier.fillMaxSize()) {
                         Column(Modifier.systemBarsPadding().padding(24.dp)) {

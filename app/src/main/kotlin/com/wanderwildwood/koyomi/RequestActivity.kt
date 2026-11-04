@@ -12,6 +12,7 @@ import androidx.activity.viewModels
 import androidx.compose.runtime.LaunchedEffect
 import com.mudita.mmd.ThemeMMD
 import com.wanderwildwood.koyomi.data.Prefill
+import com.wanderwildwood.koyomi.ui.houseTypography
 import com.wanderwildwood.koyomi.ui.monochrome
 import com.wanderwildwood.koyomi.ui.ArmedScope
 
@@ -34,7 +35,7 @@ class RequestActivity : ComponentActivity() {
             return
         }
         setContent {
-            ThemeMMD(colorScheme = monochrome) {
+            ThemeMMD(colorScheme = monochrome, typography = houseTypography) {
                 ArmedScope {
                     if (model.canRead) LaunchedEffect(Unit) { model.open(request) }
                     Koyomi(model, finish = ::finish)
