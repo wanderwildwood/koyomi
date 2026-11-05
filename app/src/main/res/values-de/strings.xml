@@ -306,6 +306,7 @@
 
     <!-- Heading. %1$s is the version number, e.g. 0.1.0 -->
     <string name="about_title">Kalender %1$s</string>
+    <string name="about_what">Ein Kalender mit Monats-, Wochen-, Tages- und Terminansicht, Wiederholungen in jeder gewöhnlichen Form und Erinnerungen, die den Bildschirm aufleuchten lassen. Er gleicht mit deinem eigenen Nextcloud- oder einem anderen CalDAV-Server ab oder folgt einem Kalender über seinen Link.</string>
     <string name="about_privacy">Die App liest und schreibt die Kalender, die schon auf dem Telefon sind. Das Netzwerk nutzt sie nur, um die Kalenderlinks zu laden, die du hinzufügst, und, wenn du dich bei deinem eigenen Kalenderserver anmeldest, um mit diesem Server abzugleichen. Die Kamera nutzt sie nur beim Scannen eines Links. Sonst geht nichts irgendwohin.</string>
     <string name="about_sources">Erinnerungen kommen aus dem Kalenderspeicher des Telefons, deshalb klingeln auch die, die in Nextcloud gesetzt wurden, hier.</string>
     <string name="about_google">Um einen Google-Kalender einzubinden, gleiche ihn mit DAVx5 ab (oder einem beliebigen CalDAV- oder Nextcloud-Konto). Diese App zeigt, was das Telefon hat.</string>
@@ -346,7 +347,7 @@
     <string name="licences_title">Lizenzen</string>
     <string name="licences_source_head">Quellcode</string>
     <string name="licences_source">Quelle: %1$s</string>
-    <string name="licences_licence">Kalender ist freie Software unter der GNU General Public License, ausschließlich Version 3. Copyright wander wildwood. Was darauf aufbaut, behält seine eigenen Lizenzen, jede auf ihrer eigenen Seite.</string>
+    <string name="licences_licence">Kalender ist freie Software unter der GNU General Public License, ausschließlich Version 3. Copyright wander wildwood. Was darauf aufbaut, behält seine eigenen Lizenzen, unten aufgeführt.</string>
     <string name="licences_back">Zurück</string>
     <string name="licences_full_head">Volltexte</string>
     <string name="licences_full_gpl">GNU General Public License, Version 3 (Volltext)</string>
@@ -467,6 +468,10 @@
     <!-- shared-about: contact row + privacy section (edit in /opt/projects/shared-about) -->
     <string name="about_write_to">Schreib an %1$s</string>
     <string name="about_no_mail_app">Keine E-Mail-App installiert. Die Adresse ist %1$s.</string>
+    <string name="about_open_drawer">%1$s öffnen</string>
+    <string name="about_close_drawer">%1$s schließen</string>
+    <string name="about_contact_head">Kontakt</string>
+    <string name="about_links_head">Links</string>
     <string name="privacy_who_title">Wer wir sind</string>
     <string name="privacy_who">Diese App stammt von wander wildwood, einem unabhängigen Entwickler: eine Person, keine Firma. Damit ist wander wildwood Verantwortlicher für alles, was die App selbst verarbeitet, und das ist sehr wenig: Was du eingibst, bleibt auf diesem Telefon, außer du schickst es selbst woandershin. Hinaus gehen nur die oben beschriebenen Anfragen: eine Abrufanfrage für jeden Kalenderlink, den du hinzufügst (zum Beispiel an Google Kalender), die nichts aus deinen Kalendern enthält; und nur wenn du dich bei deinem eigenen Kalenderserver anmeldest, der Abgleich mit diesem Server, der deine Anmeldung und die Kalender enthält, die du dort abgleichen lässt. Nichts davon erreicht den Entwickler.</string>
     <string name="privacy_contact_title">So erreichst du uns</string>

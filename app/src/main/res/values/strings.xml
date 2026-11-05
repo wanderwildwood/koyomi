@@ -305,6 +305,7 @@
 
     <!-- Heading. %1$s is the version number, e.g. 0.1.0 -->
     <string name="about_title">Datebook %1$s</string>
+    <string name="about_what">A calendar with month, week, day and agenda views, repeats of every ordinary shape, and reminders that light the screen. It syncs with your own Nextcloud or other CalDAV server, or follows a calendar by its link.</string>
     <string name="about_privacy">It reads and writes the calendars already on the phone. It reaches the network only to fetch the calendar links you add and, if you sign in to your own calendar server, to sync with that server; it uses the camera only while scanning a link. Nothing goes anywhere else.</string>
     <string name="about_sources">Reminders come from the phone\'s calendar store, so the ones set in Nextcloud ring here too.</string>
     <string name="about_google">To bring a Google calendar in, follow its secret address (Add calendar link), or sync it with DAVx5 or another account. This app shows what the phone has.</string>
@@ -346,7 +347,7 @@
     <string name="licences_source_head">Source code</string>
     <string name="licences_no_text">%s needs no license text here.</string>
     <string name="licences_source">Source: %1$s</string>
-    <string name="licences_licence">Datebook is free software under the GNU General Public License, version 3 only. Copyright wander wildwood.</string>
+    <string name="licences_licence">Datebook is free software under the GNU General Public License, version 3 only. Copyright wander wildwood. What it is built on keeps its own licenses, listed below.</string>
     <string name="licences_back">Back</string>
     <string name="licences_full_head">Full texts</string>
     <string name="licences_full_gpl">GNU General Public License v3 (full text)</string>
@@ -432,6 +433,10 @@
     <!-- shared-about: contact row + privacy section (edit in /opt/projects/shared-about) -->
     <string name="about_write_to">Write to %1$s</string>
     <string name="about_no_mail_app">No email app is installed. The address is %1$s.</string>
+    <string name="about_open_drawer">Open %1$s</string>
+    <string name="about_close_drawer">Close %1$s</string>
+    <string name="about_contact_head">Contact</string>
+    <string name="about_links_head">Links</string>
     <string name="privacy_who_title">Who we are</string>
     <string name="privacy_who">This app is made by wander wildwood, an independent developer: one person, not a company. That makes wander wildwood the data controller for anything the app itself handles, and that is very little: what you put in stays on this phone unless you send it somewhere yourself. The only things that go out are the requests described above: a download request for each calendar link you add (to Google Calendar, for example), which carries nothing from your calendars; and, only if you sign in to your own calendar server, the sync with that server, which carries your sign-in and the calendars you chose to sync there. Nothing comes to the developer.</string>
     <string name="privacy_contact_title">How to contact us</string>
