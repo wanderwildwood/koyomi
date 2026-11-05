@@ -306,7 +306,7 @@
 
     <!-- Heading. %1$s is the version number, e.g. 0.1.0 -->
     <string name="about_title">Kalender %1$s</string>
-    <string name="about_privacy">Er liest und schreibt die Kalender, die schon auf dem Telefon sind. Sie erreicht das Netzwerk nur, um die Kalenderlinks zu laden, die du hinzufügst, und nutzt die Kamera nur beim Scannen eines Links. DAVx5 oder das Konto, aus dem der Kalender stammt, gleicht ab.</string>
+    <string name="about_privacy">Die App liest und schreibt die Kalender, die schon auf dem Telefon sind. Das Netzwerk nutzt sie nur, um die Kalenderlinks zu laden, die du hinzufügst, und, wenn du dich bei deinem eigenen Kalenderserver anmeldest, um mit diesem Server abzugleichen. Die Kamera nutzt sie nur beim Scannen eines Links. Sonst geht nichts irgendwohin.</string>
     <string name="about_sources">Erinnerungen kommen aus dem Kalenderspeicher des Telefons, deshalb klingeln auch die, die in Nextcloud gesetzt wurden, hier.</string>
     <string name="about_google">Um einen Google-Kalender einzubinden, gleiche ihn mit DAVx5 ab (oder einem beliebigen CalDAV- oder Nextcloud-Konto). Diese App zeigt, was das Telefon hat.</string>
     <string name="about_after">Diese App folgt KompaktCalendar von David Anderlohr (GPL 3.0) und Etar (GPL 3.0): in den Regeln für Wiederholungen und darin, wie eine geänderte Ausnahme gespeichert wird. Der Parser für Wiederholungsregeln stammt aus dem Android Open Source Project, Apache 2.0.</string>
