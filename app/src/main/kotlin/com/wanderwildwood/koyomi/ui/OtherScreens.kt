@@ -139,6 +139,11 @@ fun SettingsScreen(model: AppModel) {
         android.os.Build.VERSION.SDK_INT < 34 ||
             context.getSystemService(android.app.NotificationManager::class.java).canUseFullScreenIntent()
     }
+    // The lock-screen switch only means something with Glance there to show it; it stays in
+    // sight while on, so it can still be turned off after Glance is gone.
+    val glanceInstalled = remember(checks) {
+        context.packageManager.getLaunchIntentForPackage(com.wanderwildwood.koyomi.glance.GlanceProvider.READER) != null
+    }
     val duraSpeedRisk = remember(checks, v) { com.wanderwildwood.koyomi.data.DuraSpeed.atRisk(context, s) }
     androidx.lifecycle.compose.LifecycleResumeEffect(Unit) {
         checks++
@@ -284,11 +289,13 @@ fun SettingsScreen(model: AppModel) {
                     model.settingsChanged()
                 }
             }
-            item {
-                SwitchRow(stringResource(R.string.settings_lock_screen), lockScreen) {
-                    s.lockScreen = it
-                    model.settingsChanged()
-                    com.wanderwildwood.koyomi.glance.GlanceProvider.changed(context)
+            if (glanceInstalled || lockScreen) {
+                item {
+                    SwitchRow(stringResource(R.string.settings_lock_screen), lockScreen) {
+                        s.lockScreen = it
+                        model.settingsChanged()
+                        com.wanderwildwood.koyomi.glance.GlanceProvider.changed(context)
+                    }
                 }
             }
             if (lockScreen) {
