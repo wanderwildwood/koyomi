@@ -17,12 +17,17 @@ sixteen grays, a slow redraw, and is read outdoors as often as indoors.
 ## Where the calendars come from
 
 It shows and changes the calendars already on the phone — the same store every calendar app
-on Android reads. It has no account and no sync of its own. It reaches the network only to fetch the calendar
-links you add yourself (below), and uses the camera only while the QR scanner is open.
+on Android reads. It can also sync with your own calendar server by itself: under Settings,
+Calendar server, pick Nextcloud, iCloud, Zoho or another CalDAV server, sign in with an app
+password, and choose which calendars to keep here. It syncs every hour and after each change,
+and when an event was changed on both sides it keeps both. It reaches the network only for that
+sync and to fetch the calendar links you add yourself (below), and uses the camera only while the
+QR scanner is open.
 
-To have a Nextcloud, Fastmail, iCloud or any other CalDAV calendar here, set it up in
-[DAVx5](https://www.davx5.com/) first. DAVx5 keeps the phone's store and the server in step;
-an event made or changed here reaches the server because DAVx5 carries it there.
+Calendars that [DAVx5](https://www.davx5.com/) or another account keeps on the phone show here
+too, and an event made or changed here reaches their server because DAVx5 carries it there.
+Datebook warns you when a calendar it would sync looks like one DAVx5 already brings in, so the
+same events don't arrive twice.
 
 **Google Calendar goes through DAVx5 too**, and its sign-in opens in the phone's default
 browser. The Kompakt's built-in one is refused by Google ("Error 403: disallowed_useragent").
