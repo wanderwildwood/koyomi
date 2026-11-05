@@ -131,7 +131,8 @@ fun EventScreen(model: AppModel, screen: Screen.Event) {
             if (r.rrule != null) {
                 item { Detail(stringResource(R.string.event_repeats), RepeatText.of(context.resources, r.rrule, start.toLocalDate(), r.allDay)) }
             }
-            r.location?.let { item { Detail(stringResource(R.string.event_where), it) } }
+            // The place can be selected too, like the notes below: Copy, Define, Translate.
+            r.location?.let { item { Detail(stringResource(R.string.event_where), it, selectable = true) } }
             if (r.reminders.isNotEmpty()) {
                 item {
                     Detail(
