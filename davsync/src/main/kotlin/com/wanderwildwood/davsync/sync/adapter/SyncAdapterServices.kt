@@ -22,6 +22,8 @@ import com.wanderwildwood.davsync.sync.AddressBookSyncer
 import com.wanderwildwood.davsync.sync.CalendarSyncer
 import com.wanderwildwood.davsync.sync.SyncDataType
 import com.wanderwildwood.davsync.sync.SyncNow
+import com.wanderwildwood.davsync.sync.SyncPolicy
+import com.wanderwildwood.davsync.network.Networks
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.runBlocking
 import java.util.logging.Level
@@ -64,10 +66,12 @@ class SyncAdapterImpl(context: Context) : AbstractThreadedSyncAdapter(context, t
      */
     suspend fun performSync(davSync: DavSync, account: Account, extras: Bundle, authority: String): DavSyncResult {
         val upload = extras.containsKey(ContentResolver.SYNC_EXTRAS_UPLOAD)
+        val manual = extras.getBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, false)
         val result = DavSyncResult()
         when (SyncDataType.fromAuthority(authority)) {
             SyncDataType.EVENTS -> {
                 if (!davSync.accounts.exists(account)) return result
+                if (waitsForWifi(davSync, account, manual)) return result
                 CalendarSyncer(davSync, account, null, result).use { it() }
                 davSync.accounts.record(account, result)
             }
@@ -84,6 +88,7 @@ class SyncAdapterImpl(context: Context) : AbstractThreadedSyncAdapter(context, t
                     }
                     return result
                 }
+                if (waitsForWifi(davSync, main, manual)) return result
                 SyncNow.contactsLock.withLock {
                     AddressBookSyncer(davSync, main, null, upload, result).use { it() }
                 }
@@ -91,6 +96,19 @@ class SyncAdapterImpl(context: Context) : AbstractThreadedSyncAdapter(context, t
             }
         }
         return result
+    }
+
+    /**
+     * Whether this sync is held back: [main] syncs on its own only over Wi-Fi and the phone is
+     * not on it. Its changes stay on the phone and go with the next sync that may run. A sync
+     * the person asked for ([manual]: Sync now, a pull to refresh) is never held back.
+     */
+    private fun waitsForWifi(davSync: DavSync, main: Account, manual: Boolean): Boolean {
+        val wifiOnly = davSync.accounts.wifiOnly(main)
+        if (SyncPolicy.mayRun(manual, wifiOnly, !wifiOnly || Networks.onWifi(context))) return false
+        davSync.logger.info("Sync of $main waits for Wi-Fi")
+        davSync.accounts.recordWaiting(main)
+        return true
     }
 
     override fun onSecurityException(account: Account, extras: Bundle, authority: String, syncResult: SyncResult) {

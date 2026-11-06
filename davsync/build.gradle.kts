@@ -33,4 +33,5 @@ dependencies {
     implementation("io.ktor:ktor-client-auth:3.6.1")
     implementation("io.ktor:ktor-client-encoding:3.6.1")
     compileOnly("com.github.spotbugs:spotbugs-annotations:4.10.5")
+    testImplementation("junit:junit:4.13.2")
 }

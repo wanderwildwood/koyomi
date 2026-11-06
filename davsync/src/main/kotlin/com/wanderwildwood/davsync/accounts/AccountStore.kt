@@ -10,6 +10,7 @@ import com.wanderwildwood.davsync.R
 import com.wanderwildwood.davsync.model.Collection
 import com.wanderwildwood.davsync.network.Credentials
 import com.wanderwildwood.davsync.resource.local.AddressBookAccountProperties
+import com.wanderwildwood.davsync.sync.SyncPolicy
 import io.ktor.http.Url
 
 /**
@@ -45,7 +46,7 @@ class AccountStore(context: Context) {
             putString(KEY_COLLECTIONS, Collection.toJson(numbered(collections)))
         }
         if (!manager.addAccountExplicitly(account, null, data)) return null
-        // Syncing is turned on by the app once collections are chosen; periodic sync hourly.
+        // Syncing is turned on by the app; the periodic sync follows the account's interval.
         return account
     }
 
@@ -115,11 +116,47 @@ class AccountStore(context: Context) {
         return list.map { if (it.id == 0L) it.copy(id = ++next) else it }
     }
 
-    /** Turns syncing of [authority] on for [account], with a periodic sync every [intervalSeconds]. */
-    fun enableSync(account: Account, authority: String, intervalSeconds: Long = 3600) {
+    /** Turns syncing of [authority] on for [account], with a periodic sync at the account's interval. */
+    fun enableSync(account: Account, authority: String) {
         ContentResolver.setIsSyncable(account, authority, 1)
         ContentResolver.setSyncAutomatically(account, authority, true)
-        ContentResolver.addPeriodicSync(account, authority, Bundle.EMPTY, intervalSeconds)
+        schedule(account, authority, interval(account))
+    }
+
+    /** How often [account] syncs on its own, in seconds (one of [SyncPolicy.INTERVALS]). */
+    fun interval(account: Account): Long =
+        SyncPolicy.interval(manager.getUserData(account, KEY_INTERVAL)?.toLongOrNull())
+
+    /**
+     * Sets how often [account] syncs on its own, for [authority] on the account itself (calendars)
+     * and on each of its address-book accounts (contacts), wherever syncing is on.
+     */
+    fun setInterval(account: Account, authority: String, seconds: Long) {
+        val interval = SyncPolicy.interval(seconds)
+        manager.setUserData(account, KEY_INTERVAL, interval.toString())
+        for (target in listOf(account) + addressBookAccounts(account))
+            if (ContentResolver.getSyncAutomatically(target, authority))
+                schedule(target, authority, interval)
+    }
+
+    /** Replaces any periodic sync of [authority] on [target] with one every [seconds]. */
+    fun schedule(target: Account, authority: String, seconds: Long) {
+        for (old in ContentResolver.getPeriodicSyncs(target, authority))
+            ContentResolver.removePeriodicSync(target, authority, old.extras)
+        ContentResolver.addPeriodicSync(target, authority, Bundle.EMPTY, seconds)
+    }
+
+    /** Whether [account]'s own syncs wait for Wi-Fi (a sync the person asks for never does). */
+    fun wifiOnly(account: Account): Boolean = manager.getUserData(account, KEY_WIFI_ONLY) == "1"
+
+    fun setWifiOnly(account: Account, on: Boolean) {
+        manager.setUserData(account, KEY_WIFI_ONLY, if (on) "1" else null)
+        if (!on) manager.setUserData(account, KEY_WAITING, null)
+    }
+
+    /** Notes that a sync of [account] was held back until the phone is on Wi-Fi. */
+    fun recordWaiting(account: Account) {
+        if (exists(account)) manager.setUserData(account, KEY_WAITING, "1")
     }
 
     /** Asks the system to sync [authority] for [account] now. */
@@ -134,7 +171,7 @@ class AccountStore(context: Context) {
      * What the last sync of [account] came to, for the "last synced" line: [lastGood] is when one
      * last finished cleanly (0 for never), [problem] what went wrong with the latest, if anything.
      */
-    data class Status(val lastGood: Long, val problem: Problem?, val detail: String? = null) {
+    data class Status(val lastGood: Long, val problem: Problem?, val detail: String? = null, val waitingForWifi: Boolean = false) {
         enum class Problem { UNREACHABLE, PASSWORD, ERROR }
     }
 
@@ -142,11 +179,13 @@ class AccountStore(context: Context) {
         manager.getUserData(account, KEY_LAST_GOOD)?.toLongOrNull() ?: 0L,
         manager.getUserData(account, KEY_LAST_PROBLEM)?.let { p -> Status.Problem.entries.firstOrNull { it.name == p } },
         manager.getUserData(account, KEY_LAST_DETAIL),
+        manager.getUserData(account, KEY_WAITING) == "1",
     )
 
     /** Notes how a sync of [account] went. A soft error is almost always no network, or no server. */
     fun record(account: Account, result: com.wanderwildwood.davsync.sync.SyncResult) {
         if (!exists(account)) return
+        manager.setUserData(account, KEY_WAITING, null)
         val problem = when {
             result.authenticationFailed -> Status.Problem.PASSWORD
             result.hardError -> Status.Problem.ERROR
@@ -171,5 +210,8 @@ class AccountStore(context: Context) {
         private const val KEY_USER = "davsync_user"
         private const val KEY_PASSWORD = "davsync_password"
         private const val KEY_COLLECTIONS = "davsync_collections"
+        private const val KEY_INTERVAL = "davsync_interval"
+        private const val KEY_WIFI_ONLY = "davsync_wifi_only"
+        private const val KEY_WAITING = "davsync_waiting_wifi"
     }
 }

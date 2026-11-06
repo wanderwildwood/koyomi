@@ -21,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -48,6 +49,8 @@ import com.wanderwildwood.davsync.accounts.StatusText
 import com.wanderwildwood.davsync.signin.Provider
 import com.wanderwildwood.davsync.model.Collection
 import com.wanderwildwood.davsync.servicedetection.DavResourceFinder
+import com.wanderwildwood.davsync.servicedetection.CollectionMaker
+import com.wanderwildwood.davsync.sync.SyncPolicy
 import com.wanderwildwood.davsync.signin.Problem
 import com.wanderwildwood.davsync.signin.SignIn
 import com.wanderwildwood.davsync.signin.SignInResult
@@ -78,9 +81,17 @@ fun ServerScreen(model: AppModel) {
     // Held here, not in the row: a row scrolled off the page is thrown away, and with it a
     // check still asking the server.
     val passwordForm = remember { PasswordForm() }
+    var making by remember { mutableStateOf<String?>(null) }
+    val newForm = remember { NewForm() }
     val screenScope = rememberCoroutineScope()
     // Calendars DAVx5 (or any other account) already syncs here, by address.
     val elsewhere = remember(version) { Elsewhere.calendars(context, davSync.accounts.accountType) }
+    // Calendars made or removed in Nextcloud since: read the list again each time the page opens.
+    LaunchedEffect(accounts.size) {
+        for (account in accounts)
+            CollectionMaker.refresh(davSync, account, DavResourceFinder.Service.CALDAV)
+        version++
+    }
     // The framework runs the sync; its start and end redraw the "last synced" line.
     DisposableEffect(Unit) {
         val main = Handler(Looper.getMainLooper())
@@ -153,6 +164,47 @@ fun ServerScreen(model: AppModel) {
                                 davSync.accounts.requestSync(account, CalendarContract.AUTHORITY)
                                 version++
                             }
+                        }
+                    }
+                    item(key = "new-${account.name}") {
+                        if (making == account.name)
+                            NewCalendar(davSync, account, newForm, screenScope) {
+                                newForm.reset()
+                                making = null
+                                davSync.accounts.requestSync(account, CalendarContract.AUTHORITY)
+                                version++
+                            }
+                        else
+                            SettingRow(
+                                stringResource(DavR.string.davsync_new_calendar),
+                                stringResource(DavR.string.davsync_new_calendar_note),
+                            ) { newForm.reset(); making = account.name }
+                    }
+                    item(key = "interval-${account.name}") {
+                        val now = davSync.accounts.interval(account)
+                        ChoiceRow(
+                            label = stringResource(DavR.string.davsync_interval),
+                            choices = listOf(
+                                stringResource(DavR.string.davsync_interval_15m),
+                                stringResource(DavR.string.davsync_interval_1h),
+                                stringResource(DavR.string.davsync_interval_4h),
+                            ),
+                            chosen = SyncPolicy.INTERVALS.indexOf(now),
+                            enabled = true,
+                            perLine = 3,
+                        ) {
+                            davSync.accounts.setInterval(account, CalendarContract.AUTHORITY, SyncPolicy.INTERVALS[it])
+                            version++
+                        }
+                    }
+                    item(key = "wifi-${account.name}") {
+                        SwitchRow(
+                            stringResource(DavR.string.davsync_wifi_only),
+                            davSync.accounts.wifiOnly(account),
+                            note = stringResource(DavR.string.davsync_wifi_only_note),
+                        ) { on ->
+                            davSync.accounts.setWifiOnly(account, on)
+                            version++
                         }
                     }
                     item(key = "sync-${account.name}") {
@@ -430,3 +482,78 @@ private class PasswordForm {
     var status by mutableStateOf<Int?>(null)
     fun reset() { password = ""; busy = false; status = null }
 }
+
+/** The colors a new calendar may take on the server (this app draws every calendar in black). */
+private val CALENDAR_COLORS = listOf(
+    DavR.string.davsync_color_blue to 0xFF0082C9.toInt(),
+    DavR.string.davsync_color_green to 0xFF46BA61.toInt(),
+    DavR.string.davsync_color_red to 0xFFE9322D.toInt(),
+    DavR.string.davsync_color_orange to 0xFFF39C12.toInt(),
+    DavR.string.davsync_color_purple to 0xFF8E44AD.toInt(),
+    DavR.string.davsync_color_gray to 0xFF767676.toInt(),
+)
+
+/** A new calendar, made on the server and turned on here. */
+@Composable
+private fun NewCalendar(davSync: DavSync, account: Account, form: NewForm, scope: CoroutineScope, onDone: () -> Unit) {
+    var name by form::name
+    var color by form::color
+    var busy by form::busy
+    var status by form::status
+    Column(Modifier.padding(vertical = 8.dp)) {
+        TextFieldMMD(
+            value = name,
+            onValueChange = { name = it.replace("\n", ""); status = null },
+            modifier = Modifier.fillMaxWidth(),
+            label = { TextMMD(text = stringResource(DavR.string.davsync_new_name)) },
+            singleLine = true,
+            enabled = !busy,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+        )
+        ChoiceRow(
+            label = stringResource(DavR.string.davsync_color),
+            choices = CALENDAR_COLORS.map { stringResource(it.first) },
+            chosen = color,
+            enabled = !busy,
+            perLine = 3,
+        ) { color = it }
+        status?.let { TextMMD(text = stringResource(it), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 6.dp)) }
+        Row(Modifier.fillMaxWidth().padding(top = 8.dp)) {
+            OutlinedButtonMMD(onClick = onDone, enabled = !busy, modifier = Modifier.weight(1f).height(48.dp)) {
+                TextMMD(text = stringResource(DavR.string.davsync_cancel))
+            }
+            Spacer(Modifier.width(8.dp))
+            ButtonMMD(
+                onClick = {
+                    busy = true
+                    status = DavR.string.davsync_creating
+                    scope.launch {
+                        val result = CollectionMaker.create(
+                            davSync, account, DavResourceFinder.Service.CALDAV, name.trim(), CALENDAR_COLORS[color].second,
+                        )
+                        busy = false
+                        when (result) {
+                            is CollectionMaker.Result.Made -> onDone()
+                            CollectionMaker.Result.NoHome -> status = DavR.string.davsync_create_no_home
+                            CollectionMaker.Result.Password -> status = DavR.string.davsync_create_password
+                            CollectionMaker.Result.Unreachable -> status = DavR.string.davsync_create_unreachable
+                            is CollectionMaker.Result.Refused -> status = DavR.string.davsync_create_refused
+                        }
+                    }
+                },
+                enabled = !busy && name.isNotBlank(),
+                modifier = Modifier.weight(1f).height(48.dp),
+            ) { TextMMD(text = stringResource(DavR.string.davsync_create)) }
+        }
+    }
+}
+
+/** What the New calendar row holds while it is open (held above the row, as [PasswordForm]). */
+private class NewForm {
+    var name by mutableStateOf("")
+    var color by mutableIntStateOf(0)
+    var busy by mutableStateOf(false)
+    var status by mutableStateOf<Int?>(null)
+    fun reset() { name = ""; color = 0; busy = false; status = null }
+}
+

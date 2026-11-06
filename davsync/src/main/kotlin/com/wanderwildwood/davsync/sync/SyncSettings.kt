@@ -1,6 +1,6 @@
 /*
- * Adapted from DAVx5 core/sync/SyncSettings.kt (bitfireAT, GPL-3.0-or-later). The Wi-Fi-only
- * conditions are left out: these apps sync over any network, as the system's own accounts do.
+ * Adapted from DAVx5 core/sync/SyncSettings.kt (bitfireAT, GPL-3.0-or-later). How often and
+ * whether only on Wi-Fi are per account, in AccountStore and SyncPolicy.
  */
 package com.wanderwildwood.davsync.sync
 

@@ -479,4 +479,29 @@
     <string name="privacy_rights_title">Deine Rechte</string>
     <string name="privacy_rights">Nach der DSGVO kannst du Auskunft über die Daten verlangen, die über dich gespeichert sind, sie berichtigen oder löschen lassen, ihre Verarbeitung einschränken lassen oder ihr widersprechen, eine Kopie mitnehmen, eine Einwilligung widerrufen und dich bei einer Datenschutzbehörde beschweren. Da die App alles, was sie speichert, nur auf deinem Telefon ablegt, kannst du das meiste davon selbst tun: Termine in der App ändern oder löschen, einen Kalenderlink oder dein Serverkonto in den Einstellungen entfernen, die App-Daten in den Android-Einstellungen löschen oder die App deinstallieren. Für das, was die Dienste, deren Kalenderlinks du hinzufügst (zum Beispiel Google Kalender), erhalten, gelten deren eigene Datenschutzerklärungen. Ein eigener Server gehört dir: Was er speichert, bestimmst du.</string>
     <!-- /shared-about -->
+    <string name="davsync_new_calendar" tools:ignore="ExtraTranslation">Neuer Kalender</string>
+    <string name="davsync_new_calendar_note" tools:ignore="ExtraTranslation">Wird auf dem Server angelegt und hier eingeschaltet</string>
+    <string name="davsync_new_address_book" tools:ignore="ExtraTranslation">Neues Adressbuch</string>
+    <string name="davsync_new_address_book_note" tools:ignore="ExtraTranslation">Wird auf dem Server angelegt und hier eingeschaltet</string>
+    <string name="davsync_new_name" tools:ignore="ExtraTranslation">Name</string>
+    <string name="davsync_color" tools:ignore="ExtraTranslation">Farbe auf dem Server und anderen Geräten</string>
+    <string name="davsync_color_blue" tools:ignore="ExtraTranslation">Blau</string>
+    <string name="davsync_color_green" tools:ignore="ExtraTranslation">Grün</string>
+    <string name="davsync_color_red" tools:ignore="ExtraTranslation">Rot</string>
+    <string name="davsync_color_orange" tools:ignore="ExtraTranslation">Orange</string>
+    <string name="davsync_color_purple" tools:ignore="ExtraTranslation">Lila</string>
+    <string name="davsync_color_gray" tools:ignore="ExtraTranslation">Grau</string>
+    <string name="davsync_create" tools:ignore="ExtraTranslation">Anlegen</string>
+    <string name="davsync_creating" tools:ignore="ExtraTranslation">Frage den Server…</string>
+    <string name="davsync_create_no_home" tools:ignore="ExtraTranslation">Der Server hat für dieses Konto keinen Ort, um eines anzulegen.</string>
+    <string name="davsync_create_refused" tools:ignore="ExtraTranslation">Der Server hat es nicht angelegt.</string>
+    <string name="davsync_create_unreachable" tools:ignore="ExtraTranslation">Der Server war nicht erreichbar; es wurde nichts angelegt.</string>
+    <string name="davsync_create_password" tools:ignore="ExtraTranslation">Der Server hat das Passwort abgelehnt; es wurde nichts angelegt.</string>
+    <string name="davsync_interval" tools:ignore="ExtraTranslation">Gleicht von selbst ab</string>
+    <string name="davsync_interval_15m" tools:ignore="ExtraTranslation">Alle 15 Min.</string>
+    <string name="davsync_interval_1h" tools:ignore="ExtraTranslation">Stündlich</string>
+    <string name="davsync_interval_4h" tools:ignore="ExtraTranslation">Alle 4 Std.</string>
+    <string name="davsync_wifi_only" tools:ignore="ExtraTranslation">Nur über WLAN</string>
+    <string name="davsync_wifi_only_note" tools:ignore="ExtraTranslation">Der Abgleich von selbst wartet auf WLAN. Herunterziehen oder Jetzt abgleichen geht auch über mobile Daten.</string>
+    <string name="davsync_waiting_wifi" tools:ignore="ExtraTranslation">Wartet auf WLAN; Änderungen bleiben bis dahin auf dem Telefon.</string>
 </resources>

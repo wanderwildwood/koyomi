@@ -172,11 +172,13 @@ open class LocalAddressBook(
      * Enables or disables sync on content changes for the address book account based on the current sync
      * interval account setting.
      */
-    /** Syncs on every change, and every hour (DAVx5 sets this from the account's sync interval). */
+    /** Syncs on every change, and at the main account's interval (as DAVx5 does). */
     fun updateSyncFrameworkSettings() {
         ContentResolver.setIsSyncable(addressBookAccount, ContactsContract.AUTHORITY, 1)
         ContentResolver.setSyncAutomatically(addressBookAccount, ContactsContract.AUTHORITY, true)
-        ContentResolver.addPeriodicSync(addressBookAccount, ContactsContract.AUTHORITY, Bundle.EMPTY, 3600)
+        val store = com.wanderwildwood.davsync.accounts.AccountStore(context)
+        val main = addressBookAccountProperties.getAppAccount(addressBookAccount)
+        store.schedule(addressBookAccount, ContactsContract.AUTHORITY, if (main != null) store.interval(main) else com.wanderwildwood.davsync.sync.SyncPolicy.DEFAULT_INTERVAL)
     }
 
 

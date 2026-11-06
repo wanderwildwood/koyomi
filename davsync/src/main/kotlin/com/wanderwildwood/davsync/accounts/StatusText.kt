@@ -8,7 +8,8 @@ import com.wanderwildwood.davsync.R
 object StatusText {
     fun of(context: Context, status: AccountStore.Status, syncing: Boolean): String {
         if (syncing) return context.getString(R.string.davsync_syncing)
-        val line = plain(context, status)
+        val line = plain(context, status) +
+            if (status.waitingForWifi) "\n" + context.getString(R.string.davsync_waiting_wifi) else ""
         val said = status.detail?.takeIf { status.problem != null && status.problem != AccountStore.Status.Problem.PASSWORD && it.isNotBlank() }
         return if (said == null) line else line + "\n" + context.getString(R.string.davsync_said, said)
     }

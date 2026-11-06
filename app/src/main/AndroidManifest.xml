@@ -20,8 +20,8 @@
 
     <!-- Only while the QR scanner for a calendar link is open. -->
     <uses-permission android:name="android.permission.CAMERA" />
-    <!-- A library under the camera asks for this; nothing here looks at the network's state. -->
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />
+    <!-- Calendar sync's "Wi-Fi only": whether the phone is on Wi-Fi now. Nothing else is read. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 

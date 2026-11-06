@@ -23,11 +23,14 @@ policy that cannot be checked is just a promise.
     every few hours, when the app opens and when you pull down in Settings. Nothing from your calendars is sent;
     the only thing that leaves the phone is the request for the link (`data/Subscriptions.kt`, `data/LinkRefresh.kt`).
   - your own calendar server, once you sign in to it (Settings → Calendar server): the calendars
-    you chose are kept the same on the phone and on that server, in both directions, hourly, after
-    each change and when you ask. That server, the one whose address you typed, is the only one
+    you chose are kept the same on the phone and on that server, in both directions: every 15
+    minutes, hour or 4 hours as you choose, after each change and when you ask. New calendar makes
+    one there, with the name and color you give it. That server, the one whose address you typed, is the only one
     contacted (`davsync/`, see below).
 - `READ_SYNC_SETTINGS`, `WRITE_SYNC_SETTINGS`, `READ_SYNC_STATS` — to turn on and read the sync
   of Datebook's own calendar account. They give no access to anything else.
+- `ACCESS_NETWORK_STATE` — only for the calendar server's "Wi-Fi only" switch: whether the
+  phone is on Wi-Fi now, so its own syncs can wait for it. Nothing else about the network is read.
 - `CAMERA` — only while the QR scanner is open, to read a calendar link from a code. Nothing is
   recorded or saved, and the camera is let go when the scanner closes.
 

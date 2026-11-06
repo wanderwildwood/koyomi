@@ -19,7 +19,8 @@ sixteen grays, a slow redraw, and is read outdoors as often as indoors.
 It shows and changes the calendars already on the phone — the same store every calendar app
 on Android reads. It can also sync with your own calendar server by itself: under Settings,
 Calendar server, pick Nextcloud, iCloud, Zoho or another CalDAV server, sign in with an app
-password, and choose which calendars to keep here. It syncs every hour and after each change,
+password, and choose which calendars to keep here, or make a new one there. It syncs every 15
+minutes, hour or 4 hours, as you choose (on Wi-Fi only, if you like), and after each change,
 and when an event was changed on both sides it keeps both. It reaches the network only for that
 sync and to fetch the calendar links you add yourself (below), and uses the camera only while the
 QR scanner is open.
