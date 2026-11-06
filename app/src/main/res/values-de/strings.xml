@@ -427,7 +427,7 @@
     <string name="server_other">Beim Fragen des Servers ist etwas schiefgegangen.</string>
     <string name="server_read_only">Nur lesen</string>
     <string name="server_sync_now">Jetzt abgleichen</string>
-    <string name="server_sync_now_note">Außerdem stündlich und nach jeder Änderung</string>
+    <string name="server_sync_now_note">Außerdem von selbst, wie oben eingestellt, und nach jeder Änderung</string>
     <string name="server_remove">Konto entfernen</string>
     <string name="server_remove_armed">Noch einmal tippen: entfernt seine Kalender von diesem Telefon (der Server behält sie)</string>
     <string name="server_add">Weiteren Server hinzufügen</string>
@@ -498,10 +498,10 @@
     <string name="davsync_create_unreachable" tools:ignore="ExtraTranslation">Der Server war nicht erreichbar; es wurde nichts angelegt.</string>
     <string name="davsync_create_password" tools:ignore="ExtraTranslation">Der Server hat das Passwort abgelehnt; es wurde nichts angelegt.</string>
     <string name="davsync_interval" tools:ignore="ExtraTranslation">Gleicht von selbst ab</string>
-    <string name="davsync_interval_15m" tools:ignore="ExtraTranslation">Alle 15 Min.</string>
-    <string name="davsync_interval_1h" tools:ignore="ExtraTranslation">Stündlich</string>
-    <string name="davsync_interval_4h" tools:ignore="ExtraTranslation">Alle 4 Std.</string>
+    <string name="davsync_interval_15m" tools:ignore="ExtraTranslation">15 Min.</string>
+    <string name="davsync_interval_1h" tools:ignore="ExtraTranslation">1 Std.</string>
+    <string name="davsync_interval_4h" tools:ignore="ExtraTranslation">4 Std.</string>
     <string name="davsync_wifi_only" tools:ignore="ExtraTranslation">Nur über WLAN</string>
     <string name="davsync_wifi_only_note" tools:ignore="ExtraTranslation">Der Abgleich von selbst wartet auf WLAN. Herunterziehen oder Jetzt abgleichen geht auch über mobile Daten.</string>
-    <string name="davsync_waiting_wifi" tools:ignore="ExtraTranslation">Wartet auf WLAN; Änderungen bleiben bis dahin auf dem Telefon.</string>
+    <string name="davsync_waiting_wifi" tools:ignore="ExtraTranslation">Der nächste Abgleich wartet auf WLAN.</string>
 </resources>

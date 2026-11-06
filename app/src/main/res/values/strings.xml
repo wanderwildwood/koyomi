@@ -426,7 +426,7 @@
     <string name="server_other">Something went wrong while asking the server.</string>
     <string name="server_read_only">Read only</string>
     <string name="server_sync_now">Sync now</string>
-    <string name="server_sync_now_note">Also every hour, and after each change</string>
+    <string name="server_sync_now_note">Also on its own, as set above, and after each change</string>
     <string name="server_remove">Remove account</string>
     <string name="server_remove_armed">Tap again: removes its calendars from this phone (the server keeps them)</string>
     <string name="server_add">Add another server</string>

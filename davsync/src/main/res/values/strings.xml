@@ -22,7 +22,7 @@
     <string name="davsync_note_other">The server\'s address (its name is usually enough), your user name, and a password; an app password made for this phone is best, where the server has them.</string>
 
     <!-- Under an account, once signed in. -->
-    <string name="davsync_pick">Turn on the ones to keep on this phone. Leave off any another app (DAVx5) already syncs, or they will show twice.</string>
+    <string name="davsync_pick">Turn on the ones to keep on this phone. Leave off any that another app (DAVx5) already syncs, or they will show twice.</string>
     <string name="davsync_never_synced">Not synced yet.</string>
     <string name="davsync_synced">Last synced %1$s.</string>
     <string name="davsync_syncing">Syncing…</string>
@@ -75,10 +75,10 @@
     <string name="davsync_create_unreachable">The server could not be reached; nothing was made.</string>
     <string name="davsync_create_password">The server refused the password; nothing was made.</string>
     <string name="davsync_interval">Syncs on its own</string>
-    <string name="davsync_interval_15m">Every 15 min</string>
-    <string name="davsync_interval_1h">Every hour</string>
-    <string name="davsync_interval_4h">Every 4 hours</string>
+    <string name="davsync_interval_15m">15 min</string>
+    <string name="davsync_interval_1h">1 hour</string>
+    <string name="davsync_interval_4h">4 hours</string>
     <string name="davsync_wifi_only">Wi-Fi only</string>
     <string name="davsync_wifi_only_note">Its own syncs wait for Wi-Fi. A pull to refresh or Sync now still syncs on mobile data.</string>
-    <string name="davsync_waiting_wifi">Waiting for Wi-Fi; changes made here wait on the phone.</string>
+    <string name="davsync_waiting_wifi">Its next sync waits for Wi-Fi.</string>
 </resources>
