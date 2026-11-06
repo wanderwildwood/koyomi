@@ -56,6 +56,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 @Composable
 fun Modifier.textActions(value: TextFieldValue? = null, onValue: ((TextFieldValue) -> Unit)? = null): Modifier {
     val context = LocalContext.current
+    val notShown = NOT_SHOWN + context.packageName
     val now by rememberUpdatedState(value)
     val update by rememberUpdatedState(onValue)
     val writable = value != null && onValue != null
@@ -67,13 +68,13 @@ fun Modifier.textActions(value: TextFieldValue? = null, onValue: ((TextFieldValu
         context.packageManager.queryIntentActivities(query, 0).filter { it.activityInfo.exported }
     }
     val actions = remember {
-        apps.filter { it.activityInfo.packageName !in NOT_SHOWN }
+        apps.filter { it.activityInfo.packageName !in notShown }
             .map { ComponentName(it.activityInfo.packageName, it.activityInfo.name) to it.loadLabel(context.packageManager).toString() }
     }
     // Where read-only text is selected, Compose's own entries stay, since only they know the
     // selection; the ones left out are known by their label.
     val hiddenLabels = remember {
-        apps.filter { it.activityInfo.packageName in NOT_SHOWN }.map { it.loadLabel(context.packageManager).toString() }.toSet()
+        apps.filter { it.activityInfo.packageName in notShown }.map { it.loadLabel(context.packageManager).toString() }.toSet()
     }
     val folded = remember { mutableListOf<TextContextMenuItem>() }
     val kept = remember { IntArray(1) }
