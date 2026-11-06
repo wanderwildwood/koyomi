@@ -11,6 +11,8 @@ import at.bitfire.dav4jvm.ktor.responsesWithRelation
 import at.bitfire.dav4jvm.property.webdav.GetETag
 import at.bitfire.dav4jvm.property.webdav.ResourceType
 import at.bitfire.dav4jvm.property.webdav.WebDAV
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.Url
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNot
@@ -53,6 +55,35 @@ fun Flow<MultiStatusItem.Response>.filterSuccessful(): Flow<MultiStatusItem.Resp
         if (!isSuccess)
             logger.warning("Ignoring non-successful (${item.response.status}) response: ${item.response.href}")
         isSuccess
+    }
+
+/**
+ * Whether this response says the resource is gone for good (404 Not Found or 410 Gone).
+ */
+fun Response.isGone(): Boolean =
+    status == HttpStatusCode.NotFound || status == HttpStatusCode.Gone
+
+/**
+ * Filters this multi-get flow down to successful responses, as [filterSuccessful], and hands the
+ * href of every 404/410 response to [onGone]: the server listed the member, but it can't be
+ * fetched any more (Google keeps listing a deleted "this and following" split series with a new
+ * ETag, then answers the multi-get with 404). Adapted from mudita/davx5-ose-kompakt (SHP-586).
+ */
+fun Flow<MultiStatusItem.Response>.filterSuccessful(onGone: suspend (Url) -> Unit): Flow<MultiStatusItem.Response> =
+    filter { item ->
+        val response = item.response
+        when {
+            response.isSuccess() -> true
+            response.isGone() -> {
+                logger.info("Listed but no longer retrievable (${response.status}): ${response.href}")
+                onGone(response.href.omitTrailingSlash())
+                false
+            }
+            else -> {
+                logger.warning("Ignoring non-successful (${response.status}) response: ${response.href}")
+                false
+            }
+        }
     }
 
 /**

@@ -49,6 +49,7 @@ abstract class Syncer<StoreType : LocalDataStore<CollectionType>, CollectionType
     internal suspend fun sync(client: LocalStorageClient) {
         if (!prepare(client)) {
             logger.warning("Failed to prepare sync. Won't run sync.")
+            syncResult.hardError = true
             return
         }
         if (davSync.accounts.credentials(accountId) == null) {
@@ -140,6 +141,9 @@ abstract class Syncer<StoreType : LocalDataStore<CollectionType>, CollectionType
             dataStore.acquireLocalStorageClient(throwOnMissingPermissions = true)
         } catch (e: SecurityException) {
             logger.log(Level.WARNING, "Missing permissions for content provider authority ${dataStore.authority}", e)
+            // nothing synced: the status line must not say it did
+            syncResult.hardError = true
+            syncResult.message = e.localizedMessage ?: e::class.java.simpleName
             return
         }.use { client ->
             if (client == null) {
@@ -161,7 +165,10 @@ abstract class Syncer<StoreType : LocalDataStore<CollectionType>, CollectionType
                     else -> {
                         logger.log(Level.SEVERE, "Couldn't sync ${dataStore.authority}", e)
                         syncResult.hardError = true
-                        syncResult.message = e.localizedMessage ?: e::class.java.simpleName
+                        if (SyncExceptionHandler.isClockProblem(e))
+                            syncResult.clockWrong = true
+                        else
+                            syncResult.message = e.localizedMessage ?: e::class.java.simpleName
                     }
                 }
             } finally {

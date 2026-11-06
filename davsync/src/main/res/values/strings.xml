@@ -31,6 +31,9 @@
     <string name="davsync_refused">The server refused the password. Make a new app password on the server and put it in with Change password, below.</string>
     <string name="davsync_failed">The last sync had a problem; it tries again on the next one. Last synced %1$s.</string>
     <string name="davsync_failed_never">The last sync had a problem; it tries again on the next one.</string>
+    <!-- The server's certificate is not valid at the phone's date: nearly always a wrong clock. -->
+    <string name="davsync_clock">Couldn\'t sync: check the phone\'s date and time. The server\'s certificate does not fit the date the phone has. Last synced %1$s.</string>
+    <string name="davsync_clock_never">Couldn\'t sync: check the phone\'s date and time. The server\'s certificate does not fit the date the phone has.</string>
     <!-- The server's or the system's own words about what went wrong, under the status line. -->
     <string name="davsync_said">The server said: %1$s</string>
 

@@ -55,12 +55,13 @@ class CalDavCollection(
 
     override fun multiget(
         urls: List<Url>,
-        capabilities: WebDavCollection.Capabilities
+        capabilities: WebDavCollection.Capabilities,
+        onGone: suspend (Url) -> Unit
     ): Flow<WebDavCollection.MultiGetItem> {
         logger.info("Downloading ${urls.size} calendar object resources: $urls")
         return davCollection.multiget(urls).responsesWithRelation()
             .filterMembers()
-            .filterSuccessful()
+            .filterSuccessful(onGone)
             .mapNotNull {
                 it.response.asMultiGetItem { r -> r[CalendarData::class.java]?.iCalendar }
             }

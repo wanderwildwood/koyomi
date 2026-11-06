@@ -39,7 +39,8 @@ class CardDavCollection(httpClient: HttpClient, url: Url) : BaseWebDavCollection
 
     override fun multiget(
         urls: List<Url>,
-        capabilities: WebDavCollection.Capabilities
+        capabilities: WebDavCollection.Capabilities,
+        onGone: suspend (Url) -> Unit
     ): Flow<WebDavCollection.MultiGetItem> {
         val contentType = DavUtils.MEDIA_TYPE_VCARD.toString()
         val vCardVersion = if (capabilities.supportsVCard4)
@@ -52,7 +53,7 @@ class CardDavCollection(httpClient: HttpClient, url: Url) : BaseWebDavCollection
         logger.info("Downloading ${urls.size} address object resources: $urls")
         return davCollection.multiget(urls, contentType, vCardVersion).responsesWithRelation()
             .filterMembers()
-            .filterSuccessful()
+            .filterSuccessful(onGone)
             .mapNotNull {
                 it.response.asMultiGetItem { r -> r[AddressData::class.java]?.card }
             }

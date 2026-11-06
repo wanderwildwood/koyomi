@@ -10,7 +10,10 @@ object StatusText {
         if (syncing) return context.getString(R.string.davsync_syncing)
         val line = plain(context, status) +
             if (status.waitingForWifi) "\n" + context.getString(R.string.davsync_waiting_wifi) else ""
-        val said = status.detail?.takeIf { status.problem != null && status.problem != AccountStore.Status.Problem.PASSWORD && it.isNotBlank() }
+        val said = status.detail?.takeIf {
+            status.problem != null && status.problem != AccountStore.Status.Problem.PASSWORD &&
+                status.problem != AccountStore.Status.Problem.CLOCK && it.isNotBlank()
+        }
         return if (said == null) line else line + "\n" + context.getString(R.string.davsync_said, said)
     }
 
@@ -21,6 +24,8 @@ object StatusText {
             AccountStore.Status.Problem.UNREACHABLE ->
                 if (last == null) context.getString(R.string.davsync_unreachable_never) else context.getString(R.string.davsync_unreachable, last)
             AccountStore.Status.Problem.PASSWORD -> context.getString(R.string.davsync_refused)
+            AccountStore.Status.Problem.CLOCK ->
+                if (last == null) context.getString(R.string.davsync_clock_never) else context.getString(R.string.davsync_clock, last)
             AccountStore.Status.Problem.ERROR ->
                 if (last == null) context.getString(R.string.davsync_failed_never) else context.getString(R.string.davsync_failed, last)
         }

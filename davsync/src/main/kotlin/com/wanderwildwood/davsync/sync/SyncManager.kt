@@ -163,6 +163,11 @@ abstract class SyncManager<LocalType : LocalResource>(
                     syncResult.hardError = true
                 }
 
+                SyncExceptionHandler.SyncErrorResult.ClockError -> {
+                    syncResult.clockWrong = true
+                    syncResult.hardError = true
+                }
+
                 is SyncExceptionHandler.SyncErrorResult.HardError -> {
                     syncResult.hardError = true
                     result.message?.let { syncResult.message = it }
@@ -837,7 +842,23 @@ abstract class SyncManager<LocalType : LocalResource>(
     ): Flow<WebDavCollection.MultiGetItem> = flow {
         syncMultigetSemaphore.withPermit {
             collectionInfo.url.withExceptionContext {
-                emitAll(remoteCollection.multiget(batch, capabilities))
+                emitAll(remoteCollection.multiget(batch, capabilities) { href -> unflagGone(extractFileName(href)) })
+            }
+        }
+    }
+
+    /**
+     * A member the server listed but answers with 404/410 on multi-get: Google keeps listing a
+     * deleted "this and following" split series with a new ETag. [decideDownload] has marked the
+     * local copy as remotely present; take that back, so that [deleteNotPresentRemotely] removes
+     * it (unless it has changes of its own) instead of the sync asking for it again every time.
+     * Adapted from mudita/davx5-ose-kompakt (SHP-586).
+     */
+    private suspend fun unflagGone(name: String) {
+        localCollection.findByName(name)?.let { local ->
+            local.withExceptionContext {
+                logger.info("$name is listed but no longer retrievable, unflagging so it is deleted locally")
+                local.updateFlags(0)
             }
         }
     }

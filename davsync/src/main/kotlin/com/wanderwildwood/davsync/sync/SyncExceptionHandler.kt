@@ -16,7 +16,10 @@ import com.wanderwildwood.davsync.resource.local.LocalResource
 import at.bitfire.synctools.storage.LocalStorageException
 import io.ktor.http.Url
 import java.io.IOException
+import java.security.cert.CertPathValidatorException
 import java.security.cert.CertificateException
+import java.security.cert.CertificateExpiredException
+import java.security.cert.CertificateNotYetValidException
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.CancellationException
@@ -39,6 +42,8 @@ class SyncExceptionHandler(
     sealed interface SyncErrorResult {
         /** Credentials were rejected; syncing other collections of the account is pointless. */
         data object AuthenticationError : SyncErrorResult
+        /** The certificate doesn't fit the phone's date: check the clock (never a refused password). */
+        data object ClockError : SyncErrorResult
         data class HardError(val message: String? = null) : SyncErrorResult
         data class SoftError(val delayUntil: Instant? = null, val message: String? = null) : SyncErrorResult
         data object NoError : SyncErrorResult
@@ -79,6 +84,11 @@ class SyncExceptionHandler(
                 SyncErrorResult.AuthenticationError
             }
 
+            is SyncErrorAction.ClockError -> {
+                logger.log(Level.WARNING, action.logMessage, exception)
+                SyncErrorResult.ClockError
+            }
+
             is SyncErrorAction.HardError -> {
                 logger.log(Level.SEVERE, action.logMessage, exception)
                 SyncErrorResult.HardError(action.notifyMessage)
@@ -107,6 +117,9 @@ class SyncExceptionHandler(
         /** Credentials were rejected: notify once per account, not per collection. */
         data class AuthenticationError(val logMessage: String) : SyncErrorAction
 
+        /** The server's certificate is out of date for the phone's clock. */
+        data class ClockError(val logMessage: String) : SyncErrorAction
+
         /** Non-recoverable error requiring the user's attention. */
         data class HardError(val logMessage: String, val notifyMessage: String) : SyncErrorAction
 
@@ -128,9 +141,15 @@ class SyncExceptionHandler(
 
             // Special IOException (check before generic IOException)
             is SSLHandshakeException ->
-                // when a certificate is rejected by cert4android, the cause will be a CertificateException
-                if (exception.cause is CertificateException)
-                    SyncErrorAction.LogWarning("SSL handshake failed (certificate rejected)")
+                if (isClockProblem(exception))
+                    SyncErrorAction.ClockError("SSL handshake failed (certificate not valid at the phone's date and time)")
+                // DAVx5 only logs a rejected certificate because cert4android asks the user about it;
+                // there is no cert4android here, so it's a failed sync, not a quiet success
+                else if (exception.cause is CertificateException)
+                    SyncErrorAction.HardError(
+                        logMessage = "SSL handshake failed (certificate rejected)",
+                        notifyMessage = exception.localizedMessage ?: exception::class.java.simpleName
+                    )
                 else
                     SyncErrorAction.SoftError(
                         logMessage = "SSL handshake failed",
@@ -179,6 +198,27 @@ class SyncExceptionHandler(
         }
     }
 
+
+    companion object {
+        /**
+         * Whether [exception] (or a cause of it) is a certificate that has expired or isn't valid yet
+         * at the phone's date and time. A phone clock that is far off makes every server's
+         * certificate look like that, so the user is asked to check the date and time.
+         */
+        fun isClockProblem(exception: Throwable): Boolean {
+            var e: Throwable? = exception
+            var depth = 0
+            while (e != null && depth++ < 10) {
+                if (e is CertificateExpiredException || e is CertificateNotYetValidException)
+                    return true
+                if (e is CertPathValidatorException && (e.reason == CertPathValidatorException.BasicReason.EXPIRED ||
+                            e.reason == CertPathValidatorException.BasicReason.NOT_YET_VALID))
+                    return true
+                e = e.cause
+            }
+            return false
+        }
+    }
 
     /**
      * Logs the exception and notifies the user that a resource couldn't be processed and was ignored.

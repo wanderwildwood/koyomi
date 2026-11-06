@@ -449,6 +449,8 @@
     <string name="davsync_refused" tools:ignore="ExtraTranslation">Der Server hat das Passwort abgelehnt. Mach auf dem Server ein neues App-Passwort und gib es unten bei „Passwort ändern“ ein.</string>
     <string name="davsync_failed" tools:ignore="ExtraTranslation">Beim letzten Abgleich gab es ein Problem; der nächste versucht es wieder. Zuletzt abgeglichen: %1$s.</string>
     <string name="davsync_failed_never" tools:ignore="ExtraTranslation">Beim letzten Abgleich gab es ein Problem; der nächste versucht es wieder.</string>
+    <string name="davsync_clock" tools:ignore="ExtraTranslation">Kein Abgleich: Bitte Datum und Uhrzeit des Telefons prüfen. Das Zertifikat des Servers passt nicht zum Datum auf dem Telefon. Zuletzt abgeglichen: %1$s.</string>
+    <string name="davsync_clock_never" tools:ignore="ExtraTranslation">Kein Abgleich: Bitte Datum und Uhrzeit des Telefons prüfen. Das Zertifikat des Servers passt nicht zum Datum auf dem Telefon.</string>
     <string name="davsync_said" tools:ignore="ExtraTranslation">Der Server sagte: %1$s</string>
     <string name="davsync_elsewhere_calendar" tools:ignore="ExtraTranslation">Wird auf diesem Telefon schon von DAVx5 abgeglichen. Schalte ihn dort zuerst aus, dann hier ein.</string>
     <string name="davsync_maybe_calendar" tools:ignore="ExtraTranslation">DAVx5 gleicht auch einen Kalender mit diesem Namen ab. Ist es dieser, schalte ihn dort zuerst aus, sonst erscheinen seine Termine doppelt.</string>

@@ -11,6 +11,12 @@ package com.wanderwildwood.davsync.sync
 data class SyncResult(
     /** server rejected the credentials (HTTP 401); remaining collections are skipped */
     var authenticationFailed: Boolean = false,
+    /**
+     * the server's certificate isn't valid at the phone's date and time: almost always the phone's
+     * clock is wrong. Told plainly, and never as a refused password. (After mudita/davx5-ose-kompakt
+     * SHP-1045, where a wrong clock looked like a refused sign-in.)
+     */
+    var clockWrong: Boolean = false,
     var hardError: Boolean = false,
     var softError: Boolean = false,
     var delayUntil: Long = 0,

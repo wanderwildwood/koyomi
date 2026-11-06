@@ -22,7 +22,15 @@ object Elsewhere {
 
     class Others(val urls: Set<String>, val names: Set<String>)
 
-    private const val DAVX5_ADDRESS_BOOK = "at.bitfire.davdroid.address_book"
+    /**
+     * The address-book account types of DAVx5 and of Mudita's DAVx5 build for the Kompakt
+     * (applicationId at.bitfire.davdroid.mudita; its core strings.xml, account_type_address_book).
+     * Their calendars need no list: every other account's calendars are read.
+     */
+    internal val DAVX5_ADDRESS_BOOKS = listOf(
+        "at.bitfire.davdroid.address_book",
+        "at.bitfire.davdroid.address_book.mudita",
+    )
 
     /** What other synced accounts on the phone hold: their calendars' addresses and names. */
     fun calendars(context: Context, ownType: String): Others {
@@ -47,10 +55,13 @@ object Elsewhere {
     fun addressBooks(context: Context): Others = Others(
         emptySet(),
         runCatching {
-            AccountManager.get(context).getAccountsByType(DAVX5_ADDRESS_BOOK)
-                .map { it.name.substringBeforeLast(" (").trim().lowercase() }.toSet()
+            val manager = AccountManager.get(context)
+            DAVX5_ADDRESS_BOOKS.flatMap { type -> manager.getAccountsByType(type).map { bookTitle(it.name) } }.toSet()
         }.getOrNull().orEmpty(),
     )
+
+    /** The title in a DAVx5 address-book account's name, "Title (account) #n", lower case. */
+    internal fun bookTitle(accountName: String): String = accountName.substringBeforeLast(" (").trim().lowercase()
 
     fun match(collection: Collection, others: Others): Match = when {
         collection.url.toString().trimEnd('/') in others.urls -> Match.SURE
