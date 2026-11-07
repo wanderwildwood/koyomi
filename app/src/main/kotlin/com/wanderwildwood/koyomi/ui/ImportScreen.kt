@@ -118,7 +118,7 @@ fun ImportScreen(model: AppModel, screen: Screen.Import) {
             }
             return@Scaffold
         }
-        PagedColumn(Modifier.fillMaxSize().padding(padding), contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 12.dp)) {
+        PagedColumn(Modifier.fillMaxSize().padding(padding), contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 12.dp), showCutRow = true) {
             item {
                 SettingRow(
                     title = stringResource(R.string.event_calendar),

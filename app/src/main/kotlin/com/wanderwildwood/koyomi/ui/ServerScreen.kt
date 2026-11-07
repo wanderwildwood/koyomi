@@ -121,6 +121,7 @@ fun ServerScreen(model: AppModel) {
             PagedColumn(
                 modifier = Modifier.fillMaxSize().padding(padding),
                 contentPadding = PaddingValues(start = 20.dp, end = 12.dp),
+                showCutRow = true,
             ) {
                 for (account in accounts) {
                     item(key = "account-${account.name}") {
@@ -299,6 +300,7 @@ private fun SignInForm(davSync: DavSync, modifier: Modifier, onSignedIn: (Accoun
     PagedColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(start = 20.dp, end = 12.dp),
+        showCutRow = true,
     ) {
         item(key = "why") {
             TextMMD(

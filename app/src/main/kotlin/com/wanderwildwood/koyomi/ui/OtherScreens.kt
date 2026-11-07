@@ -87,7 +87,7 @@ fun SearchScreen(model: AppModel) {
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(top = 20.dp),
                 )
-                else -> PagedColumn(Modifier.fillMaxSize()) {
+                else -> PagedColumn(Modifier.fillMaxSize(), showCutRow = true) {
                     found.forEach { o ->
                         item(key = "${o.eventId}/${o.begin}") {
                             AgendaRow(
@@ -170,6 +170,7 @@ fun SettingsScreen(model: AppModel) {
             state = state,
             contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 12.dp),
             onPullAtTop = { model.refreshSubscriptions(force = true) },
+            showCutRow = true,
         ) {
             item { Spacer(Modifier.height(8.dp)) }
 

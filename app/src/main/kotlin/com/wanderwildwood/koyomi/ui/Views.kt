@@ -866,6 +866,7 @@ private fun AgendaView(model: AppModel, onPull: () -> Unit) {
             state = state,
             onPullAtTop = onPull,
             contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 16.dp, end = 12.dp),
+            showCutRow = true,
         ) {
             byDay.forEach { (day, list) ->
                 item(key = "h$day") {

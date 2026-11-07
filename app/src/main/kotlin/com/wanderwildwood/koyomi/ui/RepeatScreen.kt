@@ -81,7 +81,7 @@ fun RepeatScreen(model: AppModel) {
             )
         },
     ) { padding ->
-        PagedColumn(Modifier.fillMaxSize().padding(padding), contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 12.dp)) {
+        PagedColumn(Modifier.fillMaxSize().padding(padding), contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 12.dp), showCutRow = true) {
             item {
                 Spacer(Modifier.height(12.dp))
                 TextMMD(
