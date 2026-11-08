@@ -34,6 +34,8 @@
     <!-- Lets the text-selection menu see other apps' text actions, such as Define from the
          Dictionary, beside Copy. Without it Android 11+ hides them from this app. -->
     <queries>
+        <!-- Files (Cabinet): opens and saves files on e-ink screens when it is there. -->
+        <package android:name="com.wanderwildwood.tana" />
         <!-- DuraSpeed, the Kompakt's background manager: only to say whether it is there. -->
         <package android:name="com.mediatek.duraspeed" />
         <!-- Glance, which shows today's events on the lock screen: only to say whether it is there. -->

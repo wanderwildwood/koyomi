@@ -510,7 +510,7 @@ private fun rememberLinkFiles(model: AppModel): LinkFiles {
     val context = LocalContext.current
     val scope = androidx.compose.runtime.rememberCoroutineScope()
     val saveLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
-        androidx.activity.result.contract.ActivityResultContracts.CreateDocument("text/plain"),
+        FilesCreateDocument("text/plain"),
     ) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         scope.launch {
@@ -519,7 +519,7 @@ private fun rememberLinkFiles(model: AppModel): LinkFiles {
         }
     }
     val restoreLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
-        androidx.activity.result.contract.ActivityResultContracts.OpenDocument(),
+        FilesOpenDocument(),
     ) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         scope.launch {
