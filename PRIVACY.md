@@ -57,8 +57,8 @@ app, under its own permissions.
 
 A link such as Google's "secret address" lets anyone who has it read that calendar, so it is
 treated as a secret. It is kept in the app's private storage (`subscriptions` preferences), is
-excluded from backup and device transfer (`res/xml/backup_rules.xml`,
-`data_extraction_rules.xml`), is never written to a log, and is shown on screen only as the
+excluded from backup and device transfer (as is everything else of the app's:
+`res/xml/no_backup.xml`), is never written to a log, and is shown on screen only as the
 server's name. Only `https://` is used (`webcal://` is read as `https://`); `http://` is refused.
 Removing a followed calendar deletes that calendar and its events from the phone.
 

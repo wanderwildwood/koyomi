@@ -143,8 +143,8 @@ class HttpFetcher : Fetcher {
 }
 
 /**
- * The links, kept in a preferences file of their own that the backup rules leave out
- * (res/xml/backup_rules.xml, data_extraction_rules.xml). One line per calendar.
+ * The links, kept in a preferences file of their own, which no backup or device transfer takes
+ * (res/xml/no_backup.xml leaves out the whole app). One line per calendar.
  */
 class SubscriptionStore(context: Context) {
     private val prefs = context.getSharedPreferences(FILE, Context.MODE_PRIVATE)
