@@ -34,7 +34,11 @@ import kotlin.concurrent.thread
  * An event with no reminders makes no alert at all. Nothing extra fires at the start time.
  */
 object Alerts {
-    const val CHANNEL = "reminders"
+    const val CHANNEL = "reminders_light"
+
+    // A channel's settings are frozen once it exists, the light among them, so the one made
+    // before the light was asked for moves to a new id (LightChannel).
+    private const val CHANNEL_NO_LIGHT = "reminders"
     private const val TAG = "Alerts"
 
     const val ACTION_CHECK = "com.wanderwildwood.koyomi.CHECK"
@@ -56,7 +60,7 @@ object Alerts {
             context.getString(R.string.alert_channel),
             NotificationManager.IMPORTANCE_HIGH,
         )
-        context.getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
+        LightChannel.ensure(context.getSystemService(NotificationManager::class.java), CHANNEL_NO_LIGHT, channel)
     }
 
     /** Shows every due alert and sets this app's own alarm for the next one. */
