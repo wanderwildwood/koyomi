@@ -568,7 +568,8 @@ class AppModel(app: Application) : AndroidViewModel(app) {
                 newEvent()
                 val p = request.prefill
                 val calendar = p.calendarId?.takeIf { id -> writableCalendars().any { it.id == id } }
-                draft = p.copy(calendarId = calendar).draft(draft, ZoneId.systemDefault(), LocalDateTime.now())
+                draft = p.copy(calendarId = calendar)
+                    .draft(draft, ZoneId.systemDefault(), LocalDateTime.now(), listOfNotNull(settings.defaultAllDayReminder))
             }
             is Request.Show -> {
                 val r = load(request.eventId)
@@ -612,6 +613,7 @@ class AppModel(app: Application) : AndroidViewModel(app) {
      */
     suspend fun addAll(events: List<IcsEvent>, calendarId: Long): Pair<Int, Int> {
         val reminder = settings.defaultReminder.takeIf { it >= 0 }
+        val allDayReminder = settings.defaultAllDayReminder
         val result = withContext(Dispatchers.IO) {
             var added = 0
             var had = 0
@@ -623,11 +625,7 @@ class AppModel(app: Application) : AndroidViewModel(app) {
                     had++
                     continue
                 }
-                val reminders = when {
-                    reminder == null -> emptyList()
-                    e.allDay -> listOf(900)
-                    else -> listOf(reminder)
-                }
+                val reminders = listOfNotNull(if (e.allDay) allDayReminder else reminder)
                 runCatching { store.insertImported(e, calendarId, reminders) }
                     .onFailure { Log.w(TAG, "Import refused", it) }
                     .getOrNull()?.let { added++ }

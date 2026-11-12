@@ -67,6 +67,15 @@ class PrefillTest {
     }
 
     @Test
+    fun allDayTakesTheReminderNewAllDayEventsAreGiven() {
+        val p = Prefill(allDay = true, begin = ms("2026-10-17T00:00"))
+        assertEquals(listOf(-420), p.draft(base, zone, now, listOf(-420)).reminders)
+        assertEquals(emptyList<Int>(), p.draft(base, zone, now, emptyList()).reminders)
+        // An event with a time keeps the one it came with.
+        assertEquals(listOf(10), Prefill(begin = ms("2026-10-09T18:00")).draft(base, zone, now, listOf(-420)).reminders)
+    }
+
+    @Test
     fun ruleAndCalendarCarried() {
         val d = Prefill(rrule = "FREQ=WEEKLY;BYDAY=FR", calendarId = 7, begin = ms("2026-10-09T18:00")).draft(base, zone, now)
         assertEquals("FREQ=WEEKLY;BYDAY=FR", d.rrule)

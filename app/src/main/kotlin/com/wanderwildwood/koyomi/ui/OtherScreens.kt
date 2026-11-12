@@ -117,6 +117,7 @@ fun SettingsScreen(model: AppModel) {
     val s = model.settings
     val defaultCalendar = s.defaultCalendar
     val defaultReminder = s.defaultReminder
+    val defaultAllDayReminder = s.defaultAllDayReminder
     val openOn = s.openOn
     val weekStart = s.weekStart
     val weekNumbers = s.weekNumbers
@@ -128,6 +129,7 @@ fun SettingsScreen(model: AppModel) {
     val linkFiles = rememberLinkFiles(model)
     var pickCalendar by remember { mutableStateOf(false) }
     var pickReminder by remember { mutableStateOf(false) }
+    var pickAllDayReminder by remember { mutableStateOf(false) }
     var allDayPick by remember { mutableStateOf(false) }
     var allDayFor by remember { mutableStateOf<com.wanderwildwood.koyomi.data.CalendarInfo?>(null) }
 
@@ -248,6 +250,13 @@ fun SettingsScreen(model: AppModel) {
                 ) { pickReminder = true }
             }
             item {
+                val m = defaultAllDayReminder
+                SettingRow(
+                    stringResource(R.string.settings_default_all_day_reminder),
+                    if (m == null) stringResource(R.string.reminder_none) else ReminderText.of(context, m, true),
+                ) { pickAllDayReminder = true }
+            }
+            item {
                 val names = mapOf(
                     View.MONTH to R.string.view_month,
                     View.WEEK to R.string.view_week,
@@ -366,6 +375,18 @@ fun SettingsScreen(model: AppModel) {
                 kotlin.concurrent.thread { com.wanderwildwood.koyomi.alerts.AllDayReminders.check(app) }
             },
             onDismiss = { allDayFor = null },
+        )
+    }
+    if (pickAllDayReminder) {
+        AllDayReminderDialog(
+            title = stringResource(R.string.settings_default_all_day_reminder),
+            initial = defaultAllDayReminder,
+            noneLabel = stringResource(R.string.reminder_none),
+            onDone = {
+                s.defaultAllDayReminder = it
+                model.settingsChanged()
+            },
+            onDismiss = { pickAllDayReminder = false },
         )
     }
     if (pickReminder) {

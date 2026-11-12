@@ -25,15 +25,21 @@ data class Prefill(
     val appUri: String? = null,
 ) {
     /**
-     * [base] carries the calendar and reminder a new event would have had. With no begin, the
-     * event starts at the next whole hour, as a new event here does.
+     * [base] carries the calendar and reminder a new event would have had, and
+     * [allDayReminders] what a new all-day one is given instead. With no begin, the event
+     * starts at the next whole hour, as a new event here does.
      *
      * An all-day begin is a date. Apps send it two ways — the local midnight, as Etar does, or
      * the UTC midnight the store itself uses — and a UTC midnight read in a zone west of
      * Greenwich is the evening before. So an exact UTC midnight is read in UTC, and anything
      * else in the phone's zone.
      */
-    fun draft(base: Draft, zone: ZoneId, now: LocalDateTime): Draft {
+    fun draft(
+        base: Draft,
+        zone: ZoneId,
+        now: LocalDateTime,
+        allDayReminders: List<Int> = if (base.reminders.isEmpty()) emptyList() else listOf(AllDayReminder.DEFAULT),
+    ): Draft {
         val start = begin?.let { Instant.ofEpochMilli(it).atZone(zone).toLocalDateTime().truncatedTo(ChronoUnit.MINUTES) }
             ?: now.truncatedTo(ChronoUnit.HOURS).plusHours(1)
         var d = base.copy(
@@ -54,7 +60,7 @@ data class Prefill(
                 allDay = true,
                 startDate = first,
                 endDate = last,
-                reminders = if (d.reminders.isEmpty()) emptyList() else listOf(900),
+                reminders = allDayReminders,
             )
         }
         val finish = end?.let { Instant.ofEpochMilli(it).atZone(zone).toLocalDateTime().truncatedTo(ChronoUnit.MINUTES) }

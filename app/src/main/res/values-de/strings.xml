@@ -263,6 +263,7 @@
     <string name="all_day_evening_at">Am Abend davor um %1$s</string>
     <string name="all_day_morning_at">Am Morgen des Tages um %1$s</string>
     <string name="settings_default_reminder">Neue Termine erinnern</string>
+    <string name="settings_default_all_day_reminder">Neue ganztägige Termine erinnern</string>
     <string name="settings_open_on">Öffnet am</string>
     <string name="settings_week_starts">Woche beginnt am</string>
     <string name="settings_week_numbers">Kalenderwochen</string>

@@ -32,6 +32,7 @@ import com.mudita.mmd.components.top_app_bar.TopAppBarMMD
 import com.wanderwildwood.koyomi.AppModel
 import com.wanderwildwood.koyomi.R
 import com.wanderwildwood.koyomi.Screen
+import com.wanderwildwood.koyomi.data.AllDayReminder
 import com.wanderwildwood.koyomi.data.Scope
 import com.wanderwildwood.koyomi.repeat.RepeatRule
 import com.wanderwildwood.koyomi.repeat.RepeatText
@@ -119,12 +120,16 @@ fun EditScreen(model: AppModel, screen: Screen.Edit) {
                     // A reminder means something different on each side of this switch —
                     // minutes before a start, or a time of day before a date — so any that
                     // were set become the plain one for the new kind rather than a strange one.
+                    // A new event still carrying what it was given takes what a new event
+                    // of the other kind is given; see AllDayReminder.switched.
                     val x = model.draft
-                    val reminders = when {
-                        x.reminders.isEmpty() -> emptyList()
-                        on -> listOf(900)
-                        else -> listOf(model.settings.defaultReminder.takeIf { it >= 0 } ?: 10)
-                    }
+                    val reminders = AllDayReminder.switched(
+                        current = x.reminders,
+                        toAllDay = on,
+                        isNew = isNew,
+                        timedDefault = model.settings.defaultReminder.takeIf { it >= 0 },
+                        allDayDefault = model.settings.defaultAllDayReminder,
+                    )
                     model.draft = x.copy(allDay = on, reminders = reminders)
                 }
             }
@@ -222,7 +227,13 @@ fun EditScreen(model: AppModel, screen: Screen.Edit) {
             if (end.isBefore(x.startDate.atTime(x.startTime))) end = x.startDate.atTime(t).let { if (it.isBefore(x.startDate.atTime(x.startTime))) it.plusDays(1) else it }
             model.draft = x.copy(endDate = end.toLocalDate(), endTime = end.toLocalTime())
         }, onDismiss = { picking = null })
-        Picking.REMINDERS -> RemindersDialog(d.allDay, d.reminders, onDone = { model.draft = model.draft.copy(reminders = it) }, onDismiss = { picking = null })
+        Picking.REMINDERS -> RemindersDialog(
+            d.allDay,
+            d.reminders,
+            onDone = { model.draft = model.draft.copy(reminders = it) },
+            onDismiss = { picking = null },
+            allDayNew = model.settings.defaultAllDayReminder ?: AllDayReminder.DEFAULT,
+        )
         Picking.CALENDAR -> EInkDialog(onDismiss = { picking = null }) {
             TextMMD(text = stringResource(R.string.event_calendar), style = MaterialTheme.typography.bodyLarge)
             Spacer(Modifier.height(6.dp))

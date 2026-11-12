@@ -262,6 +262,7 @@
     <string name="all_day_evening_at">Evening before at %1$s</string>
     <string name="all_day_morning_at">Morning of at %1$s</string>
     <string name="settings_default_reminder">New events remind</string>
+    <string name="settings_default_all_day_reminder">New all-day events remind</string>
     <string name="settings_open_on">Opens on</string>
     <string name="settings_week_starts">Week starts on</string>
     <string name="settings_week_numbers">Week numbers</string>

@@ -36,6 +36,20 @@ class Settings(private val context: Context) {
         set(v) = prefs.edit().putInt(DEFAULT_REMINDER, v).apply()
 
     /**
+     * The reminder of a new all-day event, as [AllDayReminder] counts it; null for none. Until
+     * it is chosen it is what it was before there was a choice: the day before at 9:00, or
+     * none while [defaultReminder] is none.
+     */
+    var defaultAllDayReminder: Int?
+        get() = when {
+            prefs.contains(DEFAULT_ALL_DAY_REMINDER) ->
+                prefs.getInt(DEFAULT_ALL_DAY_REMINDER, AllDayReminder.DEFAULT).takeIf { it != NO_REMINDER }
+            defaultReminder < 0 -> null
+            else -> AllDayReminder.DEFAULT
+        }
+        set(v) = prefs.edit().putInt(DEFAULT_ALL_DAY_REMINDER, v ?: NO_REMINDER).apply()
+
+    /**
      * Whether the views turn sideways when the phone does. The Kompakt's own settings have no
      * auto-rotate switch and it starts off, so following the phone alone left landscape out of
      * reach for nearly everyone.
@@ -111,6 +125,12 @@ class Settings(private val context: Context) {
         const val WEEK_NUMBERS = "week_numbers"
         const val DEFAULT_CALENDAR = "default_calendar"
         const val DEFAULT_REMINDER = "default_reminder"
+
+        // Not "all_day_…": every key that starts so is taken for a calendar's own setting.
+        const val DEFAULT_ALL_DAY_REMINDER = "default_all_day_reminder"
+
+        /** Stored for "none": any ordinary number, negative ones too, is a real reminder. */
+        const val NO_REMINDER = Int.MIN_VALUE
         const val WAKE_SCREEN = "wake_screen"
         const val TURN_WITH_PHONE = "turn_with_phone"
     }
