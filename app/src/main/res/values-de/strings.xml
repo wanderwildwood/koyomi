@@ -121,6 +121,26 @@
         <item quantity="one">%1$d Tag davor um %2$s</item>
         <item quantity="other">%1$d Tage davor um %2$s</item>
     </plurals>
+    <!-- %1$d is a number of weeks, %2$s a time of day -->
+    <plurals name="reminder_weeks_before_at">
+        <item quantity="one">%1$d Woche davor um %2$s</item>
+        <item quantity="other">%1$d Wochen davor um %2$s</item>
+    </plurals>
+    <!-- A reminder after the first day of an all-day event, which only a synced event has -->
+    <plurals name="reminder_days_after_at">
+        <item quantity="one">%1$d Tag danach um %2$s</item>
+        <item quantity="other">%1$d Tage danach um %2$s</item>
+    </plurals>
+    <!-- Setting one reminder of an all-day event: its title, the days to choose from, its time, and the row that adds another -->
+    <string name="reminder_one">Erinnerung</string>
+    <string name="reminder_day_itself">Am Tag</string>
+    <string name="reminder_day_before_plain">Am Tag davor</string>
+    <plurals name="reminder_days_after">
+        <item quantity="one">%1$d Tag danach</item>
+        <item quantity="other">%1$d Tage danach</item>
+    </plurals>
+    <string name="reminder_time">Uhrzeit</string>
+    <string name="reminder_add">Erinnerung hinzufügen</string>
 
     <!-- ============================================================ -->
     <!-- Repeats: the rule said in words -->

@@ -25,6 +25,7 @@ import androidx.compose.ui.window.DialogWindowProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,6 +40,7 @@ import com.mudita.mmd.components.time.DatePickerFormatterMMD
 import com.mudita.mmd.components.time.DatePickerMMD
 import com.mudita.mmd.components.time.rememberDatePickerMMDState
 import com.wanderwildwood.koyomi.R
+import com.wanderwildwood.koyomi.data.AllDayReminder
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -122,13 +124,25 @@ fun DialogButtons(onCancel: () -> Unit, onOk: () -> Unit, okLabel: String = stri
     }
 }
 
-/** The reminders an event can choose between, ticked in place. */
+/**
+ * The reminders of an event. One with a time chooses among a few, ticked in place; an all-day
+ * one has each of its reminders set as a day and a time of day ([AllDayRemindersDialog]).
+ * [allDayNew] is what a reminder added to an all-day event starts as.
+ */
 @Composable
-fun RemindersDialog(allDay: Boolean, chosen: List<Int>, onDone: (List<Int>) -> Unit, onDismiss: () -> Unit) {
-    val context = LocalContext.current
-    val options = (if (allDay) ALL_DAY_OPTIONS else TIMED_OPTIONS).let { base ->
-        (base + chosen).distinct().sorted()
+fun RemindersDialog(
+    allDay: Boolean,
+    chosen: List<Int>,
+    onDone: (List<Int>) -> Unit,
+    onDismiss: () -> Unit,
+    allDayNew: Int = AllDayReminder.DEFAULT,
+) {
+    if (allDay) {
+        AllDayRemindersDialog(chosen, allDayNew, onDone, onDismiss)
+        return
     }
+    val context = LocalContext.current
+    val options = (TIMED_OPTIONS + chosen).distinct().sorted()
     var picked by remember { mutableStateOf(chosen.toSet()) }
     EInkDialog(onDismiss = onDismiss) {
         TextMMD(text = stringResource(R.string.edit_reminders), style = MaterialTheme.typography.bodyLarge)
@@ -148,7 +162,7 @@ fun RemindersDialog(allDay: Boolean, chosen: List<Int>, onDone: (List<Int>) -> U
             ) {
                 CheckboxMMD(checked = on, onCheckedChange = { toggle() })
                 Spacer(Modifier.width(8.dp))
-                TextMMD(text = ReminderText.of(context, m, allDay), style = MaterialTheme.typography.bodyMedium)
+                TextMMD(text = ReminderText.of(context, m, false), style = MaterialTheme.typography.bodyMedium)
             }
         }
         }
@@ -157,24 +171,133 @@ fun RemindersDialog(allDay: Boolean, chosen: List<Int>, onDone: (List<Int>) -> U
     }
 }
 
-private val TIMED_OPTIONS = listOf(0, 5, 10, 15, 30, 60, 120, 1440, 10080)
+/**
+ * The reminders of an all-day event, one to a row. Pressing one opens it to change its day and
+ * its time, or to take it away; the last row adds another. Nothing is changed until OK, and a
+ * reminder that is not opened keeps the very minutes it came with.
+ */
+@Composable
+private fun AllDayRemindersDialog(chosen: List<Int>, new: Int, onDone: (List<Int>) -> Unit, onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    var list by remember { mutableStateOf(chosen.distinct().sorted()) }
+    // The place in the list of the reminder being changed; ADDING for one not in it yet.
+    var editing by remember { mutableStateOf<Int?>(null) }
 
-/** For an all-day event: 9:00 on the day, 18:00 and 9:00 the day before, 9:00 a week before. */
-private val ALL_DAY_OPTIONS = listOf(-540, 360, 900, 9540)
+    val at = editing
+    if (at != null) {
+        val current = list.getOrNull(at)
+        AllDayReminderDialog(
+            title = stringResource(R.string.reminder_one),
+            // A new one starts as new events' own, or the nearest plain one not yet in the list.
+            initial = current ?: (listOf(new) + ALL_DAY_PLAIN).firstOrNull { it !in list } ?: new,
+            noneLabel = if (current == null) null else stringResource(R.string.reminder_none),
+            onDone = { minutes ->
+                val rest = if (current == null) list else list - current
+                list = (if (minutes == null) rest else rest + minutes).distinct().sorted()
+            },
+            onDismiss = { editing = null },
+        )
+        return
+    }
+
+    EInkDialog(onDismiss = onDismiss) {
+        TextMMD(text = stringResource(R.string.edit_reminders), style = MaterialTheme.typography.bodyLarge)
+        Spacer(Modifier.height(6.dp))
+        Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())) {
+            list.forEachIndexed { i, m ->
+                ChoiceRow(ReminderText.of(context, m, true)) { editing = i }
+            }
+            ChoiceRow(stringResource(R.string.reminder_add), bold = true) { editing = ADDING }
+        }
+        Spacer(Modifier.height(12.dp))
+        DialogButtons(onCancel = onDismiss, onOk = { onDone(list); onDismiss() })
+    }
+}
+
+private const val ADDING = -1
+
+/** 9:00 on the day, 18:00 and 9:00 the day before, 9:00 a week before. */
+private val ALL_DAY_PLAIN = listOf(-540, 900, 360, 9540)
+
+/**
+ * One reminder of an all-day event, or what new all-day events are given: which day, and at
+ * what time that day. The time is asked for in a dialog of its own, the one every other time in
+ * the app is set in, so it follows the phone's 12 or 24-hour clock.
+ *
+ * [initial] is the store's minutes ([AllDayReminder]), null for no reminder. [noneLabel] names
+ * the choice of no reminder; with none given that choice is not offered. A reminder on a day
+ * that is not among the usual ones (three days before, say, from a synced event) has its own
+ * day offered beside them. OK with nothing touched hands back [initial] as it was.
+ */
+@Composable
+fun AllDayReminderDialog(
+    title: String,
+    initial: Int?,
+    noneLabel: String?,
+    onDone: (Int?) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val context = LocalContext.current
+    val first = remember { AllDayReminder.split(initial ?: AllDayReminder.DEFAULT) }
+    var none by rememberSaveable { mutableStateOf(initial == null && noneLabel != null) }
+    var days by rememberSaveable { mutableStateOf(first.daysBefore) }
+    var minute by rememberSaveable { mutableStateOf(first.minuteOfDay) }
+    var settingTime by rememberSaveable { mutableStateOf(false) }
+
+    if (settingTime) {
+        TimeDialog(
+            initial = LocalTime.of(minute / 60, minute % 60),
+            onPick = { minute = it.hour * 60 + it.minute },
+            onDismiss = { settingTime = false },
+        )
+        return
+    }
+
+    val dayChoices = (AllDayReminder.DAY_CHOICES + first.daysBefore).distinct().sorted()
+    EInkDialog(onDismiss = onDismiss) {
+        TextMMD(text = title, style = MaterialTheme.typography.bodyLarge)
+        Spacer(Modifier.height(6.dp))
+        Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())) {
+            if (noneLabel != null) ChoiceRow(noneLabel, bold = none) { none = true }
+            dayChoices.forEach { d ->
+                ChoiceRow(ReminderText.day(context, d), bold = !none && d == days) {
+                    none = false
+                    days = d
+                }
+            }
+            if (!none) {
+                SettingRow(
+                    stringResource(R.string.reminder_time),
+                    Dates.time(context, LocalTime.of(minute / 60, minute % 60)),
+                ) { settingTime = true }
+            }
+        }
+        Spacer(Modifier.height(12.dp))
+        DialogButtons(
+            onCancel = onDismiss,
+            onOk = {
+                onDone(if (none) null else AllDayReminder.minutes(days, minute))
+                onDismiss()
+            },
+        )
+    }
+}
+
+private val TIMED_OPTIONS = listOf(0, 5, 10, 15, 30, 60, 120, 1440, 10080)
 
 /** A reminder's minutes in words. */
 object ReminderText {
     fun of(context: Context, minutes: Int, allDay: Boolean): String {
         val res = context.resources
         if (allDay) {
-            // Minutes before the midnight that starts the day, so a negative value is a time
-            // on the day itself.
-            val days = if (minutes <= 0) 0 else (minutes + 1439) / 1440
-            val timeOfDay = days * 1440 - minutes
-            val at = Dates.time(context, LocalTime.of((timeOfDay / 60) % 24, timeOfDay % 60))
-            return when (days) {
-                0 -> res.getString(R.string.reminder_on_day, at)
-                1 -> res.getString(R.string.reminder_day_before, at)
+            // Minutes before the midnight that starts the day, read as a day and a time of day.
+            val (days, minute) = AllDayReminder.split(minutes)
+            val at = Dates.time(context, LocalTime.of(minute / 60, minute % 60))
+            return when {
+                days == 0 -> res.getString(R.string.reminder_on_day, at)
+                days == 1 -> res.getString(R.string.reminder_day_before, at)
+                days < 0 -> res.getQuantityString(R.plurals.reminder_days_after_at, -days, -days, at)
+                days % 7 == 0 -> res.getQuantityString(R.plurals.reminder_weeks_before_at, days / 7, days / 7, at)
                 else -> res.getQuantityString(R.plurals.reminder_days_before_at, days, days, at)
             }
         }
@@ -184,6 +307,18 @@ object ReminderText {
             minutes % 1440 == 0 -> res.getQuantityString(R.plurals.reminder_days, minutes / 1440, minutes / 1440)
             minutes % 60 == 0 -> res.getQuantityString(R.plurals.reminder_hours, minutes / 60, minutes / 60)
             else -> res.getQuantityString(R.plurals.reminder_minutes, minutes, minutes)
+        }
+    }
+
+    /** The day of an all-day event's reminder on its own: 0 is the day, 1 the day before. */
+    fun day(context: Context, daysBefore: Int): String {
+        val res = context.resources
+        return when {
+            daysBefore == 0 -> res.getString(R.string.reminder_day_itself)
+            daysBefore == 1 -> res.getString(R.string.reminder_day_before_plain)
+            daysBefore < 0 -> res.getQuantityString(R.plurals.reminder_days_after, -daysBefore, -daysBefore)
+            daysBefore % 7 == 0 -> res.getQuantityString(R.plurals.reminder_weeks, daysBefore / 7, daysBefore / 7)
+            else -> res.getQuantityString(R.plurals.reminder_days, daysBefore, daysBefore)
         }
     }
 }
