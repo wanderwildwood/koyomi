@@ -103,7 +103,16 @@ object Alerts {
         for (alert in due) {
             // An occurrence deleted or moved since the alert was made, or one already over,
             // has nothing left to remind anyone of.
-            val stale = alert.end < now || !store.occurrenceExists(alert.eventId, alert.begin)
+            // An all-day event ends at a UTC midnight, which west of Greenwich is the evening
+            // of its last day: a reminder set for 8 PM on the day would be taken for one that
+            // came too late. It is over when its last day is, on the phone's own clock.
+            val end = if (alert.allDay) {
+                val zone = ZoneId.systemDefault()
+                CalendarStore.toLocal(alert.end, true, zone).atZone(zone).toInstant().toEpochMilli()
+            } else {
+                alert.end
+            }
+            val stale = end < now || !store.occurrenceExists(alert.eventId, alert.begin)
             setState(context, alert.id, if (stale) CalendarAlerts.STATE_DISMISSED else CalendarAlerts.STATE_FIRED)
             if (!stale) notify(context, alert)
         }
