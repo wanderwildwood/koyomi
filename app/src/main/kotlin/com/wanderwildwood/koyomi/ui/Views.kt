@@ -278,7 +278,14 @@ private fun MonthView(model: AppModel, onPull: () -> Unit) {
             DashedRule()
             Row(Modifier.fillMaxWidth().weight(1f)) {
                 if (showWeeks) {
-                    Box(Modifier.width(WEEK_COLUMN).fillMaxHeight(), contentAlignment = Alignment.TopCenter) {
+                    Box(
+                        // The same hairline as between days, so the week's number does not
+                        // read as part of the first day.
+                        Modifier.width(WEEK_COLUMN).fillMaxHeight().drawBehind {
+                            drawLine(Color.Black, Offset(size.width, 0f), Offset(size.width, size.height), strokeWidth = 0.5.dp.toPx())
+                        },
+                        contentAlignment = Alignment.TopCenter,
+                    ) {
                         TextMMD(
                             text = weekStart.plusDays(3).get(WeekFields.ISO.weekOfWeekBasedYear()).toString(),
                             style = MaterialTheme.typography.labelSmall,
