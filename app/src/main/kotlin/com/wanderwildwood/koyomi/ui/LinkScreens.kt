@@ -185,6 +185,7 @@ fun ScanLinkScreen(model: AppModel) {
                     modifier = Modifier.fillMaxWidth().weight(1f).padding(bottom = 12.dp),
                     factory = { ctx ->
                         val view = PreviewView(ctx).apply { implementationMode = PreviewView.ImplementationMode.COMPATIBLE }
+                        DarkMode.keep(view)
                         val future = ProcessCameraProvider.getInstance(context)
                         future.addListener({
                             val provider = runCatching { future.get() }.getOrNull() ?: return@addListener
