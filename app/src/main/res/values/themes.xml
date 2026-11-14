@@ -6,5 +6,7 @@
         <item name="android:windowLightStatusBar">true</item>
 
         <!-- No splash screen on Android 12 and later: see values-v31/themes.xml. -->
+        <!-- No start-up window: in dark mode it would flash white before the first frame. -->
+        <item name="android:windowDisablePreview">true</item>
     </style>
 </resources>
