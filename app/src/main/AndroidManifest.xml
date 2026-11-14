@@ -34,6 +34,8 @@
     <!-- Lets the text-selection menu see other apps' text actions, such as Define from the
          Dictionary, beside Copy. Without it Android 11+ hides them from this app. -->
     <queries>
+        <!-- Home, whose dark mode switch this app follows when Home is installed. -->
+        <package android:name="com.wanderwildwood.iori" />
         <!-- Files (Cabinet): opens and saves files on e-ink screens when it is there. -->
         <package android:name="com.wanderwildwood.tana" />
         <!-- DuraSpeed, the Kompakt's background manager: only to say whether it is there. -->
@@ -66,6 +68,12 @@
         android:roundIcon="@drawable/ic_launcher_mudita"
         android:supportsRtl="true"
         android:theme="@style/Theme.App">
+
+        <!-- Starts dark mode before the first screen is drawn. Holds no data. -->
+        <provider
+            android:name="com.wanderwildwood.koyomi.ui.DarkModeInit"
+            android:authorities="${applicationId}.darkmodeinit"
+            android:exported="false" />
 
         <activity
             android:name=".MainActivity"

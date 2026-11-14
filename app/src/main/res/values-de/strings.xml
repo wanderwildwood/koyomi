@@ -527,4 +527,6 @@
     <string name="davsync_wifi_only" tools:ignore="ExtraTranslation">Nur über WLAN</string>
     <string name="davsync_wifi_only_note" tools:ignore="ExtraTranslation">Der Abgleich von selbst wartet auf WLAN. Herunterziehen oder Jetzt abgleichen geht auch über mobile Daten.</string>
     <string name="davsync_waiting_wifi" tools:ignore="ExtraTranslation">Der nächste Abgleich wartet auf WLAN.</string>
+    <string name="settings_dark">Dunkelmodus</string>
+    <string name="settings_dark_note">Weiß auf Schwarz, in dieser App. Home hat einen Schalter für alle Apps.</string>
 </resources>
