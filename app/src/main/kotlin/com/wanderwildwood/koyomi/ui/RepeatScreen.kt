@@ -210,7 +210,7 @@ private fun Section(title: String) {
 @Composable
 private fun Radio(label: String, selected: Boolean, onClick: () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().semantics { role = Role.RadioButton; selected = selected }.clickable(onClick = onClick).padding(vertical = 6.dp),
+        modifier = Modifier.fillMaxWidth().semantics { role = Role.RadioButton; this.selected = selected }.clickable(onClick = onClick).padding(vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         RadioButtonMMD(selected = selected, onClick = null)
