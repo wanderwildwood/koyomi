@@ -37,6 +37,7 @@ import com.wanderwildwood.koyomi.data.Scope
 import com.wanderwildwood.koyomi.repeat.RepeatRule
 import com.wanderwildwood.koyomi.repeat.RepeatText
 import kotlinx.coroutines.launch
+import androidx.compose.ui.platform.LocalFocusManager
 
 /**
  * One screen for a new event and for a changed one. What cannot be changed is not offered:
@@ -49,6 +50,13 @@ fun EditScreen(model: AppModel, screen: Screen.Edit) {
     val scope = rememberCoroutineScope()
     val d = model.draft
     var picking by remember { mutableStateOf<Picking?>(null) }
+    // A picker opened from the form takes the cursor out of the field first, so the field and its
+    // keyboard do not come back when the picker closes.
+    val focusManager = LocalFocusManager.current
+    fun pick(what: Picking) {
+        focusManager.clearFocus()
+        picking = what
+    }
     var saving by remember { mutableStateOf(false) }
 
     val isNew = screen.record == null
@@ -138,8 +146,8 @@ fun EditScreen(model: AppModel, screen: Screen.Edit) {
                     label = stringResource(R.string.edit_starts),
                     date = Dates.medium(d.startDate),
                     time = if (d.allDay) null else Dates.time(context, d.startTime),
-                    onDate = { picking = Picking.START_DATE },
-                    onTime = { picking = Picking.START_TIME },
+                    onDate = { pick(Picking.START_DATE) },
+                    onTime = { pick(Picking.START_TIME) },
                 )
             }
             item {
@@ -147,8 +155,8 @@ fun EditScreen(model: AppModel, screen: Screen.Edit) {
                     label = stringResource(R.string.edit_ends),
                     date = Dates.medium(d.endDate),
                     time = if (d.allDay) null else Dates.time(context, d.endTime),
-                    onDate = { picking = Picking.END_DATE },
-                    onTime = { picking = Picking.END_TIME },
+                    onDate = { pick(Picking.END_DATE) },
+                    onTime = { pick(Picking.END_TIME) },
                 )
             }
             if (!single) {
@@ -169,7 +177,7 @@ fun EditScreen(model: AppModel, screen: Screen.Edit) {
                     } else {
                         d.reminders.joinToString("\n") { ReminderText.of(context, it, d.allDay) }
                     },
-                    onClick = { picking = Picking.REMINDERS },
+                    onClick = { pick(Picking.REMINDERS) },
                 )
             }
             item {
@@ -201,7 +209,7 @@ fun EditScreen(model: AppModel, screen: Screen.Edit) {
                 SettingRow(
                     title = stringResource(R.string.event_calendar),
                     value = calendar?.name ?: stringResource(R.string.edit_no_calendar_short),
-                    onClick = if (movable || d.calendarId == null) ({ picking = Picking.CALENDAR }) else null,
+                    onClick = if (movable || d.calendarId == null) ({ pick(Picking.CALENDAR) }) else null,
                 )
             }
         }
