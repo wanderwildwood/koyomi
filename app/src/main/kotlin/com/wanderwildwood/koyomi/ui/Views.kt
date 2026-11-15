@@ -66,6 +66,9 @@ import java.time.LocalTime
 import java.time.YearMonth
 import java.time.temporal.ChronoUnit
 import java.time.temporal.WeekFields
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
 
 /**
  * The four views under one top bar: a row naming them, the view itself, and a foot of
@@ -827,8 +830,13 @@ private fun HoursRail(page: Int, count: Int, onPick: (Int) -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         for (i in 0 until count) {
+            val part = stringResource(R.string.hours_part, i + 1, count)
             Box(
                 Modifier
+                    .semantics {
+                        contentDescription = part
+                        selected = i == page
+                    }
                     .padding(vertical = if (count > 3) 2.dp else 4.dp)
                     .size(width = 8.dp, height = if (count > 3) 24.dp else 56.dp)
                     .background(if (i == page) Color.Black else Color.White, RoundedCornerShape(4.dp))
