@@ -471,4 +471,5 @@
     <string name="page_arrow_next">Next page</string>
     <!-- What a screen reader says for each mark down the edge of the day view: %1$d is the mark, %2$d how many -->
     <string name="hours_part">Part %1$d of %2$d of the day</string>
+    <string name="selection_more">More</string>
 </resources>
