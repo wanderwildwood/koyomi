@@ -24,6 +24,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.mudita.mmd.components.switcher.SwitchMMD
 import com.mudita.mmd.components.text.TextMMD
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.state.ToggleableState
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.toggleableState
 
 @Composable
 fun BarButton(icon: ImageVector, description: String, onClick: () -> Unit) {
@@ -65,6 +70,7 @@ fun SwitchRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .semantics { role = Role.Switch; toggleableState = ToggleableState(checked) }
             .clickable { onChange(!checked) }
             .padding(vertical = if (compact) 6.dp else 12.dp),
         verticalAlignment = Alignment.CenterVertically,

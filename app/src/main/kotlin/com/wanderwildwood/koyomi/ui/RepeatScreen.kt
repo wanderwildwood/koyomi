@@ -43,6 +43,10 @@ import com.wanderwildwood.koyomi.repeat.RepeatRule.Monthly
 import com.wanderwildwood.koyomi.repeat.RepeatText
 import java.time.format.TextStyle
 import java.util.Locale
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 
 /**
  * How an event repeats: Etar's repeat picker, laid out as one list. The words at the top say
@@ -206,7 +210,7 @@ private fun Section(title: String) {
 @Composable
 private fun Radio(label: String, selected: Boolean, onClick: () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 6.dp),
+        modifier = Modifier.fillMaxWidth().semantics { role = Role.RadioButton; selected = selected }.clickable(onClick = onClick).padding(vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         RadioButtonMMD(selected = selected, onClick = null)
