@@ -77,7 +77,7 @@ class MainActivity : ComponentActivity() {
                     onDispose { }
                 }
                 ThemeMMD(colorScheme = monochrome, typography = houseTypography) {
-                    ArmedScope { Koyomi(model) }
+                    ArmedScope { com.wanderwildwood.koyomi.ui.NoticeFrame { Koyomi(model) } }
                 }
             }
         }

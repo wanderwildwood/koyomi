@@ -3,7 +3,6 @@ package com.wanderwildwood.koyomi.ui
 import android.content.Context
 import android.content.Intent
 import android.provider.CalendarContract
-import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -121,7 +120,7 @@ fun EventScreen(model: AppModel, screen: Screen.Event) {
                             try {
                                 context.startActivity(intent)
                             } catch (_: Exception) {
-                                Toast.makeText(context, R.string.event_app_failed, Toast.LENGTH_SHORT).show()
+                                Notice.say(context, R.string.event_app_failed)
                             }
                         },
                         modifier = Modifier.fillMaxWidth().height(48.dp),
@@ -165,7 +164,7 @@ fun EventScreen(model: AppModel, screen: Screen.Event) {
                 if (model.delete(r, screen.begin, screen.end, s)) {
                     model.pop()
                 } else {
-                    Toast.makeText(context, R.string.event_not_deleted, Toast.LENGTH_SHORT).show()
+                    Notice.say(context, R.string.event_not_deleted)
                 }
             }
         }

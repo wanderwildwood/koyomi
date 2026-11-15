@@ -3,7 +3,6 @@ package com.wanderwildwood.koyomi.ui
 import android.content.Intent
 import android.net.Uri
 import android.provider.CalendarContract
-import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyListScope
@@ -216,14 +215,16 @@ fun SettingsScreen(model: AppModel) {
             // who has just changed something elsewhere wants to be sure before looking, and
             // should not have to open the syncing app to say so. Asked on the forum.
             item {
-                var asked by remember { mutableStateOf(false) }
-                LaunchedEffect(asked) { if (asked) { delay(6000); asked = false } }
+                // "Asked" stays until the next press, not for six seconds: on this panel a
+                // line on a timer could be gone before it had been read.
+                var askedAt by remember { mutableStateOf(-1) }
+                val asked = askedAt == Notice.presses
                 SettingRow(
                     stringResource(R.string.settings_sync_now),
                     stringResource(if (asked) R.string.settings_sync_asked else R.string.settings_sync_now_hint),
                 ) {
                     com.wanderwildwood.koyomi.data.CalendarSync.requestNow()
-                    asked = true
+                    askedAt = Notice.presses
                 }
             }
             item { Spacer(Modifier.height(10.dp)) }
@@ -541,7 +542,7 @@ private fun rememberLinkFiles(model: AppModel): LinkFiles {
         if (uri == null) return@rememberLauncherForActivityResult
         scope.launch {
             val ok = model.saveLinks(uri)
-            Toast.makeText(context, if (ok) R.string.links_saved else R.string.links_not_saved, if (ok) Toast.LENGTH_SHORT else Toast.LENGTH_LONG).show()
+            Notice.say(context, if (ok) R.string.links_saved else R.string.links_not_saved)
         }
     }
     val restoreLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
@@ -561,7 +562,7 @@ private fun rememberLinkFiles(model: AppModel): LinkFiles {
                 AppModel.LinksRestored.Unreadable -> context.getString(R.string.links_unreadable)
                 AppModel.LinksRestored.NoPermission -> context.getString(R.string.link_err_no_permission)
             }
-            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+            Notice.say(message)
         }
     }
     return remember(saveLauncher, restoreLauncher) {

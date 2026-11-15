@@ -1,6 +1,5 @@
 package com.wanderwildwood.koyomi.ui
 
-import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -68,7 +67,7 @@ fun ImportScreen(model: AppModel, screen: Screen.Import) {
         val target = calendarId
         if (adding || list.isEmpty()) return
         if (target == null) {
-            Toast.makeText(context, R.string.edit_no_calendar, Toast.LENGTH_LONG).show()
+            Notice.say(context, R.string.edit_no_calendar)
             return
         }
         adding = true
@@ -80,9 +79,9 @@ fun ImportScreen(model: AppModel, screen: Screen.Import) {
             }
             if (words.isEmpty()) {
                 adding = false
-                Toast.makeText(context, R.string.import_failed, Toast.LENGTH_LONG).show()
+                Notice.say(context, R.string.import_failed)
             } else {
-                Toast.makeText(context, words.joinToString("; "), Toast.LENGTH_LONG).show()
+                Notice.say(words.joinToString("; "))
                 model.popAll()
             }
         }

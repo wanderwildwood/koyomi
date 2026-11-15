@@ -1,6 +1,5 @@
 package com.wanderwildwood.koyomi.ui
 
-import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -69,7 +68,7 @@ fun EditScreen(model: AppModel, screen: Screen.Edit) {
     fun save() {
         if (saving) return
         if (d.calendarId == null) {
-            Toast.makeText(context, R.string.edit_no_calendar, Toast.LENGTH_LONG).show()
+            Notice.say(context, R.string.edit_no_calendar)
             return
         }
         saving = true
@@ -78,7 +77,7 @@ fun EditScreen(model: AppModel, screen: Screen.Edit) {
                 model.popAll()
             } else {
                 saving = false
-                Toast.makeText(context, R.string.edit_not_saved, Toast.LENGTH_SHORT).show()
+                Notice.say(context, R.string.edit_not_saved)
             }
         }
     }

@@ -87,19 +87,19 @@ fun ViewsScreen(model: AppModel) {
     }
 
     // A swipe down at the top of any view asks DAVx5 and its kind to sync, as Settings' row does;
-    // the line above the view says so in words for a few seconds, and what arrives shows when
+    // the line above the view says so in words until the next press, and what arrives shows when
     // the calendar store changes.
-    var asked by remember { mutableStateOf(0) }
-    LaunchedEffect(asked) { if (asked > 0) { delay(3000); asked = 0 } }
+    var askedAt by remember { mutableStateOf(-1) }
+    val asked = askedAt == Notice.presses
     val pull = {
         com.wanderwildwood.koyomi.data.CalendarSync.requestNow()
         model.refreshSubscriptions(force = true)
-        asked++
+        askedAt = Notice.presses
         Unit
     }
 
     val body: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit = {
-        if (asked > 0) {
+        if (asked) {
             TextMMD(
                 text = stringResource(R.string.agenda_sync_asked),
                 style = MaterialTheme.typography.labelSmall,
