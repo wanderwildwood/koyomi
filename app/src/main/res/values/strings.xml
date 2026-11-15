@@ -327,7 +327,7 @@
     <!-- Heading. %1$s is the version number, e.g. 0.1.0 -->
     <string name="about_title">Datebook %1$s</string>
     <string name="about_what">A calendar with month, week, day and agenda views, repeats of every ordinary shape, and reminders that light the screen. It syncs with your own Nextcloud or other CalDAV server, or follows a calendar by its link.</string>
-    <string name="about_privacy">It reads and writes the calendars already on the phone. It reaches the network only to fetch the calendar links you add and, if you sign in to your own calendar server, to sync with that server; it uses the camera only while scanning a link. Nothing goes anywhere else.</string>
+    <string name="about_privacy">It reads and writes the calendars already on the phone. It reaches the network only to fetch the calendar links you add and, if you sign in to your own calendar server, to sync with that server; it uses the camera only while scanning a link. Nothing goes anywhere else. \"Feed the llamas\" in About opens a donation page (square.link) in your browser, only when you press it. The app sends nothing there; if you give, the payment is handled on that page by Square, not by this app.</string>
     <string name="about_sources">Reminders come from the phone\'s calendar store, so the ones set in Nextcloud ring here too.</string>
     <string name="about_google">To bring a Google calendar in, follow its secret address (Add calendar link), or sync it with DAVx5 or another account. This app shows what the phone has.</string>
     <string name="about_after">After KompaktCalendar by David Anderlohr, GPL 3.0, and Etar, GPL 3.0, whose repeat rules and ways of saving a changed occurrence this follows. The repeat-rule parser is the Android Open Source Project\'s, Apache 2.0.</string>
@@ -340,7 +340,7 @@
     <string name="about_no_browser_address">No browser is installed. The address is %1$s.</string>
     <string name="about_privacy_head">Privacy</string>
     <string name="about_terms_head">Terms</string>
-    <string name="about_terms">This app is free software under the GNU General Public License v3. It comes with no warranty: use it at your own risk, and keep a copy of anything you cannot lose.</string>
+    <string name="about_terms">This app is free software under the GNU General Public License v3. It comes with no warranty: use it at your own risk, and keep a copy of anything you cannot lose. A donation through \"Feed the llamas\" is voluntary and unlocks nothing: the app is the same with or without one.</string>
     <string name="about_close">Close</string>
 
     <!-- Opening an .ics file from another app -->

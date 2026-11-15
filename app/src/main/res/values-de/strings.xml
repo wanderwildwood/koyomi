@@ -328,7 +328,7 @@
     <!-- Heading. %1$s is the version number, e.g. 0.1.0 -->
     <string name="about_title">Kalender %1$s</string>
     <string name="about_what">Ein Kalender mit Monats-, Wochen-, Tages- und Terminansicht, Wiederholungen in jeder gewöhnlichen Form und Erinnerungen, die den Bildschirm aufleuchten lassen. Er gleicht mit deinem eigenen Nextcloud- oder einem anderen CalDAV-Server ab oder folgt einem Kalender über seinen Link.</string>
-    <string name="about_privacy">Die App liest und schreibt die Kalender, die schon auf dem Telefon sind. Das Netzwerk nutzt sie nur, um die Kalenderlinks zu laden, die du hinzufügst, und, wenn du dich bei deinem eigenen Kalenderserver anmeldest, um mit diesem Server abzugleichen. Die Kamera nutzt sie nur beim Scannen eines Links. Sonst geht nichts irgendwohin.</string>
+    <string name="about_privacy">Die App liest und schreibt die Kalender, die schon auf dem Telefon sind. Das Netzwerk nutzt sie nur, um die Kalenderlinks zu laden, die du hinzufügst, und, wenn du dich bei deinem eigenen Kalenderserver anmeldest, um mit diesem Server abzugleichen. Die Kamera nutzt sie nur beim Scannen eines Links. Sonst geht nichts irgendwohin. „Füttere die Lamas“ öffnet eine Spendenseite (square.link) in deinem Browser, nur wenn du darauf drückst. Die App sendet nichts dorthin; wenn du spendest, wickelt Square die Zahlung auf dieser Seite ab, nicht diese App.</string>
     <string name="about_sources">Erinnerungen kommen aus dem Kalenderspeicher des Telefons, deshalb klingeln auch die, die in Nextcloud gesetzt wurden, hier.</string>
     <string name="about_google">Um einen Google-Kalender einzubinden, gleiche ihn mit DAVx5 ab (oder einem beliebigen CalDAV- oder Nextcloud-Konto). Diese App zeigt, was das Telefon hat.</string>
     <string name="about_after">Diese App folgt KompaktCalendar von David Anderlohr (GPL 3.0) und Etar (GPL 3.0): in den Regeln für Wiederholungen und darin, wie eine geänderte Ausnahme gespeichert wird. Der Parser für Wiederholungsregeln stammt aus dem Android Open Source Project, Apache 2.0.</string>
@@ -341,7 +341,7 @@
     <string name="about_no_browser_address">Es ist kein Browser installiert. Die Adresse lautet %1$s.</string>
     <string name="about_privacy_head">Datenschutz</string>
     <string name="about_terms_head">Bedingungen</string>
-    <string name="about_terms">Diese App ist freie Software unter der GNU General Public License v3. Sie kommt ohne Gewährleistung: Nutzung auf eigene Gefahr, und behalte eine Kopie von allem, was du nicht verlieren kannst.</string>
+    <string name="about_terms">Diese App ist freie Software unter der GNU General Public License v3. Sie kommt ohne Gewährleistung: Nutzung auf eigene Gefahr, und behalte eine Kopie von allem, was du nicht verlieren kannst. Eine Spende über „Füttere die Lamas“ ist freiwillig und schaltet nichts frei: Die App ist mit oder ohne Spende dieselbe.</string>
     <string name="about_close">Schließen</string>
 
     <!-- Opening an .ics file from another app -->
