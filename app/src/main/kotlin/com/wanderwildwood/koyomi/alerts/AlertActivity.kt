@@ -81,7 +81,7 @@ class AlertActivity : ComponentActivity() {
                             Spacer(Modifier.height(140.dp))
                             TextMMD(
                                 text = Alerts.titleFor(LocalContext.current, record.title, kind),
-                                style = MaterialTheme.typography.headlineMedium,
+                                style = MaterialTheme.typography.headlineLarge,
                             )
                             Spacer(Modifier.height(12.dp))
                             TextMMD(
