@@ -340,7 +340,7 @@
     <string name="about_no_browser_address">No browser is installed. The address is %1$s.</string>
     <string name="about_privacy_head">Privacy</string>
     <string name="about_terms_head">Terms</string>
-    <string name="about_terms">This app is free software under the GNU General Public License v3. It comes with no warranty: use it at your own risk, and keep a copy of anything you cannot lose. A donation through \"Feed the llamas\" is voluntary and unlocks nothing: the app is the same with or without one.</string>
+    <string name="about_terms">This app is free software under the GNU General Public License, version 3 only. It comes with no warranty: use it at your own risk, and keep a copy of anything you cannot lose. A donation through \"Feed the llamas\" is voluntary and unlocks nothing: the app is the same with or without one.</string>
     <string name="about_close">Close</string>
 
     <!-- Opening an .ics file from another app -->

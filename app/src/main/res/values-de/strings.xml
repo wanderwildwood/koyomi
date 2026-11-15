@@ -341,7 +341,7 @@
     <string name="about_no_browser_address">Es ist kein Browser installiert. Die Adresse lautet %1$s.</string>
     <string name="about_privacy_head">Datenschutz</string>
     <string name="about_terms_head">Bedingungen</string>
-    <string name="about_terms">Diese App ist freie Software unter der GNU General Public License v3. Sie kommt ohne Gewährleistung: Nutzung auf eigene Gefahr, und behalte eine Kopie von allem, was du nicht verlieren kannst. Eine Spende über „Füttere die Lamas“ ist freiwillig und schaltet nichts frei: Die App ist mit oder ohne Spende dieselbe.</string>
+    <string name="about_terms">Diese App ist freie Software unter der GNU General Public License, ausschließlich Version 3. Sie kommt ohne Gewährleistung: Nutzung auf eigene Gefahr, und behalte eine Kopie von allem, was du nicht verlieren kannst. Eine Spende über „Füttere die Lamas“ ist freiwillig und schaltet nichts frei: Die App ist mit oder ohne Spende dieselbe.</string>
     <string name="about_close">Schließen</string>
 
     <!-- Opening an .ics file from another app -->
