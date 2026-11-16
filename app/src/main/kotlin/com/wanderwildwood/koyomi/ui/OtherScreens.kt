@@ -301,7 +301,7 @@ fun SettingsScreen(model: AppModel) {
                 }
             }
             item {
-                SwitchRow(stringResource(R.string.settings_dark), DarkMode.on, note = stringResource(R.string.settings_dark_note)) {
+                SwitchRow(stringResource(R.string.settings_dark), DarkMode.on) {
                     DarkMode.set(context, it)
                 }
             }
