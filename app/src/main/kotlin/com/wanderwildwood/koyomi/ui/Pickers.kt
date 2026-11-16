@@ -1,6 +1,8 @@
 package com.wanderwildwood.koyomi.ui
 
 import android.content.Context
+import android.content.res.Configuration
+import android.os.LocaleList
 import android.view.WindowManager
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -16,6 +18,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.material3.Surface
 import androidx.compose.ui.platform.LocalView
@@ -29,6 +32,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -41,10 +45,14 @@ import com.mudita.mmd.components.time.DatePickerMMD
 import com.mudita.mmd.components.time.rememberDatePickerMMDState
 import com.wanderwildwood.koyomi.R
 import com.wanderwildwood.koyomi.data.AllDayReminder
+import com.wanderwildwood.koyomi.data.Settings
+import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneOffset
+import java.time.temporal.WeekFields
+import java.util.Locale
 
 /**
  * Mudita's own date picker. It steps a month at a time rather than sliding, which is why it
@@ -56,6 +64,50 @@ import java.time.ZoneOffset
  */
 @Composable
 fun DateDialog(initial: LocalDate, onPick: (LocalDate) -> Unit, onDismiss: () -> Unit) {
+    // The picker takes its first day of the week from the configuration's locale, not from
+    // Settings > Week starts on; hand it a locale whose week starts on the chosen day.
+    val context = LocalContext.current
+    val configuration = LocalConfiguration.current
+    val weekStart = remember { Settings(context).weekStart }
+    val pickerConfiguration = remember(configuration, weekStart) {
+        val base = configuration.locales[0]
+        val locale = localeStartingWeekOn(base, weekStart)
+        if (locale == base) configuration
+        else Configuration(configuration).apply { setLocales(LocaleList(locale)) }
+    }
+    // Provided here for the picker's state, and again inside the dialog: a Dialog's window
+    // provides its own LocalConfiguration, which would hide this one from the picker itself.
+    CompositionLocalProvider(LocalConfiguration provides pickerConfiguration) {
+        DateDialogBody(initial, pickerConfiguration, onPick, onDismiss)
+    }
+}
+
+/**
+ * The same language with a week that starts on [day]: first the Unicode "fw" keyword, then a
+ * region whose week starts that day (US Sunday, GB Monday, AE Saturday). Each is checked
+ * against [WeekFields] before it is used, and the phone's own locale stays when none fits.
+ */
+internal fun localeStartingWeekOn(base: Locale, day: DayOfWeek): Locale {
+    if (WeekFields.of(base).firstDayOfWeek == day) return base
+    val fw = day.name.take(3).lowercase(Locale.ROOT)
+    val candidates = buildList {
+        runCatching { Locale.Builder().setLocale(base).setUnicodeLocaleKeyword("fw", fw).build() }
+            .getOrNull()?.let { add(it) }
+        for (region in listOf("US", "GB", "AE")) {
+            runCatching { Locale.Builder().setLanguage(base.language).setRegion(region).build() }
+                .getOrNull()?.let { add(it) }
+        }
+    }
+    return candidates.firstOrNull { WeekFields.of(it).firstDayOfWeek == day } ?: base
+}
+
+@Composable
+private fun DateDialogBody(
+    initial: LocalDate,
+    pickerConfiguration: Configuration,
+    onPick: (LocalDate) -> Unit,
+    onDismiss: () -> Unit,
+) {
     val state = rememberDatePickerMMDState(
         initialSelectedDateMillis = initial.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli(),
     )
@@ -72,13 +124,15 @@ fun DateDialog(initial: LocalDate, onPick: (LocalDate) -> Unit, onDismiss: () ->
         }
         Surface(color = MaterialTheme.colorScheme.surface, modifier = Modifier.fillMaxSize()) {
             Column(Modifier.fillMaxSize().padding(vertical = 16.dp)) {
-                DatePickerMMD(
-                    state = state,
-                    dateFormatter = UtcDateFormatter,
-                    title = null,
-                    headline = null,
-                    showModeToggle = false,
-                )
+                CompositionLocalProvider(LocalConfiguration provides pickerConfiguration) {
+                    DatePickerMMD(
+                        state = state,
+                        dateFormatter = UtcDateFormatter,
+                        title = null,
+                        headline = null,
+                        showModeToggle = false,
+                    )
+                }
                 Spacer(Modifier.weight(1f))
                 Box(Modifier.padding(horizontal = 20.dp)) {
                     DialogButtons(
