@@ -3,6 +3,8 @@
  * Kept: OkHttp engine, preemptive Basic/Digest for the account's own domain only, cookies,
  * timeouts, gzip, no automatic redirects. Left out: OAuth, client certificates, proxy, custom
  * trust (the system's CAs only), traffic logging.
+ * Added here: the login goes only over https, or over plain http to a home or VPN address
+ * (SchemeGuard), and never to "any domain" when the account's host is not known.
  */
 package com.wanderwildwood.davsync.network
 
@@ -14,10 +16,14 @@ import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.UserAgent
+import com.wanderwildwood.davsync.signin.SignIn
 import io.ktor.client.plugins.auth.Auth
+import io.ktor.client.plugins.auth.AuthProvider
 import io.ktor.client.plugins.compression.ContentEncoding
 import io.ktor.client.plugins.cookies.HttpCookies
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.http.HttpHeaders
+import io.ktor.http.auth.HttpAuthHeader
 import io.ktor.util.appendIfNameAbsent
 import java.util.Locale
 
@@ -36,10 +42,13 @@ object HttpClientBuilder {
         HttpClient(OkHttp) {
             // Redirects are not followed automatically: it would break PROPFIND handling (DAVx5).
             followRedirects = false
-            if (credentials != null)
+            // No host, no login: DomainAuthProvider reads a missing domain as "every domain".
+            if (credentials != null && !host.isNullOrBlank())
                 install(Auth) {
                     providers.add(
-                        DomainAuthProvider(UrlUtils.hostToDomain(host), PreemptiveBasicDigestAuthProvider(credentials.username, credentials.password))
+                        SchemeGuard(
+                            DomainAuthProvider(UrlUtils.hostToDomain(host), PreemptiveBasicDigestAuthProvider(credentials.username, credentials.password))
+                        )
                     )
                 }
             install(HttpCookies)
@@ -57,4 +66,25 @@ object HttpClientBuilder {
             }
             ContentEncoding()
         }
+}
+
+/**
+ * Whether a request to [address] may carry the account's login: https always, plain http only to
+ * a home or VPN address, by the same rule the sign-in screen applies to what is typed
+ * ([SignIn.plainHttpAllowed]). The domain check alone is not enough: a server reached over https
+ * can list a calendar or address book as http:// on its own domain, and the login would then go
+ * out in the clear at every sync.
+ */
+internal fun mayCarryLogin(address: String): Boolean =
+    address.startsWith("https://", ignoreCase = true) ||
+        (address.startsWith("http://", ignoreCase = true) && SignIn.plainHttpAllowed(address))
+
+/** Lets [inner] add the login only where [mayCarryLogin] allows it. */
+private class SchemeGuard(private val inner: AuthProvider) : AuthProvider by inner {
+    override fun sendWithoutRequest(request: HttpRequestBuilder): Boolean =
+        mayCarryLogin(request.url.buildString()) && inner.sendWithoutRequest(request)
+
+    override suspend fun addRequestHeaders(request: HttpRequestBuilder, authHeader: HttpAuthHeader?) {
+        if (mayCarryLogin(request.url.buildString())) inner.addRequestHeaders(request, authHeader)
+    }
 }
