@@ -558,7 +558,19 @@ private fun Timeline(model: AppModel, days: List<LocalDate>, onPull: () -> Unit)
     Column(Modifier.fillMaxSize()) {
         if (week) {
             Row(Modifier.fillMaxWidth().padding(top = if (landscape) 0.dp else 4.dp)) {
-                Spacer(Modifier.width(HOUR_COLUMN))
+                // The corner above the hours holds the week's number when Settings > Week
+                // numbers is on, counted as Month view counts it (ISO, by the week's Thursday).
+                Box(
+                    Modifier.width(HOUR_COLUMN).align(Alignment.CenterVertically),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (model.settings.weekNumbers) {
+                        TextMMD(
+                            text = days.first().plusDays(3).get(WeekFields.ISO.weekOfWeekBasedYear()).toString(),
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    }
+                }
                 days.forEach { d ->
                     val head: @Composable () -> Unit = {
                         TextMMD(text = Dates.weekdayNarrow(d), style = MaterialTheme.typography.labelSmall)
