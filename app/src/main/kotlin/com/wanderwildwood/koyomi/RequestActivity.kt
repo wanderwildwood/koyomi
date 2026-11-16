@@ -1,5 +1,6 @@
 package com.wanderwildwood.koyomi
 
+import com.wanderwildwood.koyomi.ui.DarkSelection
 import android.content.ContentResolver
 import android.content.Intent
 import android.net.Uri
@@ -35,12 +36,12 @@ class RequestActivity : ComponentActivity() {
             return
         }
         setContent {
-            ThemeMMD(colorScheme = monochrome, typography = houseTypography) {
+            ThemeMMD(colorScheme = monochrome, typography = houseTypography) { DarkSelection {
                 ArmedScope {
                     if (model.canRead) LaunchedEffect(Unit) { model.open(request) }
                     Koyomi(model, finish = ::finish)
                 }
-            }
+            } }
         }
     }
 

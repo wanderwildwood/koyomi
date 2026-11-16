@@ -1,5 +1,6 @@
 package com.wanderwildwood.koyomi.alerts
 
+import com.wanderwildwood.koyomi.ui.DarkSelection
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -73,7 +74,7 @@ class AlertActivity : ComponentActivity() {
         }
 
         setContent {
-            ThemeMMD(colorScheme = monochrome, typography = houseTypography) {
+            ThemeMMD(colorScheme = monochrome, typography = houseTypography) { DarkSelection {
                 ArmedScope {
                     Surface(color = MaterialTheme.colorScheme.surface, modifier = Modifier.fillMaxSize()) {
                         Column(Modifier.systemBarsPadding().padding(24.dp)) {
@@ -125,7 +126,7 @@ class AlertActivity : ComponentActivity() {
                         }
                     }
                 }
-            }
+            } }
         }
     }
 }

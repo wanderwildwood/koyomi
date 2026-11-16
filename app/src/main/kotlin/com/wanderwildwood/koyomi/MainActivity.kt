@@ -1,5 +1,6 @@
 package com.wanderwildwood.koyomi
 
+import com.wanderwildwood.koyomi.ui.DarkSelection
 import com.wanderwildwood.koyomi.ui.backTarget
 import android.Manifest
 import android.app.Application
@@ -76,9 +77,9 @@ class MainActivity : ComponentActivity() {
                     else controller.show(WindowInsetsCompat.Type.statusBars())
                     onDispose { }
                 }
-                ThemeMMD(colorScheme = monochrome, typography = houseTypography) {
+                ThemeMMD(colorScheme = monochrome, typography = houseTypography) { DarkSelection {
                     ArmedScope { com.wanderwildwood.koyomi.ui.NoticeFrame { Koyomi(model) } }
-                }
+                } }
             }
         }
     }

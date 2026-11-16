@@ -50,18 +50,19 @@ import androidx.compose.ui.text.input.TextFieldValue
  * The answer goes over the range that was selected, and only if that range still holds what was
  * sent; otherwise nothing is written, rather than the wrong thing.
  *
- * Notes' file (TextActions.kt there), itself the Typewriter's for a field that holds a
- * TextFieldValue: the answer arrives as a new value through [onValue]. Here it is used on
- * read-only text, an event's notes. The host needs `<queries>` for PROCESS_TEXT in its manifest.
+ * The Typewriter's file (TextActions.kt there, commit 0aab491), for a field that holds a
+ * TextFieldValue rather than a TextFieldState: the answer arrives as a new value through
+ * [onValue]. The host needs `<queries>` for PROCESS_TEXT in its manifest.
  */
 @Composable
 fun Modifier.textActions(value: TextFieldValue? = null, onValue: ((TextFieldValue) -> Unit)? = null): Modifier {
     val context = LocalContext.current
-    val notShown = NOT_SHOWN + context.packageName
     val now by rememberUpdatedState(value)
     val update by rememberUpdatedState(onValue)
     val writable = value != null && onValue != null
     val view = LocalView.current
+    // This app never offers itself.
+    val notShown = NOT_SHOWN + context.packageName
     val apps = remember {
         val query = Intent(Intent.ACTION_PROCESS_TEXT).setType("text/plain")
         // The flags-object overload is Android 13; the Kompakt is 12.
@@ -186,6 +187,7 @@ private fun showRest(view: View, items: List<TextContextMenuItem>, session: Text
         else (pressY - 88 * dp - list.measuredHeight).toInt().coerceAtLeast(0)
     val x = ((root.width - list.measuredWidth) / 2).coerceAtLeast(0)
     popup.showAtLocation(root, Gravity.TOP or Gravity.START, x, y)
+    DarkMode.window(list)
 }
 
 /** How many of Compose's items stay on the bar before the ⋮; Mudita's bar fits three buttons. */
