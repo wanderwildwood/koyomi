@@ -274,7 +274,7 @@
     <string name="settings_full_screen_off">Bildschirmfüllende Erinnerungen sind nicht erlaubt</string>
     <string name="settings_fix">Die Einstellung des Telefons öffnen</string>
     <!-- Settings, on a Kompakt: DuraSpeed shuts the app down, which cancels its reminders. Pressing it opens DuraSpeed's App info, where Open shows its list -->
-    <string name="settings_duraspeed">Die DuraSpeed-Einstellung des Telefons kann Kalender schließen, und damit seine Erinnerungen. Öffne DuraSpeed, tippe auf Öffnen und schalte Kalender ein: den ohne Kasten um das Symbol, denn Muditas eigener Kalender steht auch in der Liste.</string>
+    <string name="settings_duraspeed">Die DuraSpeed-Einstellung des Telefons kann Datebook schließen, und damit seine Erinnerungen. Öffne DuraSpeed, tippe auf Öffnen und schalte Datebook ein: die App ohne Kasten um das Symbol, denn Muditas eigener Kalender steht auch in der Liste.</string>
     <string name="settings_duraspeed_open">DuraSpeed öffnen</string>
     <!-- Settings, under the DuraSpeed row: pressing it says Calendar is now switched on there -->
     <string name="settings_duraspeed_done">Ist eingeschaltet</string>
@@ -325,7 +325,7 @@
     <!-- About dialog. Keep the names of the app, people, projects and licences as they are -->
 
     <!-- Heading. %1$s is the version number, e.g. 0.1.0 -->
-    <string name="about_title">Kalender %1$s</string>
+    <string name="about_title">Datebook %1$s</string>
     <string name="about_what">Ein Kalender mit Monats-, Wochen-, Tages- und Terminansicht, Wiederholungen in jeder gewöhnlichen Form und Erinnerungen, die den Bildschirm aufleuchten lassen. Er gleicht mit deinem eigenen Nextcloud- oder einem anderen CalDAV-Server ab oder folgt einem Kalender über seinen Link.</string>
     <string name="about_privacy">Die App liest und schreibt die Kalender, die schon auf dem Telefon sind. Das Netzwerk nutzt sie nur, um die Kalenderlinks zu laden, die du hinzufügst, und, wenn du dich bei deinem eigenen Kalenderserver anmeldest, um mit diesem Server abzugleichen. Die Kamera nutzt sie nur beim Scannen eines Links. Sonst geht nichts irgendwohin. „Füttere die Lamas“ öffnet eine Spendenseite (square.link) in deinem Browser, nur wenn du darauf drückst. Die App sendet nichts dorthin; wenn du spendest, wickelt Square die Zahlung auf dieser Seite ab, nicht diese App.</string>
     <string name="about_sources">Erinnerungen kommen aus dem Kalenderspeicher des Telefons, deshalb klingeln auch die, die in Nextcloud gesetzt wurden, hier.</string>
@@ -367,7 +367,7 @@
     <string name="licences_title">Lizenzen</string>
     <string name="licences_source_head">Quellcode</string>
     <string name="licences_source">Quelle: %1$s</string>
-    <string name="licences_licence">Kalender ist freie Software unter der GNU General Public License, ausschließlich Version 3. Copyright wander wildwood. Was darauf aufbaut, behält seine eigenen Lizenzen, unten aufgeführt.</string>
+    <string name="licences_licence">Datebook ist freie Software unter der GNU General Public License, ausschließlich Version 3. Copyright wander wildwood. Was darauf aufbaut, behält seine eigenen Lizenzen, unten aufgeführt.</string>
     <string name="licences_back">Zurück</string>
     <string name="licences_full_head">Volltexte</string>
     <string name="licences_full_gpl">GNU General Public License, Version 3 (Volltext)</string>
