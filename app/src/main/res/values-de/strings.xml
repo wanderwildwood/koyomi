@@ -439,6 +439,7 @@
     <string name="server_not_kept">Der Server hat geantwortet, aber das Konto konnte auf diesem Telefon nicht gespeichert werden. Ist es schon angemeldet, entferne es zuerst.</string>
     <string name="server_bad_address">Das ist keine Serveradresse.</string>
     <string name="server_plain_http">Eine http://-Adresse schickt das Passwort ungeschützt. Nimm https:// oder einen Server in deinem eigenen Netz.</string>
+    <string name="server_plain_http_link">Der Server nennt eine einfache http-Adresse, darum wurde das Passwort nicht gesendet. Er braucht https.</string>
     <string name="server_not_found">Unter diesem Namen wurde kein Server gefunden.</string>
     <string name="server_unreachable">Der Server hat nicht geantwortet. Prüfe die Adresse und das Netz.</string>
     <string name="server_certificate">Das Zertifikat des Servers wurde nicht akzeptiert.</string>

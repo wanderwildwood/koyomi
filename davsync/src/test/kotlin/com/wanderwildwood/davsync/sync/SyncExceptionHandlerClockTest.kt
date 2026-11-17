@@ -40,4 +40,10 @@ class SyncExceptionHandlerClockTest {
         assertFalse(SyncExceptionHandler.isClockProblem(IOException("no route")))
         assertTrue(handler.classifySyncException(IOException("no route")) is SyncExceptionHandler.SyncErrorAction.SoftError)
     }
+
+    @Test
+    fun aPlainHttpAddressIsToldAsItselfNotAsNoNetwork() {
+        val e = com.wanderwildwood.davsync.network.PlainHttpRefused("cloud.example.org")
+        assertTrue(handler.classifySyncException(e) is SyncExceptionHandler.SyncErrorAction.PlainHttpError)
+    }
 }

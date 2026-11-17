@@ -44,6 +44,8 @@ class SyncExceptionHandler(
         data object AuthenticationError : SyncErrorResult
         /** The certificate doesn't fit the phone's date: check the clock (never a refused password). */
         data object ClockError : SyncErrorResult
+        /** The server lists a plain http address away from home: the login was not sent (never a refused password). */
+        data object PlainHttpError : SyncErrorResult
         data class HardError(val message: String? = null) : SyncErrorResult
         data class SoftError(val delayUntil: Instant? = null, val message: String? = null) : SyncErrorResult
         data object NoError : SyncErrorResult
@@ -89,6 +91,11 @@ class SyncExceptionHandler(
                 SyncErrorResult.ClockError
             }
 
+            is SyncErrorAction.PlainHttpError -> {
+                logger.log(Level.WARNING, action.logMessage, exception)
+                SyncErrorResult.PlainHttpError
+            }
+
             is SyncErrorAction.HardError -> {
                 logger.log(Level.SEVERE, action.logMessage, exception)
                 SyncErrorResult.HardError(action.notifyMessage)
@@ -120,6 +127,9 @@ class SyncExceptionHandler(
         /** The server's certificate is out of date for the phone's clock. */
         data class ClockError(val logMessage: String) : SyncErrorAction
 
+        /** The server lists a plain http address away from home; nothing was sent there. */
+        data class PlainHttpError(val logMessage: String) : SyncErrorAction
+
         /** Non-recoverable error requiring the user's attention. */
         data class HardError(val logMessage: String, val notifyMessage: String) : SyncErrorAction
 
@@ -140,6 +150,9 @@ class SyncExceptionHandler(
                 SyncErrorAction.Rethrow(exception)
 
             // Special IOException (check before generic IOException)
+            is com.wanderwildwood.davsync.network.PlainHttpRefused ->
+                SyncErrorAction.PlainHttpError("Server lists a plain http address away from home; not sent")
+
             is SSLHandshakeException ->
                 if (isClockProblem(exception))
                     SyncErrorAction.ClockError("SSL handshake failed (certificate not valid at the phone's date and time)")

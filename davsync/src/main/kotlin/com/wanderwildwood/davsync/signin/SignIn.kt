@@ -21,7 +21,7 @@ import java.util.logging.Level
 import javax.net.ssl.SSLException
 
 /** Why a typed sign-in did not work, in the terms the reader can act on (as in Memo). */
-enum class Problem { BAD_ADDRESS, PLAIN_HTTP, NOT_FOUND, UNREACHABLE, CERTIFICATE, WRONG_PASSWORD, NO_SERVICE, NOTHING_FOUND, KEYSTORE, OTHER }
+enum class Problem { BAD_ADDRESS, PLAIN_HTTP, PLAIN_HTTP_LINK, NOT_FOUND, UNREACHABLE, CERTIFICATE, WRONG_PASSWORD, NO_SERVICE, NOTHING_FOUND, KEYSTORE, OTHER }
 
 sealed class SignInResult {
     /** What the server answered: the address as typed, the login, and its calendars or address books. */
@@ -66,7 +66,13 @@ object SignIn {
                     val configuration = finder.findInitialConfiguration()
                     val info = if (service == Service.CALDAV) configuration.calDAV else configuration.cardDAV
                     if (info == null)
-                        return@withContext SignInResult.Bad(if (configuration.encountered401) Problem.WRONG_PASSWORD else Problem.NO_SERVICE)
+                        return@withContext SignInResult.Bad(
+                            when {
+                                configuration.encounteredPlainHttp -> Problem.PLAIN_HTTP_LINK
+                                configuration.encountered401 -> Problem.WRONG_PASSWORD
+                                else -> Problem.NO_SERVICE
+                            }
+                        )
                     val collections = CollectionLister(client, davSync.logger).all(info, service)
                     if (collections.isEmpty())
                         return@withContext SignInResult.Bad(Problem.NOTHING_FOUND)
@@ -134,6 +140,7 @@ object SignIn {
     }
 
     internal fun problemFor(e: IOException): Problem = when (e) {
+        is com.wanderwildwood.davsync.network.PlainHttpRefused -> Problem.PLAIN_HTTP_LINK
         is UnknownHostException -> Problem.NOT_FOUND
         is SSLException -> Problem.CERTIFICATE
         else -> Problem.UNREACHABLE

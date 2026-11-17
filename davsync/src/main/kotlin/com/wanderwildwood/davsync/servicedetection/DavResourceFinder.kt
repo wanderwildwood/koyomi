@@ -61,6 +61,7 @@ class DavResourceFinder(
     }
 
     private var encountered401 = false
+    private var encounteredPlainHttp = false
 
 
     /**
@@ -99,7 +100,8 @@ class DavResourceFinder(
         return Configuration(
             cardDAV = cardDavConfig,
             calDAV = calDavConfig,
-            encountered401 = encountered401
+            encountered401 = encountered401,
+            encounteredPlainHttp = encounteredPlainHttp
         )
     }
 
@@ -377,6 +379,8 @@ class DavResourceFinder(
     private fun processException(e: Exception) {
         if (e is UnauthorizedException)
             encountered401 = true
+        else if (e is com.wanderwildwood.davsync.network.PlainHttpRefused)
+            encounteredPlainHttp = true
         else if ((e is InterruptedIOException && e !is SocketTimeoutException) || e is InterruptedException)
             throw e
     }
@@ -388,7 +392,9 @@ class DavResourceFinder(
         val cardDAV: ServiceInfo?,
         val calDAV: ServiceInfo?,
 
-        val encountered401: Boolean
+        val encountered401: Boolean,
+        /** Something on the way was at a plain http address away from home, so it was not asked. */
+        val encounteredPlainHttp: Boolean = false
     ) {
 
         data class ServiceInfo(

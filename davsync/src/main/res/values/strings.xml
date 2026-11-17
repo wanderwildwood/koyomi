@@ -29,6 +29,7 @@
     <string name="davsync_unreachable">The server could not be reached; changes made here wait on the phone and go with the next sync. Last synced %1$s.</string>
     <string name="davsync_unreachable_never">The server could not be reached; changes made here wait on the phone and go with the next sync.</string>
     <string name="davsync_refused">The server refused the password. Make a new app password on the server and put it in with Change password, below.</string>
+    <string name="davsync_plain_http">The server gives a plain http address, so the password is not sent. It needs https.</string>
     <string name="davsync_failed">The last sync had a problem; it tries again on the next one. Last synced %1$s.</string>
     <string name="davsync_failed_never">The last sync had a problem; it tries again on the next one.</string>
     <!-- The server's certificate is not valid at the phone's date: nearly always a wrong clock. -->

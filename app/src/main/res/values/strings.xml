@@ -438,6 +438,7 @@
     <string name="server_not_kept">The server answered, but the account could not be kept on this phone. If it is already signed in, remove it first.</string>
     <string name="server_bad_address">That is not a server address.</string>
     <string name="server_plain_http">An http:// address sends the password unprotected. Use https://, or a server on your own network.</string>
+    <string name="server_plain_http_link">The server gives a plain http address, so the password was not sent. It needs https.</string>
     <string name="server_not_found">No server by that name was found.</string>
     <string name="server_unreachable">The server did not answer. Check the address and the network.</string>
     <string name="server_certificate">The server\'s certificate was not accepted.</string>

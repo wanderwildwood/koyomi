@@ -172,15 +172,17 @@ class AccountStore(context: Context) {
      * last finished cleanly (0 for never), [problem] what went wrong with the latest, if anything.
      */
     data class Status(val lastGood: Long, val problem: Problem?, val detail: String? = null, val waitingForWifi: Boolean = false) {
-        enum class Problem { UNREACHABLE, PASSWORD, ERROR, CLOCK }
+        enum class Problem { UNREACHABLE, PASSWORD, ERROR, CLOCK, PLAIN_HTTP }
 
         companion object {
             /**
              * What a finished sync's [result] comes to; `null` when it went through. A wrong clock
-             * comes first: it is never told as a refused password.
+             * comes first, then a plain http address away from home: neither is ever told as a
+             * refused password.
              */
             fun problemOf(result: com.wanderwildwood.davsync.sync.SyncResult): Problem? = when {
                 result.clockWrong -> Problem.CLOCK
+                result.plainHttp -> Problem.PLAIN_HTTP
                 result.authenticationFailed -> Problem.PASSWORD
                 result.hardError -> Problem.ERROR
                 result.softError -> Problem.UNREACHABLE

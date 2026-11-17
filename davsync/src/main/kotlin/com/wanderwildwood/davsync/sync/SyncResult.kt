@@ -17,6 +17,11 @@ data class SyncResult(
      * SHP-1045, where a wrong clock looked like a refused sign-in.)
      */
     var clockWrong: Boolean = false,
+    /**
+     * the server lists something at a plain http address away from home or a VPN, so nothing was
+     * sent there ([com.wanderwildwood.davsync.network.PlainHttpRefused]). Never told as a refused password.
+     */
+    var plainHttp: Boolean = false,
     var hardError: Boolean = false,
     var softError: Boolean = false,
     var delayUntil: Long = 0,

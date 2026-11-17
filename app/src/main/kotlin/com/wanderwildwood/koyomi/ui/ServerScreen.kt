@@ -282,6 +282,7 @@ private fun SignInForm(davSync: DavSync, modifier: Modifier, onSignedIn: (Accoun
                 is SignInResult.Bad -> when (result.problem) {
                     Problem.BAD_ADDRESS -> R.string.server_bad_address
                     Problem.PLAIN_HTTP -> R.string.server_plain_http
+                    Problem.PLAIN_HTTP_LINK -> R.string.server_plain_http_link
                     Problem.NOT_FOUND -> R.string.server_not_found
                     Problem.UNREACHABLE -> R.string.server_unreachable
                     Problem.CERTIFICATE -> R.string.server_certificate

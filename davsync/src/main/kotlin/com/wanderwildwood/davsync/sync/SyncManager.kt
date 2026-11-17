@@ -168,6 +168,11 @@ abstract class SyncManager<LocalType : LocalResource>(
                     syncResult.hardError = true
                 }
 
+                SyncExceptionHandler.SyncErrorResult.PlainHttpError -> {
+                    syncResult.plainHttp = true
+                    syncResult.hardError = true
+                }
+
                 is SyncExceptionHandler.SyncErrorResult.HardError -> {
                     syncResult.hardError = true
                     result.message?.let { syncResult.message = it }

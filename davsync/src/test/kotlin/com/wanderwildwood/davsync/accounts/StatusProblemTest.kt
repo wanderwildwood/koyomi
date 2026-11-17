@@ -30,4 +30,10 @@ class StatusProblemTest {
         val result = SyncResult(authenticationFailed = true, hardError = true)
         assertEquals(AccountStore.Status.Problem.PASSWORD, AccountStore.Status.problemOf(result))
     }
+
+    @Test
+    fun aPlainHttpAddressIsNeverARefusedPassword() {
+        val result = SyncResult(plainHttp = true, authenticationFailed = true, hardError = true)
+        assertEquals(AccountStore.Status.Problem.PLAIN_HTTP, AccountStore.Status.problemOf(result))
+    }
 }

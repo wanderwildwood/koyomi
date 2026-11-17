@@ -12,7 +12,8 @@ object StatusText {
             if (status.waitingForWifi) "\n" + context.getString(R.string.davsync_waiting_wifi) else ""
         val said = status.detail?.takeIf {
             status.problem != null && status.problem != AccountStore.Status.Problem.PASSWORD &&
-                status.problem != AccountStore.Status.Problem.CLOCK && it.isNotBlank()
+                status.problem != AccountStore.Status.Problem.CLOCK &&
+                status.problem != AccountStore.Status.Problem.PLAIN_HTTP && it.isNotBlank()
         }
         return if (said == null) line else line + "\n" + context.getString(R.string.davsync_said, said)
     }
@@ -24,6 +25,7 @@ object StatusText {
             AccountStore.Status.Problem.UNREACHABLE ->
                 if (last == null) context.getString(R.string.davsync_unreachable_never) else context.getString(R.string.davsync_unreachable, last)
             AccountStore.Status.Problem.PASSWORD -> context.getString(R.string.davsync_refused)
+            AccountStore.Status.Problem.PLAIN_HTTP -> context.getString(R.string.davsync_plain_http)
             AccountStore.Status.Problem.CLOCK ->
                 if (last == null) context.getString(R.string.davsync_clock_never) else context.getString(R.string.davsync_clock, last)
             AccountStore.Status.Problem.ERROR ->
