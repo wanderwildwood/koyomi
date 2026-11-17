@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Calendar: launcher icon in the Mudita Kompakt stock style (81 grid, ring r=19.25 x 2.5,
-     glyph stroke 2.5, black on transparent). Built by icons/mudita-style/final.py. -->
+<!-- Datebook: a tear-off day, the first of the month (暦, koyomi). Shop icon style
+     (81 grid, ring r=19.25 x 2.5, glyph stroke 2.5, black on transparent). -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="81dp"
     android:height="81dp"
@@ -11,24 +11,31 @@
         android:fillColor="#FF000000"
         android:fillType="evenOdd"/>
     <path
-        android:pathData="M28,25.414C25.791,25.414 24,27.205 24,29.414V55.414C24,57.623 25.791,59.414 28,59.414H54C56.209,59.414 58,57.623 58,55.414V29.414C58,27.205 56.209,25.414 54,25.414H49.5M43.5,25.414H33"
+        android:pathData="M24,30 H57 V50 L49,58 H24 Z"
         android:fillColor="#00000000"
         android:strokeColor="#FF000000"
         android:strokeWidth="2.5"
         android:strokeLineCap="round"
-        android:strokeLineJoin="miter"/>
+        android:strokeLineJoin="round"/>
     <path
-        android:pathData="M32.667,22.625V29.292M49.334,22.625V29.292"
+        android:pathData="M57,50 C52,50 49,53 49,58"
         android:fillColor="#00000000"
         android:strokeColor="#FF000000"
         android:strokeWidth="2.5"
         android:strokeLineCap="round"
-        android:strokeLineJoin="miter"/>
+        android:strokeLineJoin="round"/>
     <path
-        android:pathData="M41.415,35.957C41.415,37.832 40.167,39.082 38.292,39.082H37.667M41.417,35.957V49.707M37.667,49.707H45.167"
+        android:pathData="M24,30 L27,26.5 L30,30 L33,26.5 L36,30 L39,26.5 L42,30 L45,26.5 L48,30 L51,26.5 L54,30 L57,26.5"
         android:fillColor="#00000000"
         android:strokeColor="#FF000000"
         android:strokeWidth="2.5"
         android:strokeLineCap="round"
-        android:strokeLineJoin="miter"/>
+        android:strokeLineJoin="round"/>
+    <path
+        android:pathData="M36.5,39 L40.5,36 V51 M36,51 H45"
+        android:fillColor="#00000000"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"/>
 </vector>
