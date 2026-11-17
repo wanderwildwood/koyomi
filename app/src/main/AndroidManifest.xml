@@ -190,6 +190,10 @@
             android:taskAffinity="" />
 
         <receiver
+            android:name=".alerts.AlertActionReceiver"
+            android:exported="false" />
+
+        <receiver
             android:name=".alerts.AlertReceiver"
             android:exported="true">
             <!-- The calendar store's own reminder broadcast. -->

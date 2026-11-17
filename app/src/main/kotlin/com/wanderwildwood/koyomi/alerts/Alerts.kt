@@ -66,7 +66,12 @@ object Alerts {
         LightChannel.ensure(context.getSystemService(NotificationManager::class.java), CHANNEL_NO_LIGHT, channel)
     }
 
-    /** Shows every due alert and sets this app's own alarm for the next one. */
+    /**
+     * Shows every due alert and sets this app's own alarm for the next one. One at a time: the
+     * provider's broadcast and this app's own alarm can come together, and two checks at once
+     * would each show the same reminder.
+     */
+    @Synchronized
     fun check(context: Context) {
         val store = CalendarStore(context)
         if (!store.canRead()) return
@@ -84,6 +89,7 @@ object Alerts {
                     CalendarAlerts.TITLE,
                     CalendarAlerts.EVENT_LOCATION,
                     CalendarAlerts.ALL_DAY,
+                    CalendarAlerts.ALARM_TIME,
                 ),
                 "${CalendarAlerts.STATE} = ? AND ${CalendarAlerts.ALARM_TIME} <= ?",
                 arrayOf(CalendarAlerts.STATE_SCHEDULED.toString(), now.toString()),
@@ -98,6 +104,7 @@ object Alerts {
                         title = c.getString(4).orEmpty(),
                         location = c.getString(5)?.takeIf { it.isNotBlank() },
                         allDay = c.getInt(6) == 1,
+                        alarmTime = c.getLong(7),
                     )
                 }
             }
@@ -115,7 +122,7 @@ object Alerts {
             } else {
                 alert.end
             }
-            val stale = end < now || !store.occurrenceExists(alert.eventId, alert.begin)
+            val stale = cameTooLate(end, alert.alarmTime, now) || !store.occurrenceExists(alert.eventId, alert.begin)
             setState(context, alert.id, if (stale) CalendarAlerts.STATE_DISMISSED else CalendarAlerts.STATE_FIRED)
             if (!stale) notify(context, alert)
         }
@@ -136,6 +143,7 @@ object Alerts {
     }
 
     /** Marks every fired alert for one occurrence dismissed, and takes its notification away. */
+    @Synchronized
     fun dismiss(context: Context, eventId: Long, begin: Long, kind: AllDayKind? = null, allDayKey: String? = null) {
         // A reminder this app made for an all-day event has no row in the store to mark.
         if (kind != null) {
@@ -154,6 +162,7 @@ object Alerts {
     }
 
     /** A new alert row, [SNOOZE_MINUTES] from now, which [check] will show like any other. */
+    @Synchronized
     fun snooze(context: Context, eventId: Long, begin: Long, end: Long, kind: AllDayKind? = null, allDayKey: String? = null) {
         dismiss(context, eventId, begin, kind, allDayKey)
         if (kind != null) {
@@ -253,12 +262,12 @@ object Alerts {
         )
         val snooze = PendingIntent.getBroadcast(
             context, id,
-            extras(Intent(context, AlertReceiver::class.java).setAction(ACTION_SNOOZE)),
+            extras(Intent(context, AlertActionReceiver::class.java).setAction(ACTION_SNOOZE)),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
         val dismiss = PendingIntent.getBroadcast(
             context, id,
-            extras(Intent(context, AlertReceiver::class.java).setAction(ACTION_DISMISS)),
+            extras(Intent(context, AlertActionReceiver::class.java).setAction(ACTION_DISMISS)),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
@@ -299,11 +308,41 @@ object Alerts {
         val title: String,
         val location: String?,
         val allDay: Boolean,
+        val alarmTime: Long = 0L,
     )
+
+    /**
+     * A reminder that was due while its event was still on, and is only being seen now that the
+     * event is over (the phone was off): there is nothing left to remind anyone of. One due at
+     * or after the end - "at start" on an event with no length, or a snooze past the end - is
+     * what was asked for, and rings.
+     */
+    internal fun cameTooLate(end: Long, alarmTime: Long, now: Long): Boolean = end < now && alarmTime < end
 }
 
-/** The provider's reminder broadcast, this app's own alarm, a boot, and the two actions. */
+/**
+ * The provider's reminder broadcast, this app's own alarm and a boot. It is exported, for the
+ * calendar store's broadcast, so whatever any app sends it does no more than a check.
+ */
 class AlertReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        val pending = goAsync()
+        val app = context.applicationContext
+        thread(name = "alerts") {
+            try {
+                when (intent.action) {
+                    AllDayReminders.ACTION -> AllDayReminders.check(app)
+                    else -> Alerts.check(app)
+                }
+            } finally {
+                pending.finish()
+            }
+        }
+    }
+}
+
+/** Snooze and Dismiss on a reminder: not exported, so only the app's own notifications reach it. */
+class AlertActionReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val pending = goAsync()
         val app = context.applicationContext
@@ -317,8 +356,6 @@ class AlertReceiver : BroadcastReceiver() {
                 when (intent.action) {
                     Alerts.ACTION_SNOOZE -> Alerts.snooze(app, eventId, begin, end, kind, key)
                     Alerts.ACTION_DISMISS -> Alerts.dismiss(app, eventId, begin, kind, key)
-                    AllDayReminders.ACTION -> AllDayReminders.check(app)
-                    else -> Alerts.check(app)
                 }
             } finally {
                 pending.finish()
