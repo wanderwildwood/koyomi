@@ -23,9 +23,10 @@ import java.time.ZoneId
  * and "morning of" is worked out ([AllDayPlan]), and one alarm is set for the soonest. It rings
  * through the same notification and screen as any reminder ([Alerts.notify]).
  *
- * What was shown, and what was snoozed, is kept in a small file of its own, keyed by event,
- * occurrence and kind, so a reminder rings once however many times this is run: on a boot, a
- * change of clock or zone, a sync, the app opening, or the alarm itself.
+ * What was shown, and what was snoozed, is kept in a small file of its own, keyed by calendar,
+ * event UID (or title), occurrence and kind ([AllDayPlan.keys]), so a reminder rings once however
+ * many times this is run: on a boot, a change of clock or zone, a sync, a followed calendar
+ * fetched again with new row ids, the app opening, or the alarm itself.
  */
 object AllDayReminders {
     private const val TAG = "AllDayReminders"
@@ -43,6 +44,8 @@ object AllDayReminders {
 
     private class Planned(
         val key: String,
+        /** Every key this reminder goes by, [key] first, the old row-id key last. */
+        val aliases: List<String>,
         val eventId: Long,
         val begin: Long,
         val end: Long,
@@ -61,19 +64,23 @@ object AllDayReminders {
             val state = app.getSharedPreferences(FILE, Context.MODE_PRIVATE)
             val fired = state.getStringSet(FIRED, emptySet()).orEmpty().toMutableSet()
             val snoozed = readSnoozes(state)
-            val plan = plan(app, now, fired, snoozed)
+            val adopt = mutableSetOf<String>()
+            val plan = plan(app, now, fired, snoozed, adopt)
 
-            var changed = false
+            // Reminders shown under a key no longer complete (an older version's, or a row id
+            // since renewed) are remembered under every key they go by now.
+            var changed = fired.addAll(adopt)
             for (p in plan) {
                 if (p.atMs > now || now >= p.validUntilMs) continue
                 // Marked before it is shown: if this dies halfway, a reminder is missed rather than doubled.
-                fired += "${p.key}@${p.validUntilMs}"
-                snoozed.remove(p.key)
+                for (k in p.aliases.dropLast(1)) fired += "$k@${p.validUntilMs}"
+                p.aliases.forEach { snoozed.remove(it) }
                 changed = true
                 Alerts.notify(
                     app,
                     Alerts.Due(0, p.eventId, p.begin, p.end, p.title, p.location, true),
                     p.kind,
+                    p.key,
                 )
             }
             // What can no longer be true is forgotten.
@@ -87,13 +94,17 @@ object AllDayReminders {
         }
     }
 
-    /** Ten minutes on for one reminder that was shown, without touching the calendar store. */
-    fun snooze(context: Context, eventId: Long, begin: Long, kind: AllDayKind) {
+    /**
+     * Ten minutes on for one reminder that was shown, without touching the calendar store.
+     * [key] is the one the reminder was shown under; a notification left from before keys were
+     * kept by UID has none, and is found by its row id instead.
+     */
+    fun snooze(context: Context, eventId: Long, begin: Long, kind: AllDayKind, key: String?) {
         synchronized(lock) {
             val app = context.applicationContext
             val state = app.getSharedPreferences(FILE, Context.MODE_PRIVATE)
             val snoozed = readSnoozes(state)
-            snoozed[AllDayPlan.key(eventId, begin, kind)] = System.currentTimeMillis() + Alerts.SNOOZE_MINUTES * 60_000L
+            snoozed[key ?: AllDayPlan.legacyKey(eventId, begin, kind)] = System.currentTimeMillis() + Alerts.SNOOZE_MINUTES * 60_000L
             state.edit().putString(SNOOZED, writeSnoozes(snoozed)).apply()
         }
         check(context)
@@ -104,6 +115,7 @@ object AllDayReminders {
         now: Long,
         fired: Set<String>,
         snoozed: Map<String, Long>,
+        adopt: MutableSet<String>,
     ): List<Planned> {
         val settings = Settings(context)
         val on = settings.allDayOn()
@@ -112,6 +124,7 @@ object AllDayReminders {
         val zone = ZoneId.systemDefault()
         val today = LocalDate.now(zone)
         val firedKeys = fired.map { it.substringBeforeLast('@') }.toSet()
+        val uids = store.allDayUids(on.keys)
 
         val out = linkedMapOf<String, Planned>()
         for (o in store.occurrences(today.minusDays(1), today.plusDays(HORIZON_DAYS))) {
@@ -123,9 +136,11 @@ object AllDayReminders {
                     ?.map { it.minutes }.orEmpty()
             }
             for (f in AllDayPlan.fires(o.firstDay, o.lastDay, setting, zone)) {
-                val key = AllDayPlan.key(o.eventId, o.begin, f.kind)
+                val keys = AllDayPlan.keys(o.calendarId, uids[o.eventId], o.title, o.begin, f.kind)
+                val key = keys.first()
                 if (key in out) continue
-                val snoozeAt = snoozed[key]
+                val aliases = keys + AllDayPlan.legacyKey(o.eventId, o.begin, f.kind)
+                val snoozeAt = aliases.firstNotNullOfOrNull { snoozed[it] }
                 val atMs: Long
                 val until: Long
                 if (snoozeAt != null) {
@@ -133,13 +148,16 @@ object AllDayReminders {
                     atMs = snoozeAt
                     until = o.lastDay.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli()
                 } else {
-                    if (key in firedKeys) continue
                     if (f.validUntilMs <= now) continue
+                    if (aliases.any { it in firedKeys }) {
+                        keys.forEach { adopt += "$it@${f.validUntilMs}" }
+                        continue
+                    }
                     if (AllDayPlan.coveredByOwn(f, o.firstDay, own, zone)) continue
                     atMs = f.atMs
                     until = f.validUntilMs
                 }
-                out[key] = Planned(key, o.eventId, o.begin, o.end, o.title, o.location, f.kind, atMs, until)
+                out[key] = Planned(key, aliases, o.eventId, o.begin, o.end, o.title, o.location, f.kind, atMs, until)
             }
         }
         return out.values.toList()

@@ -684,6 +684,25 @@ class CalendarStore(private val context: Context) {
         null,
     )?.use { it.count > 0 } ?: false
 
+    /** The UID of each all-day event in [calendarIds], by row id; an event without one is left out. */
+    fun allDayUids(calendarIds: Collection<Long>): Map<Long, String> {
+        if (!canRead() || calendarIds.isEmpty()) return emptyMap()
+        val out = HashMap<Long, String>()
+        runCatching {
+            resolver.query(
+                Events.CONTENT_URI,
+                arrayOf(Events._ID, Events.UID_2445),
+                "${Events.CALENDAR_ID} IN (${calendarIds.joinToString(",") { "?" }}) AND ${Events.ALL_DAY} = 1 AND " +
+                    "${Events.UID_2445} IS NOT NULL AND ${Events.DELETED} = 0",
+                calendarIds.map { it.toString() }.toTypedArray(),
+                null,
+            )?.use { c ->
+                while (c.moveToNext()) c.getString(1)?.takeIf { it.isNotBlank() }?.let { out[c.getLong(0)] = it }
+            }
+        }
+        return out
+    }
+
     /** Is an event with this UID already in [calendarId]? Opening one invitation twice adds it once. */
     fun hasUid(calendarId: Long, uid: String): Boolean = resolver.query(
         Events.CONTENT_URI,

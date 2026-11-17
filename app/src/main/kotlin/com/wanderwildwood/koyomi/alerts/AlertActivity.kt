@@ -59,6 +59,7 @@ class AlertActivity : ComponentActivity() {
         val begin = intent.getLongExtra(Alerts.EXTRA_BEGIN, -1)
         val end = intent.getLongExtra(Alerts.EXTRA_END, -1)
         val kind = AllDayKind.of(intent.getIntExtra(Alerts.EXTRA_KIND, 0))
+        val key = intent.getStringExtra(Alerts.EXTRA_ALL_DAY_KEY)
         val record = CalendarStore(this).event(eventId)
         if (record == null) {
             finish()
@@ -95,12 +96,12 @@ class AlertActivity : ComponentActivity() {
                             }
                             Spacer(Modifier.weight(1f))
                             ButtonMMD(
-                                onClick = { inBackground { Alerts.dismiss(applicationContext, eventId, begin, kind) } },
+                                onClick = { inBackground { Alerts.dismiss(applicationContext, eventId, begin, kind, key) } },
                                 modifier = Modifier.fillMaxWidth().height(56.dp),
                             ) { TextMMD(text = stringResource(R.string.alert_dismiss), style = MaterialTheme.typography.bodyMedium) }
                             Spacer(Modifier.height(12.dp))
                             OutlinedButtonMMD(
-                                onClick = { inBackground { Alerts.snooze(applicationContext, eventId, begin, end, kind) } },
+                                onClick = { inBackground { Alerts.snooze(applicationContext, eventId, begin, end, kind, key) } },
                                 modifier = Modifier.fillMaxWidth().height(56.dp),
                             ) {
                                 TextMMD(
@@ -117,9 +118,10 @@ class AlertActivity : ComponentActivity() {
                                             .putExtra(Alerts.EXTRA_BEGIN, begin)
                                             .putExtra(Alerts.EXTRA_END, end)
                                             .also { if (kind != null) it.putExtra(Alerts.EXTRA_KIND, kind.code) }
+                                            .also { if (key != null) it.putExtra(Alerts.EXTRA_ALL_DAY_KEY, key) }
                                             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
                                     )
-                                    inBackground { Alerts.dismiss(applicationContext, eventId, begin, kind) }
+                                    inBackground { Alerts.dismiss(applicationContext, eventId, begin, kind, key) }
                                 },
                                 modifier = Modifier.fillMaxWidth().height(56.dp),
                             ) { TextMMD(text = stringResource(R.string.alert_open), style = MaterialTheme.typography.bodyMedium) }

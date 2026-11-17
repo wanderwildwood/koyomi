@@ -127,7 +127,8 @@ class MainActivity : ComponentActivity() {
         model.popAll()
         model.push(Screen.Event(id, begin, end))
         val kind = com.wanderwildwood.koyomi.data.AllDayKind.of(intent.getIntExtra(Alerts.EXTRA_KIND, 0))
-        thread { Alerts.dismiss(applicationContext, id, begin, kind) }
+        val key = intent.getStringExtra(Alerts.EXTRA_ALL_DAY_KEY)
+        thread { Alerts.dismiss(applicationContext, id, begin, kind, key) }
         intent.removeExtra(Alerts.EXTRA_EVENT)
     }
 }

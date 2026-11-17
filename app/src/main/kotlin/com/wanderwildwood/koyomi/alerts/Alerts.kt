@@ -51,6 +51,9 @@ object Alerts {
     /** Set on a reminder this app made itself for an all-day event; see [AllDayKind]. */
     const val EXTRA_KIND = "all_day_kind"
 
+    /** The key such a reminder is kept by ([com.wanderwildwood.koyomi.data.AllDayPlan.keys]), which outlives its row id. */
+    const val EXTRA_ALL_DAY_KEY = "all_day_key"
+
     const val SNOOZE_MINUTES = 10
 
     fun createChannel(context: Context) {
@@ -133,10 +136,10 @@ object Alerts {
     }
 
     /** Marks every fired alert for one occurrence dismissed, and takes its notification away. */
-    fun dismiss(context: Context, eventId: Long, begin: Long, kind: AllDayKind? = null) {
+    fun dismiss(context: Context, eventId: Long, begin: Long, kind: AllDayKind? = null, allDayKey: String? = null) {
         // A reminder this app made for an all-day event has no row in the store to mark.
         if (kind != null) {
-            context.getSystemService(NotificationManager::class.java).cancel(notificationId(eventId, begin, kind))
+            context.getSystemService(NotificationManager::class.java).cancel(notificationId(eventId, begin, kind, allDayKey))
             return
         }
         runCatching {
@@ -151,10 +154,10 @@ object Alerts {
     }
 
     /** A new alert row, [SNOOZE_MINUTES] from now, which [check] will show like any other. */
-    fun snooze(context: Context, eventId: Long, begin: Long, end: Long, kind: AllDayKind? = null) {
-        dismiss(context, eventId, begin, kind)
+    fun snooze(context: Context, eventId: Long, begin: Long, end: Long, kind: AllDayKind? = null, allDayKey: String? = null) {
+        dismiss(context, eventId, begin, kind, allDayKey)
         if (kind != null) {
-            AllDayReminders.snooze(context, eventId, begin, kind)
+            AllDayReminders.snooze(context, eventId, begin, kind, allDayKey)
             return
         }
         val now = System.currentTimeMillis()
@@ -210,8 +213,13 @@ object Alerts {
     fun exactAlarmsAllowed(am: AlarmManager): Boolean =
         android.os.Build.VERSION.SDK_INT < 31 || am.canScheduleExactAlarms()
 
-    fun notificationId(eventId: Long, begin: Long, kind: AllDayKind? = null): Int =
-        (eventId * 31 + begin / 60_000).hashCode().let { if (kind == null) it else it * 31 + kind.code }
+    /** An all-day reminder with a key is numbered by it, so one shown again replaces itself. */
+    fun notificationId(eventId: Long, begin: Long, kind: AllDayKind? = null, allDayKey: String? = null): Int =
+        if (kind != null && allDayKey != null) {
+            allDayKey.hashCode()
+        } else {
+            (eventId * 31 + begin / 60_000).hashCode().let { if (kind == null) it else it * 31 + kind.code }
+        }
 
     /** "Tomorrow: Bins" and "Today: Bins" for a reminder this app made; the plain title otherwise. */
     fun titleFor(context: Context, title: String, kind: AllDayKind?): String {
@@ -223,8 +231,8 @@ object Alerts {
         }
     }
 
-    internal fun notify(context: Context, alert: Due, kind: AllDayKind? = null) {
-        val id = notificationId(alert.eventId, alert.begin, kind)
+    internal fun notify(context: Context, alert: Due, kind: AllDayKind? = null, allDayKey: String? = null) {
+        val id = notificationId(alert.eventId, alert.begin, kind, allDayKey)
         val zone = ZoneId.systemDefault()
         val start = CalendarStore.toLocal(alert.begin, alert.allDay, zone)
         val finish = CalendarStore.toLocal(alert.end, alert.allDay, zone)
@@ -236,6 +244,7 @@ object Alerts {
             .putExtra(EXTRA_BEGIN, alert.begin)
             .putExtra(EXTRA_END, alert.end)
             .also { if (kind != null) it.putExtra(EXTRA_KIND, kind.code) }
+            .also { if (kind != null && allDayKey != null) it.putExtra(EXTRA_ALL_DAY_KEY, allDayKey) }
 
         val open = PendingIntent.getActivity(
             context, id,
@@ -304,9 +313,10 @@ class AlertReceiver : BroadcastReceiver() {
                 val begin = intent.getLongExtra(Alerts.EXTRA_BEGIN, -1)
                 val end = intent.getLongExtra(Alerts.EXTRA_END, -1)
                 val kind = AllDayKind.of(intent.getIntExtra(Alerts.EXTRA_KIND, 0))
+                val key = intent.getStringExtra(Alerts.EXTRA_ALL_DAY_KEY)
                 when (intent.action) {
-                    Alerts.ACTION_SNOOZE -> Alerts.snooze(app, eventId, begin, end, kind)
-                    Alerts.ACTION_DISMISS -> Alerts.dismiss(app, eventId, begin, kind)
+                    Alerts.ACTION_SNOOZE -> Alerts.snooze(app, eventId, begin, end, kind, key)
+                    Alerts.ACTION_DISMISS -> Alerts.dismiss(app, eventId, begin, kind, key)
                     AllDayReminders.ACTION -> AllDayReminders.check(app)
                     else -> Alerts.check(app)
                 }

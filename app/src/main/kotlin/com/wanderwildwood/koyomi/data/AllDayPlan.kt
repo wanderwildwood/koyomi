@@ -90,6 +90,24 @@ object AllDayPlan {
         }
     }
 
-    /** What makes one reminder the same reminder wherever it is worked out again. */
-    fun key(eventId: Long, begin: Long, kind: AllDayKind): String = "$eventId:$begin:${kind.code}"
+    /**
+     * What makes one reminder the same reminder wherever it is worked out again. Not the row
+     * id: a followed calendar is fetched again every few hours and each fetch puts every event
+     * back under a new id. The calendar, the event's UID, the occurrence's start and the kind
+     * stay the same; so does the title, which stands in when the feed gives no UID.
+     *
+     * The first key is the one a reminder is known by; every key here counts as "already shown",
+     * so a reminder whose UID could not be read for a moment is not shown twice. The UID or title
+     * is hashed, so whatever characters it holds cannot break the state file's separators.
+     */
+    fun keys(calendarId: Long, uid: String?, title: String, begin: Long, kind: AllDayKind): List<String> =
+        listOfNotNull(uid?.takeIf { it.isNotBlank() }?.let { "u:$it" }, "t:$title")
+            .map { "$calendarId:${digest(it)}:$begin:${kind.code}" }
+
+    /** The key used before [keys], by row id: read only so what was shown then is not shown again. */
+    fun legacyKey(eventId: Long, begin: Long, kind: AllDayKind): String = "$eventId:$begin:${kind.code}"
+
+    private fun digest(text: String): String =
+        java.security.MessageDigest.getInstance("SHA-256").digest(text.toByteArray(Charsets.UTF_8))
+            .take(12).joinToString("") { (it.toInt() and 0xff).toString(16).padStart(2, '0') }
 }

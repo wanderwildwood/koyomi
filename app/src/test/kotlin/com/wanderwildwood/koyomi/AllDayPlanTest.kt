@@ -148,12 +148,47 @@ class AllDayPlanTest {
 
     // --- no duplicates ---------------------------------------------------------------------
 
+    private fun key(calendar: Long = 3, uid: String? = "bins-42@example.org", title: String = "Bins", begin: Long = 1000, kind: AllDayKind = AllDayKind.EVENING) =
+        AllDayPlan.keys(calendar, uid, title, begin, kind).first()
+
     @Test fun aKeyNamesTheOccurrenceAndTheKind() {
-        val a = AllDayPlan.key(7, 1000, AllDayKind.EVENING)
-        assertEquals(a, AllDayPlan.key(7, 1000, AllDayKind.EVENING))
-        assertTrue(a != AllDayPlan.key(7, 1000, AllDayKind.MORNING))
-        assertTrue(a != AllDayPlan.key(7, 2000, AllDayKind.EVENING))
-        assertTrue(a != AllDayPlan.key(8, 1000, AllDayKind.EVENING))
+        val a = key()
+        assertEquals(a, key())
+        assertTrue(a != key(kind = AllDayKind.MORNING))
+        assertTrue(a != key(begin = 2000))
+        assertTrue(a != key(calendar = 4))
+        assertTrue(a != key(uid = "bins-43@example.org"))
+    }
+
+    @Test fun aKeyHasNoRowIdSoAFetchAgainKeepsIt() {
+        // A followed calendar's events come back under new row ids on every fetch; the key is
+        // made of what the feed itself says, so it is the same before and after.
+        assertEquals(key(), AllDayPlan.keys(3, "bins-42@example.org", "Bins", 1000, AllDayKind.EVENING).first())
+        // The UID is what counts while there is one: a new title is still the same event.
+        assertEquals(key(), key(title = "Bins and recycling"))
+    }
+
+    @Test fun withoutAUidTheTitleStandsIn() {
+        assertEquals(key(uid = null), key(uid = ""))
+        assertEquals(key(uid = null), key(uid = null))
+        assertTrue(key(uid = null) != key(uid = null, title = "Recycling"))
+        // With a UID, the title's key is kept too, so a moment without the UID changes nothing.
+        val both = AllDayPlan.keys(3, "bins-42@example.org", "Bins", 1000, AllDayKind.EVENING)
+        assertEquals(2, both.size)
+        assertEquals(key(uid = null), both[1])
+    }
+
+    @Test fun aKeyKeepsTheStateFilesSeparatorsWhateverTheTitle() {
+        // Shown keys are stored as key@until and snoozes as key=at;key=at.
+        for (k in listOf(key(uid = "a;b=c@d"), key(uid = null, title = "x@y=z;w"))) {
+            assertFalse(k, k.contains('@') || k.contains('=') || k.contains(';'))
+        }
+    }
+
+    @Test fun theOldKeyCannotBeMistakenForANewOne() {
+        // The row-id key of earlier versions is read once, to not ring again after the update.
+        assertEquals("7:1000:1", AllDayPlan.legacyKey(7, 1000, AllDayKind.EVENING))
+        assertTrue(AllDayPlan.keys(7, null, "1000", 1, AllDayKind.EVENING).none { it == AllDayPlan.legacyKey(7, 1000, AllDayKind.EVENING) })
     }
 
     @Test fun aSettingSurvivesBeingStored() {
