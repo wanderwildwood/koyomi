@@ -375,14 +375,18 @@ class CalendarStore(private val context: Context) {
 
             scope == Scope.ONE && record.syncId == null -> {
                 // No sync id yet: see [exclude]. The occurrence leaves the series and comes
-                // back as an event of its own.
-                if (!exclude(record, occurrenceBegin)) return false
+                // back as an event of its own. The new event is written first, as in [move], so
+                // a failure on either step leaves the series as it was.
                 values.put(Events.CALENDAR_ID, record.calendarId)
                 values.putNull(Events.RRULE)
                 values.putNull(Events.DURATION)
                 values.put(Events.DTEND, newEnd)
                 values.put(Events.STATUS, record.status ?: Events.STATUS_CONFIRMED)
                 val inserted = resolver.insert(Events.CONTENT_URI, values) ?: return false
+                if (!exclude(record, occurrenceBegin)) {
+                    resolver.delete(inserted, null, null)
+                    return false
+                }
                 writeReminders(ContentUris.parseId(inserted), draft.reminders, emptyList(), force = true)
             }
 
@@ -413,10 +417,15 @@ class CalendarStore(private val context: Context) {
 
             !isRepeating -> {
                 // Every occurrence, and the rule is gone: the series is replaced by one event.
-                resolver.delete(syncAwareUri(record), null, null)
+                // The event is written first and the series removed after, as in [move], so a
+                // failure leaves the series rather than nothing.
                 values.put(Events.CALENDAR_ID, record.calendarId)
                 values.put(Events.STATUS, record.status ?: Events.STATUS_CONFIRMED)
                 val inserted = resolver.insert(Events.CONTENT_URI, values) ?: return false
+                if (resolver.delete(syncAwareUri(record), null, null) <= 0) {
+                    resolver.delete(inserted, null, null)
+                    return false
+                }
                 writeReminders(ContentUris.parseId(inserted), draft.reminders, emptyList(), force = true)
             }
 
