@@ -31,6 +31,20 @@
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
+    <!--
+      The shared sync library also serves Connections (contacts) and task apps, and its manifest
+      asks for their permissions. Datebook syncs calendars only, so they are taken out here.
+    -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" tools:node="remove" />
+    <uses-permission android:name="android.permission.WRITE_CONTACTS" tools:node="remove" />
+    <uses-permission android:name="android.permission.MANAGE_CONTACTS" tools:node="remove" />
+    <uses-permission android:name="org.dmfs.permission.READ_TASKS" tools:node="remove" />
+    <uses-permission android:name="org.dmfs.permission.WRITE_TASKS" tools:node="remove" />
+    <uses-permission android:name="org.tasks.permission.READ_TASKS" tools:node="remove" />
+    <uses-permission android:name="org.tasks.permission.WRITE_TASKS" tools:node="remove" />
+    <uses-permission android:name="at.techbee.jtx.permission.READ" tools:node="remove" />
+    <uses-permission android:name="at.techbee.jtx.permission.WRITE" tools:node="remove" />
+
     <!-- Lets the text-selection menu see other apps' text actions, such as Define from the
          Dictionary, beside Copy. Without it Android 11+ hides them from this app. -->
     <queries>
@@ -42,6 +56,10 @@
         <package android:name="com.mediatek.duraspeed" />
         <!-- Glance, which shows today's events on the lock screen: only to say whether it is there. -->
         <package android:name="com.wanderwildwood.hitome" />
+        <!-- The sync library's task apps: Datebook syncs no tasks. -->
+        <package android:name="at.techbee.jtx" tools:node="remove" />
+        <package android:name="org.dmfs.tasks" tools:node="remove" />
+        <package android:name="org.tasks" tools:node="remove" />
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT" />
             <data android:mimeType="text/plain" />
