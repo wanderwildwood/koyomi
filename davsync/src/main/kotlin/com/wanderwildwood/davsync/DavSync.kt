@@ -1,9 +1,11 @@
 package com.wanderwildwood.davsync
 
 import android.content.Context
+import android.content.pm.ApplicationInfo
 import com.wanderwildwood.davsync.accounts.AccountStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Semaphore
+import java.util.logging.Level
 import java.util.logging.Logger
 
 /**
@@ -15,6 +17,14 @@ class DavSync(context: Context) {
     val context: Context = context.applicationContext
     val logger: Logger = Logger.getLogger("davsync")
     val accounts = AccountStore(this.context)
+
+    init {
+        // A release build logs warnings only: the sync's progress lines name the account and the
+        // events, and the system log is not a place for either.
+        if (this.context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE == 0) {
+            quiet.forEach { it.level = Level.WARNING }
+        }
+    }
     val ioDispatcher = Dispatchers.IO
 
     private val appName: String = this.context.getString(R.string.davsync_product_name)
@@ -30,6 +40,9 @@ class DavSync(context: Context) {
     val vCardProdId = "$appName/$versionName ez-vcard"
 
     companion object {
+        /** The roots of the sync code's loggers, held so their level is not lost with them. */
+        private val quiet = listOf("davsync", "at.bitfire", "at.techbee").map { Logger.getLogger(it) }
+
         /** At most two multigets at once, across collections (DAVx5's SyncMultigetSemaphore). */
         val multigetSemaphore = Semaphore(2)
     }

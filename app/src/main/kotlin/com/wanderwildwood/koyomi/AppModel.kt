@@ -604,7 +604,7 @@ class AppModel(app: Application) : AndroidViewModel(app) {
                 buffer.copyOf(n)
             }
             Ics.parse(String(bytes, Charsets.UTF_8), ZoneId.systemDefault())
-        }.onFailure { Log.w(TAG, "Could not read $uri", it) }.getOrNull()
+        }.onFailure { Log.w(TAG, "Could not read a calendar file", it) }.getOrNull()
     }
 
     /**

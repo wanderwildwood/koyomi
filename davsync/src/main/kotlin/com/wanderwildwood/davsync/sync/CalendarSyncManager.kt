@@ -159,7 +159,7 @@ class CalendarSyncManager(
 
         // add default reminder (if desired)
         settings.defaultAlarm?.let { minBefore ->
-            logger.info("Adding default alarm ($minBefore min before) to $event")
+            logger.info("Adding default alarm ($minBefore min before) to $fileName")
             DefaultReminderBuilder(minBefore = minBefore).add(to = androidEvent)
         }
 
@@ -167,11 +167,11 @@ class CalendarSyncManager(
         val local = localCollection.findByName(fileName)
         if (local != null) {
             local.withExceptionContext {
-                logger.info("Updating $fileName in local calendar: $event")
+                logger.info("Updating $fileName in local calendar")
                 local.update(androidEvent)
             }
         } else {
-            logger.info("Adding $fileName to local calendar: $event")
+            logger.info("Adding $fileName to local calendar")
             localCollection.add(androidEvent)
         }
     }
