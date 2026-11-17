@@ -35,8 +35,8 @@ object LinkRefresh {
         var changed = false
         for (sub in links.all()) {
             when (val out = refreshOne(context, sub)) {
-                is Refreshed.Done -> { links.put(out.subscription); changed = true }
-                is Refreshed.Kept -> links.put(out.subscription)
+                is Refreshed.Done -> { links.update(out.subscription); changed = true }
+                is Refreshed.Kept -> links.update(out.subscription)
             }
         }
         return changed

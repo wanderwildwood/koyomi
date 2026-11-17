@@ -158,11 +158,21 @@ class SubscriptionStore(context: Context) {
         prefs.edit().putString("s${sub.calendarId}", encode(sub)).apply()
     }
 
-    fun remove(calendarId: Long) {
+    fun remove(calendarId: Long) = synchronized(LOCK) {
         prefs.edit().remove("s$calendarId").apply()
     }
 
+    /**
+     * Writes back what a fetch found, only while the link is still followed at the same
+     * address: one unfollowed while it was being fetched stays gone.
+     */
+    fun update(sub: Subscription) = synchronized(LOCK) {
+        val stored = prefs.getString("s${sub.calendarId}", null)?.let { decode(sub.calendarId, it) }
+        if (stored != null && stored.url == sub.url) put(sub)
+    }
+
     companion object {
+        private val LOCK = Any()
         const val FILE = "subscriptions"
         private const val SEP = '\u001F'
 

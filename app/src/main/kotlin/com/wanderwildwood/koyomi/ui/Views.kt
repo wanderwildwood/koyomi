@@ -724,7 +724,9 @@ private fun DayColumn(
             .drawBehind {
                 drawLine(Color.Black, Offset(0f, 0f), Offset(0f, size.height), strokeWidth = 0.5.dp.toPx())
             }
-            .pointerInput(date, rangeStart) {
+            // The hour height follows the all-day strip above, so it is a key too: a long press
+            // must land on the hour drawn under it now.
+            .pointerInput(date, rangeStart, hourHeight) {
                 detectTapGestures(onLongPress = { at ->
                     val minutes = startMin + (at.y / hourHeight.toPx() * 60).toInt()
                     val snapped = (minutes / 30 * 30).coerceIn(0, 23 * 60 + 30)

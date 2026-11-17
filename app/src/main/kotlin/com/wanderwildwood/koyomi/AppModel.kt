@@ -318,8 +318,8 @@ class AppModel(app: Application) : AndroidViewModel(app) {
                 for (sub in todo) {
                     val out = refreshOne(sub)
                     when (out) {
-                        is Refreshed.Done -> { links.put(out.subscription); changed = true }
-                        is Refreshed.Kept -> links.put(out.subscription)
+                        is Refreshed.Done -> { links.update(out.subscription); changed = true }
+                        is Refreshed.Kept -> links.update(out.subscription)
                     }
                     subscriptions = links.all()
                 }
