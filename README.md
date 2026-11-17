@@ -66,7 +66,7 @@ did not make.
 
 **Change or delete one occurrence**, every later one, or all of them.
 
-**A swipe down at the top of the agenda asks DAVx5 to sync**, as Settings' Sync calendars now does.
+**A swipe down at the top of the agenda asks the calendars to sync** (Datebook's own account, DAVx5 or another), as Settings' Sync calendars does.
 
 **Reminders from the phone's own store**, so the ones set on the server ring here too, and
 each one rings once. With the screen asleep a reminder wakes it with the event on it; there
@@ -78,7 +78,7 @@ events first. Settings has the switch, and under it a second, off until you turn
 today's events are over, the next one to come, with its day.
 
 **It asks before deleting**, on the row itself: the first press arms it, the second does it,
-and it forgets after four seconds.
+and it stands down as soon as you do anything else.
 
 **Other apps' "add to calendar" opens here.** The new-event screen comes up filled in with
 what the other app sent — title, time or all day, place, notes, and a repeat — and nothing
@@ -101,7 +101,8 @@ installed, behind the ⋮.
 
 ## What it does not do
 
-It does not sync accounts; DAVx5 does. It has no guests, invitations or colors, and no widget. It
+It has no guests or invitations, shows no event colors (a new server calendar can be given
+one), and has no widget. It
 does not answer invitations, and it does not keep the reminders written into a calendar
 file: an added event gets the reminder a new one would.
 
@@ -164,10 +165,9 @@ Icons are [Material Symbols](https://fonts.google.com/icons), Apache License 2.0
 
 ## License
 
-**GNU General Public License, version 3.** See [LICENSE](LICENSE).
+**GNU General Public License, version 3 only (GPL-3.0-only).** See [LICENSE](LICENSE).
 
-Both projects this derives from are published under the GPL version 3, and neither says
-whether "or later" was meant; this says no more than they do.
+Both projects this derives from are published under the GPL version 3.
 
 Copyright © wander wildwood, © David Anderlohr, and © the Etar and Android Open Source
 Project authors for the parts that are theirs.

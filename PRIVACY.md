@@ -70,10 +70,14 @@ adds calendars; it removes nothing.
 
 ## What is stored
 
-The events themselves live in the phone's calendar store, not in this app. The app keeps
-six settings in `SharedPreferences`, all visible in `data/Settings.kt`: which view it opens
-on, the first day of the week, whether week numbers show, the calendar and the reminder a new
-event starts with, and whether a reminder fills the screen.
+The events themselves live in the phone's calendar store, not in this app. The app keeps its
+settings in `SharedPreferences`, all visible in `data/Settings.kt`: which view it opens on,
+the first day of the week, whether week numbers show, the calendar and the reminders a new
+event and a new all-day event start with, each calendar's all-day reminder, whether a reminder
+fills the screen, whether the screen turns with the phone, the two lock-screen switches, and
+whether the DuraSpeed note has been seen.
+
+If Home is installed, the app asks it whether its dark mode is on, and sends it nothing.
 
 ## The lock screen
 
@@ -86,9 +90,11 @@ lock screen** is off. Nothing leaves the phone.
 ## No analytics
 
 No crash reporting, no telemetry, no advertising identifier, no third-party SDK. The
-dependency list in `app/build.gradle.kts` is AndroidX (Jetpack Compose, CameraX), Mudita's MMD
-component library and ZXing (which reads the QR code on the phone, with no Google services), and
-nothing else.
+dependencies in `app/build.gradle.kts` are AndroidX (Jetpack Compose, CameraX), Mudita's MMD
+component library, ZXing (which reads the QR code on the phone, with no Google services) and,
+for syncing with your own server, the sync code taken from DAVx5 (dav4jvm and synctools) with
+the libraries it is built on: Ktor, OkHttp, ical4j, ez-vcard, Guava, SLF4J and Apache Commons.
+None of them reports anything anywhere. The full list is under Licenses in About.
 
 ## Checking for yourself
 
