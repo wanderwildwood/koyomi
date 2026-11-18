@@ -116,13 +116,14 @@ data class Draft(
 
         /**
          * The series' new first start after "every one" was edited from one occurrence. Only the
-         * person's own change ([change], the opened occurrence's new start as set minus its old
-         * one) moves the series' start; then, as for a new event, the start goes forward to the
-         * first day a weekly rule names ([days]), since the provider always counts the first
-         * start as an occurrence. The exclusions move by [change] alone, not by that shift.
+         * person's own change ([change], from the opened occurrence's old start to its new one
+         * as set, in days and time of day on the series' clock [zone]) moves the series' start;
+         * then, as for a new event, the start goes forward to the first day a weekly rule names
+         * ([days]), since the provider always counts the first start as an occurrence. The
+         * exclusions move by [change] alone, not by that shift.
          */
-        fun seriesStartAfterEdit(seriesBegin: Long, change: Long, allDay: Boolean, days: Set<DayOfWeek>?, zone: ZoneId): Long {
-            val moved = seriesBegin + change
+        fun seriesStartAfterEdit(seriesBegin: Long, change: SeriesShift, allDay: Boolean, days: Set<DayOfWeek>?, zone: ZoneId): Long {
+            val moved = change.apply(seriesBegin, allDay, zone)
             return if (allDay) {
                 val date = java.time.Instant.ofEpochMilli(moved).atZone(ZoneOffset.UTC).toLocalDate()
                 date.plusDays(shiftDays(date, days)).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()

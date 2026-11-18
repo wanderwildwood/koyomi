@@ -16,33 +16,32 @@ object Exdates {
     private val UTC = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'")
     private val LOCAL = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss")
     private val DATE = DateTimeFormatter.BASIC_ISO_DATE
-    private const val DAY_MS = 24L * 60 * 60 * 1000
 
     /**
-     * Every exclusion moved by [offsetMs], in the form it was written in, so a series moved
-     * from 19:00 to 18:30 still leaves out the evenings it left out before.
+     * Every exclusion moved by [change], in the form it was written in, so a series moved
+     * from 19:00 to 18:30 still leaves out the evenings it left out before. The move is made on
+     * the clock: a zoned or floating time moves on its own clock, a UTC one on the series'
+     * clock [zone], so a move across a change of the clocks keeps lining up with the occurrences.
      */
-    fun shift(exdate: String?, offsetMs: Long): String? {
-        if (exdate.isNullOrBlank() || offsetMs == 0L) return exdate
+    fun shift(exdate: String?, change: SeriesShift, zone: ZoneId): String? {
+        if (exdate.isNullOrBlank() || change.isNone) return exdate
         return exdate.split("\n").joinToString("\n") { line ->
             val semi = line.indexOf(';')
             val tz = if (semi >= 0) line.substring(0, semi) else null
             val list = if (semi >= 0) line.substring(semi + 1) else line
-            val zone = tz?.let { runCatching { ZoneId.of(it) }.getOrNull() } ?: ZoneOffset.UTC
-            val moved = list.split(",").joinToString(",") { raw -> shiftOne(raw.trim(), offsetMs, zone) }
+            val moved = list.split(",").joinToString(",") { raw -> shiftOne(raw.trim(), change, zone) }
             if (tz != null) "$tz;$moved" else moved
         }
     }
 
-    private fun shiftOne(v: String, offsetMs: Long, zone: ZoneId): String = runCatching {
+    private fun shiftOne(v: String, change: SeriesShift, zone: ZoneId): String = runCatching {
         when {
-            v.length == 8 -> DATE.format(LocalDate.parse(v, DATE).plusDays(Math.floorDiv(offsetMs, DAY_MS)))
+            v.length == 8 -> DATE.format(LocalDate.parse(v, DATE).plusDays(change.days))
             v.endsWith("Z") -> UTC.format(
-                Instant.from(UTC.withZone(ZoneOffset.UTC).parse(v)).plusMillis(offsetMs).atOffset(ZoneOffset.UTC),
+                change.apply(Instant.from(UTC.withZone(ZoneOffset.UTC).parse(v)).atZone(zone).toLocalDateTime())
+                    .atZone(zone).toInstant().atOffset(ZoneOffset.UTC),
             )
-            else -> LOCAL.format(
-                LocalDateTime.parse(v, LOCAL).atZone(zone).toInstant().plusMillis(offsetMs).atZone(zone).toLocalDateTime(),
-            )
+            else -> LOCAL.format(change.apply(LocalDateTime.parse(v, LOCAL)))
         }
     }.getOrDefault(v)
 }

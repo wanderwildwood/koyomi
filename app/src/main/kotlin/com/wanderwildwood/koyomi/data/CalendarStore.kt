@@ -503,14 +503,15 @@ class CalendarStore(private val context: Context) {
                     // occurrence's day may be one the new rule no longer names, and shifting it
                     // forward is not a change to the series. The series' own start then goes to
                     // the first day the rule names (Draft.seriesStartAfterEdit).
-                    val change = draft.startAsSet() - occurrenceBegin
+                    val zone = if (draft.allDay) ZoneOffset.UTC else seriesZone(tz)
+                    val change = SeriesShift.between(occurrenceBegin, draft.startAsSet(), draft.allDay, zone)
                     values.put(
                         Events.DTSTART,
-                        Draft.seriesStartAfterEdit(record.dtStart, change, draft.allDay, Draft.weeklyDays(draft.rrule), ZoneId.systemDefault()),
+                        Draft.seriesStartAfterEdit(record.dtStart, change, draft.allDay, Draft.weeklyDays(draft.rrule), zone),
                     )
                     // See seriesValues: a timing update carries the exclusions with it, and they
                     // move with the series, or the occurrences they removed come back.
-                    values.put(Events.EXDATE, Exdates.shift(record.exdate, change))
+                    values.put(Events.EXDATE, Exdates.shift(record.exdate, change, zone))
                 }
                 if (resolver.update(uri, values, null, null) <= 0) return false
                 writeReminders(record.id, draft.reminders, record.reminders, force = false)
@@ -544,12 +545,13 @@ class CalendarStore(private val context: Context) {
         if (record.rrule != null && draft.rrule != null) {
             // As in update(): the series keeps its first date and its exclusions, moved by
             // whatever the edit did to the occurrence that was opened.
-            val change = draft.startAsSet() - occurrenceBegin
+            val zone = if (draft.allDay) ZoneOffset.UTC else seriesZone(tz)
+            val change = SeriesShift.between(occurrenceBegin, draft.startAsSet(), draft.allDay, zone)
             values.put(
                 Events.DTSTART,
-                Draft.seriesStartAfterEdit(record.dtStart, change, draft.allDay, Draft.weeklyDays(draft.rrule), ZoneId.systemDefault()),
+                Draft.seriesStartAfterEdit(record.dtStart, change, draft.allDay, Draft.weeklyDays(draft.rrule), zone),
             )
-            values.put(Events.EXDATE, Exdates.shift(record.exdate, change))
+            values.put(Events.EXDATE, Exdates.shift(record.exdate, change, zone))
         }
         val inserted = resolver.insert(Events.CONTENT_URI, values) ?: return false
         val id = ContentUris.parseId(inserted)
@@ -700,6 +702,9 @@ class CalendarStore(private val context: Context) {
      * A local calendar has no sync adapter to finish a delete, so its rows are removed as
      * one would, and are not left marked for a sync that never comes. Etar does the same.
      */
+    /** The clock a series' occurrences are counted on: its own zone, or the phone's if that is unreadable. */
+    private fun seriesZone(tz: String): ZoneId = runCatching { ZoneId.of(tz) }.getOrDefault(ZoneId.systemDefault())
+
     private fun syncAwareUri(record: EventRecord): Uri {
         val base = ContentUris.withAppendedId(Events.CONTENT_URI, record.id)
         if (record.accountType != CalendarContract.ACCOUNT_TYPE_LOCAL) return base
