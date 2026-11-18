@@ -98,8 +98,10 @@ class AlertActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         refreshLocked()
+        // Exported: below API 33 a not-exported receiver only hears this app's own broadcasts, and
+        // USER_PRESENT comes from SystemUI. It is a protected broadcast, so no other app can send it.
         ContextCompat.registerReceiver(
-            this, unlocked, IntentFilter(Intent.ACTION_USER_PRESENT), ContextCompat.RECEIVER_NOT_EXPORTED,
+            this, unlocked, IntentFilter(Intent.ACTION_USER_PRESENT), ContextCompat.RECEIVER_EXPORTED,
         )
         if (android.os.Build.VERSION.SDK_INT >= 27) {
             setShowWhenLocked(true)
