@@ -1,7 +1,11 @@
 package com.wanderwildwood.koyomi.alerts
 
 import com.wanderwildwood.koyomi.ui.DarkSelection
+import android.app.KeyguardManager
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -14,10 +18,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import com.mudita.mmd.ThemeMMD
 import com.mudita.mmd.components.buttons.ButtonMMD
 import com.mudita.mmd.components.buttons.OutlinedButtonMMD
@@ -41,10 +49,58 @@ import com.wanderwildwood.koyomi.ui.ArmedScope
  * One screen per reminder, stacked if two fall due together. It was `singleInstance` at
  * first, and a second reminder was then handed to the screen already showing the first, which
  * went on showing — and snoozing — the wrong event.
+ *
+ * Over a locked phone it says only "Reminder" and the time, not the event's name or place, so
+ * whoever holds the phone does not read them; Dismiss and Again still work without unlocking.
+ * Once the phone is unlocked the screen shows the event. Open the event asks for the unlock first.
  */
 class AlertActivity : ComponentActivity() {
+    private var locked by mutableStateOf(true)
+
+    private val unlocked = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) = refreshLocked()
+    }
+
+    private fun refreshLocked() {
+        locked = getSystemService(KeyguardManager::class.java)?.isKeyguardLocked ?: false
+    }
+
+    override fun onResume() {
+        super.onResume()
+        refreshLocked()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) refreshLocked()
+    }
+
+    override fun onDestroy() {
+        runCatching { unregisterReceiver(unlocked) }
+        super.onDestroy()
+    }
+
+    /** Opens the event, once the phone is unlocked if it is locked. */
+    private fun openAfterUnlock(open: () -> Unit) {
+        val keyguard = getSystemService(KeyguardManager::class.java)
+        if (android.os.Build.VERSION.SDK_INT >= 26 && keyguard != null && keyguard.isKeyguardLocked) {
+            keyguard.requestDismissKeyguard(this, object : KeyguardManager.KeyguardDismissCallback() {
+                override fun onDismissSucceeded() {
+                    refreshLocked()
+                    open()
+                }
+            })
+        } else {
+            open()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        refreshLocked()
+        ContextCompat.registerReceiver(
+            this, unlocked, IntentFilter(Intent.ACTION_USER_PRESENT), ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
         if (android.os.Build.VERSION.SDK_INT >= 27) {
             setShowWhenLocked(true)
             setTurnScreenOn(true)
@@ -93,8 +149,10 @@ class AlertActivity : ComponentActivity() {
                         Column(Modifier.systemBarsPadding().padding(24.dp)) {
                             // Below where the heads-up notification lands for its few seconds.
                             Spacer(Modifier.height(140.dp))
+                            // Locked: no name or place in front of whoever holds the phone.
                             TextMMD(
-                                text = Alerts.titleFor(LocalContext.current, record.title, kind),
+                                text = if (locked) stringResource(R.string.alert_hidden)
+                                else Alerts.titleFor(LocalContext.current, record.title, kind),
                                 style = MaterialTheme.typography.headlineLarge,
                             )
                             Spacer(Modifier.height(12.dp))
@@ -102,7 +160,14 @@ class AlertActivity : ComponentActivity() {
                                 text = Dates.span(LocalContext.current, start, finish, record.allDay),
                                 style = MaterialTheme.typography.bodyLarge,
                             )
-                            record.location?.let {
+                            if (locked) {
+                                Spacer(Modifier.height(6.dp))
+                                TextMMD(
+                                    text = stringResource(R.string.alert_unlock_to_see),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                )
+                            }
+                            record.location?.takeIf { !locked }?.let {
                                 Spacer(Modifier.height(6.dp))
                                 TextMMD(text = it, style = MaterialTheme.typography.bodyLarge)
                             }
@@ -123,7 +188,7 @@ class AlertActivity : ComponentActivity() {
                             }
                             Spacer(Modifier.height(12.dp))
                             OutlinedButtonMMD(
-                                onClick = {
+                                onClick = { openAfterUnlock {
                                     startActivity(
                                         Intent(this@AlertActivity, MainActivity::class.java)
                                             .putExtra(Alerts.EXTRA_EVENT, eventId)
@@ -134,7 +199,7 @@ class AlertActivity : ComponentActivity() {
                                             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
                                     )
                                     inBackground { Alerts.dismiss(applicationContext, eventId, begin, kind, key) }
-                                },
+                                } },
                                 modifier = Modifier.fillMaxWidth().height(56.dp),
                             ) { TextMMD(text = stringResource(R.string.alert_open), style = MaterialTheme.typography.bodyMedium) }
                         }

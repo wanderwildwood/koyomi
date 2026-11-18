@@ -323,6 +323,7 @@
     <string name="alert_open">Termin öffnen</string>
     <!-- A reminder on a locked phone set to hide notification content: the event's name is left out, only the time shows -->
     <string name="alert_hidden">Erinnerung</string>
+    <string name="alert_unlock_to_see">Entsperre das Telefon, um den Termin zu sehen.</string>
 
     <!-- ============================================================ -->
     <!-- About dialog. Keep the names of the app, people, projects and licences as they are -->
