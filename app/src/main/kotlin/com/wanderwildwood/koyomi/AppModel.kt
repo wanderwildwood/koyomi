@@ -13,6 +13,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.wanderwildwood.koyomi.alerts.Alerts
 import com.wanderwildwood.koyomi.data.CalendarInfo
@@ -26,6 +27,7 @@ import com.wanderwildwood.koyomi.data.SubscriptionSync
 import com.wanderwildwood.koyomi.data.SubscriptionTarget
 import com.wanderwildwood.koyomi.data.CalendarStore
 import com.wanderwildwood.koyomi.data.Draft
+import com.wanderwildwood.koyomi.data.EditorState
 import com.wanderwildwood.koyomi.data.EventRecord
 import com.wanderwildwood.koyomi.data.Ics
 import com.wanderwildwood.koyomi.data.IcsEvent
@@ -83,7 +85,7 @@ sealed interface Request {
 
 private const val MAX_LINK_FILE = 1024 * 1024
 
-class AppModel(app: Application) : AndroidViewModel(app) {
+class AppModel(app: Application, private val saved: SavedStateHandle) : AndroidViewModel(app) {
     val store = CalendarStore(app)
     val settings = Settings(app)
     private val links = SubscriptionStore(app)
@@ -140,9 +142,48 @@ class AppModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /** Was an event being written brought back after the system stopped the app? Set by [keepEditor], from init below. */
+    private var restoredEditor = false
+
     init {
         watch()
         reload()
+        keepEditor()
+    }
+
+    /**
+     * An event being written outlives the system stopping the app in the background (to free
+     * memory while another app is in front): the draft, and the editor it was in, are put in
+     * the activity's saved state when the activity is put away, and come back from there.
+     */
+    private fun keepEditor() {
+        saved.get<android.os.Bundle>(EDITOR)?.getString(EDITOR)?.let(EditorState::read)?.let { state ->
+            restoredEditor = true
+            draft = state.draft
+            fun reopen(record: EventRecord?) {
+                push(Screen.Edit(record, state.begin, state.end, state.scope))
+                if (state.repeat) push(Screen.Repeat)
+            }
+            val id = state.recordId
+            if (id == null) {
+                reopen(null)
+            } else {
+                viewModelScope.launch {
+                    // A change to an event that has gone since has nothing left to change.
+                    val record = withContext(Dispatchers.IO) { runCatching { store.event(id) }.getOrNull() }
+                    if (record != null && stack.none { it is Screen.Edit }) reopen(record)
+                }
+            }
+        }
+        saved.setSavedStateProvider(EDITOR) {
+            android.os.Bundle().apply { editorState()?.let { putString(EDITOR, it.write()) } }
+        }
+    }
+
+    /** The event being written, if the editor is open: what [keepEditor] keeps. */
+    private fun editorState(): EditorState? {
+        val edit = stack.lastOrNull { it is Screen.Edit } as Screen.Edit? ?: return null
+        return EditorState(draft, edit.record?.id, edit.begin, edit.end, edit.scope, repeat = stack.lastOrNull() == Screen.Repeat)
     }
 
     private fun watch() {
@@ -578,6 +619,12 @@ class AppModel(app: Application) : AndroidViewModel(app) {
 
     suspend fun open(request: Request) {
         if (opened) return
+        // Brought back after the system stopped the app: the request was already answered,
+        // and what was being written for it is back on screen.
+        if (restoredEditor) {
+            opened = true
+            return
+        }
         // The request is answered from the calendars, which the first reload may not have
         // brought in yet: a new event would otherwise have no calendar to go in.
         calendars = withContext(Dispatchers.IO) { store.calendars() }
@@ -663,6 +710,7 @@ class AppModel(app: Application) : AndroidViewModel(app) {
 
     private companion object {
         const val TAG = "AppModel"
+        const val EDITOR = "editor"
         const val MAX_ICS = 4 * 1024 * 1024
     }
 

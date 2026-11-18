@@ -57,7 +57,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         turner.set(model.settings.turnWithPhone)
-        openFrom(intent)
+        // Only a fresh start: brought back after the system stopped the app, the intent is the
+        // old one, and what was open then (an event being written) is back already.
+        if (savedInstanceState == null) openFrom(intent)
         // Catch anything due while the app was away, and set the next alarm.
         thread { Alerts.check(applicationContext) }
         setContent {
