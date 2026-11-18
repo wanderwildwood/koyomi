@@ -39,6 +39,8 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -414,6 +416,11 @@ private fun MonthWeek(
                             // its own day's edge.
                             if (col < 6) {
                                 drawLine(Color.Black, Offset(size.width, 0f), Offset(size.width, size.height), strokeWidth = 0.5.dp.toPx())
+                            }
+                            // Today's whole cell in a solid frame, so it stands out on a busy month.
+                            if (date == today) {
+                                val w = 2.dp.toPx()
+                                drawRect(Color.Black, topLeft = Offset(w / 2, w / 2), size = Size(size.width - w, size.height - w), style = Stroke(width = w))
                             }
                         }
                         .pointerInput(date) {
