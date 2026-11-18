@@ -451,10 +451,18 @@ class CalendarStore(private val context: Context) {
                 // the difference the edit made to the occurrence that was opened.
                 val unchanged = dropUnchangedTimes(values, record, occurrenceBegin, occurrenceEnd, newBegin, newEnd, draft)
                 if (!unchanged) {
-                    values.put(Events.DTSTART, seriesStart(occurrenceBegin, newBegin, record.dtStart, draft.allDay))
+                    // The change is the person's own, before the weekly shift: the opened
+                    // occurrence's day may be one the new rule no longer names, and shifting it
+                    // forward is not a change to the series. The series' own start then goes to
+                    // the first day the rule names (Draft.seriesStartAfterEdit).
+                    val change = draft.startAsSet() - occurrenceBegin
+                    values.put(
+                        Events.DTSTART,
+                        Draft.seriesStartAfterEdit(record.dtStart, change, draft.allDay, Draft.weeklyDays(draft.rrule), ZoneId.systemDefault()),
+                    )
                     // See seriesValues: a timing update carries the exclusions with it, and they
                     // move with the series, or the occurrences they removed come back.
-                    values.put(Events.EXDATE, Exdates.shift(record.exdate, newBegin - occurrenceBegin))
+                    values.put(Events.EXDATE, Exdates.shift(record.exdate, change))
                 }
                 if (resolver.update(uri, values, null, null) <= 0) return false
                 writeReminders(record.id, draft.reminders, record.reminders, force = false)
@@ -488,9 +496,12 @@ class CalendarStore(private val context: Context) {
         if (record.rrule != null && draft.rrule != null) {
             // As in update(): the series keeps its first date and its exclusions, moved by
             // whatever the edit did to the occurrence that was opened.
-            val (newBegin, _) = draft.millis()
-            values.put(Events.DTSTART, seriesStart(occurrenceBegin, newBegin, record.dtStart, draft.allDay))
-            values.put(Events.EXDATE, Exdates.shift(record.exdate, newBegin - occurrenceBegin))
+            val change = draft.startAsSet() - occurrenceBegin
+            values.put(
+                Events.DTSTART,
+                Draft.seriesStartAfterEdit(record.dtStart, change, draft.allDay, Draft.weeklyDays(draft.rrule), ZoneId.systemDefault()),
+            )
+            values.put(Events.EXDATE, Exdates.shift(record.exdate, change))
         }
         val inserted = resolver.insert(Events.CONTENT_URI, values) ?: return false
         val id = ContentUris.parseId(inserted)
@@ -543,16 +554,6 @@ class CalendarStore(private val context: Context) {
             values.remove(Events.EVENT_TIMEZONE)
         }
         return same
-    }
-
-    /** Etar's `getStartTimeForRecurrence`. */
-    private fun seriesStart(oldBegin: Long, newBegin: Long, seriesBegin: Long, allDay: Boolean): Long {
-        var start = seriesBegin + (newBegin - oldBegin)
-        if (allDay) {
-            start = Instant.ofEpochMilli(start).atZone(ZoneOffset.UTC).toLocalDate()
-                .atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
-        }
-        return start
     }
 
     fun delete(record: EventRecord, occurrenceBegin: Long, occurrenceEnd: Long, scope: Scope): Boolean {

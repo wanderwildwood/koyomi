@@ -33,8 +33,16 @@ data class Draft(
     val appUri: String? = null,
 ) {
     /** The provider's DTSTART and DTEND for this draft, after the weekly shift below. */
-    fun millis(): Pair<Long, Long> {
-        val (s, e) = shiftedDates()
+    fun millis(): Pair<Long, Long> = millisFor(shiftedDates())
+
+    /**
+     * The start as the person set it, before the weekly shift: for an edit of every occurrence,
+     * the change they made to the occurrence they opened is this minus that occurrence's start.
+     */
+    fun startAsSet(): Long = millisFor(startDate to endDate).first
+
+    private fun millisFor(dates: Pair<LocalDate, LocalDate>): Pair<Long, Long> {
+        val (s, e) = dates
         return if (allDay) {
             val start = s.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
             // At least one whole day, as Etar ensures.
@@ -54,12 +62,7 @@ data class Draft(
      * always an occurrence. The start moves forward to the first day the rule names.
      */
     private fun shiftedDates(): Pair<LocalDate, LocalDate> {
-        val rule = rrule ?: return startDate to endDate
-        val r = runCatching { EventRecurrence().apply { parse(rule) } }.getOrNull() ?: return startDate to endDate
-        if (r.freq != EventRecurrence.WEEKLY || r.bydayCount == 0 || r.byday == null) return startDate to endDate
-        val days = (0 until r.bydayCount).map { dayOfWeek(r.byday[it]) }.toSet()
-        if (startDate.dayOfWeek in days) return startDate to endDate
-        val offset = (1..7).first { startDate.plusDays(it.toLong()).dayOfWeek in days }.toLong()
+        val offset = shiftDays(startDate, weeklyDays(rrule))
         return startDate.plusDays(offset) to endDate.plusDays(offset)
     }
 
@@ -96,6 +99,38 @@ data class Draft(
 
     companion object {
         private const val DAY_MS = 24L * 60 * 60 * 1000
+
+        /** The days a weekly rule names, or null for any other rule (or none). */
+        fun weeklyDays(rrule: String?): Set<DayOfWeek>? {
+            val rule = rrule ?: return null
+            val r = runCatching { EventRecurrence().apply { parse(rule) } }.getOrNull() ?: return null
+            if (r.freq != EventRecurrence.WEEKLY || r.bydayCount == 0 || r.byday == null) return null
+            return (0 until r.bydayCount).map { dayOfWeek(r.byday[it]) }.toSet()
+        }
+
+        /** Days forward from [date] to the first of [days]; none when [date] is one, or no days are named. */
+        fun shiftDays(date: LocalDate, days: Set<DayOfWeek>?): Long {
+            if (days.isNullOrEmpty() || date.dayOfWeek in days) return 0
+            return (1..7).first { date.plusDays(it.toLong()).dayOfWeek in days }.toLong()
+        }
+
+        /**
+         * The series' new first start after "every one" was edited from one occurrence. Only the
+         * person's own change ([change], the opened occurrence's new start as set minus its old
+         * one) moves the series' start; then, as for a new event, the start goes forward to the
+         * first day a weekly rule names ([days]), since the provider always counts the first
+         * start as an occurrence. The exclusions move by [change] alone, not by that shift.
+         */
+        fun seriesStartAfterEdit(seriesBegin: Long, change: Long, allDay: Boolean, days: Set<DayOfWeek>?, zone: ZoneId): Long {
+            val moved = seriesBegin + change
+            return if (allDay) {
+                val date = java.time.Instant.ofEpochMilli(moved).atZone(ZoneOffset.UTC).toLocalDate()
+                date.plusDays(shiftDays(date, days)).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+            } else {
+                val at = java.time.Instant.ofEpochMilli(moved).atZone(zone)
+                at.plusDays(shiftDays(at.toLocalDate(), days)).toInstant().toEpochMilli()
+            }
+        }
 
         fun dayOfWeek(erDay: Int): DayOfWeek = when (erDay) {
             EventRecurrence.MO -> DayOfWeek.MONDAY
