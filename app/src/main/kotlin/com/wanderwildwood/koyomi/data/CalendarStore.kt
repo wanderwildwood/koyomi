@@ -698,13 +698,13 @@ class CalendarStore(private val context: Context) {
         return resolver.update(ContentUris.withAppendedId(Events.CONTENT_URI, record.id), values, null, null) > 0
     }
 
+    /** The clock a series' occurrences are counted on: its own zone, or the phone's if that is unreadable. */
+    private fun seriesZone(tz: String): ZoneId = runCatching { ZoneId.of(tz) }.getOrDefault(ZoneId.systemDefault())
+
     /**
      * A local calendar has no sync adapter to finish a delete, so its rows are removed as
      * one would, and are not left marked for a sync that never comes. Etar does the same.
      */
-    /** The clock a series' occurrences are counted on: its own zone, or the phone's if that is unreadable. */
-    private fun seriesZone(tz: String): ZoneId = runCatching { ZoneId.of(tz) }.getOrDefault(ZoneId.systemDefault())
-
     private fun syncAwareUri(record: EventRecord): Uri {
         val base = ContentUris.withAppendedId(Events.CONTENT_URI, record.id)
         if (record.accountType != CalendarContract.ACCOUNT_TYPE_LOCAL) return base
