@@ -325,9 +325,15 @@ object Alerts {
      * A reminder that was due while its event was still on, and is only being seen now that the
      * event is over (the phone was off): there is nothing left to remind anyone of. One due at
      * or after the end - "at start" on an event with no length, or a snooze past the end - is
-     * what was asked for, and rings.
+     * what was asked for, and rings, but only while it is fresh: one seen more than [LATE_MS] after
+     * it was due, with the event over by then, is days-old news after the phone was off.
+     * A reminder for an event still to come rings however late it is seen.
      */
-    internal fun cameTooLate(end: Long, alarmTime: Long, now: Long): Boolean = end < now && alarmTime < end
+    internal fun cameTooLate(end: Long, alarmTime: Long, now: Long): Boolean =
+        end < now && (alarmTime < end || now - alarmTime > LATE_MS)
+
+    /** How late a reminder due at or after its event's end may still ring. */
+    internal const val LATE_MS = 2 * 60 * 60_000L
 }
 
 /**

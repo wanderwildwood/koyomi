@@ -25,6 +25,17 @@ class AlertTimingTest {
     }
 
     @Test
+    fun `at start on an event with no length, seen hours later, is dropped`() {
+        assertTrue(Alerts.cameTooLate(end = begin, alarmTime = begin, now = begin + Alerts.LATE_MS + 1))
+        assertTrue(Alerts.cameTooLate(end = begin + hour, alarmTime = begin + hour + 300_000L, now = begin + 30 * hour))
+    }
+
+    @Test
+    fun `a reminder for an event still to come rings however late`() {
+        assertFalse(Alerts.cameTooLate(end = begin + hour, alarmTime = begin - 48 * hour, now = begin - hour))
+    }
+
+    @Test
     fun `a reminder during the event rings`() {
         assertFalse(Alerts.cameTooLate(end = begin + hour, alarmTime = begin, now = begin + 1_000L))
     }
