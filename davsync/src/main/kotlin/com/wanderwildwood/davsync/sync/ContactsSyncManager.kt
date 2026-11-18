@@ -195,8 +195,8 @@ class ContactsSyncManager(
                 downloader = object : Contact.Downloader {
                     override suspend fun download(url: String, accepts: String): ByteArray? {
                         // retrieve external resource (like a photo) from a URL (not necessarily HTTP[S])
-                        // the sync's own client: the password still goes to the account's domain only
-                        return ResourceRetriever(httpClient, logger).retrieve(url)
+                        // the sync's own client, and only from the server the card came from
+                        return ResourceRetriever(httpClient, logger, result.url.host).retrieve(url)
                     }
                 }
             )
