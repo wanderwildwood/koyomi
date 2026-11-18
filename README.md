@@ -55,6 +55,12 @@ twelve hours at a time, changed by a swipe up or down; and an agenda of the six 
 A swipe across turns one page and stops. Nothing scrolls on its own and nothing animates.
 Back returns to the Month view, and from the Month view leaves the app.
 
+**Search**, the magnifier at the top, finds events by name, place or notes, from a year back to
+two years ahead.
+
+**Dark mode** is a switch in Settings: the same screens, white on black. It also follows the
+phone's own dark setting.
+
 **Repeats of every ordinary shape.** Every so many days, weeks, months or years; chosen days
 of the week; the 25th of the month or the fourth Friday or the last one; for ever, until a
 date, or a number of times. "Every 10 days, 5 times" is one screen. The rule is written and
