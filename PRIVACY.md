@@ -70,12 +70,22 @@ adds calendars; it removes nothing.
 
 ## What is stored
 
-The events themselves live in the phone's calendar store, not in this app. The app keeps its
-settings in `SharedPreferences`, all visible in `data/Settings.kt`: which view it opens on,
-the first day of the week, whether week numbers show, the calendar and the reminders a new
-event and a new all-day event start with, each calendar's all-day reminder, whether a reminder
-fills the screen, whether the screen turns with the phone, the two lock-screen switches, and
-whether the DuraSpeed note has been seen.
+The events themselves live in the phone's calendar store, not in this app. The app keeps a few
+small files of its own in `SharedPreferences`, in its private storage:
+
+- `settings` (`data/Settings.kt`): which view it opens on, the first day of the week, whether
+  week numbers show, the calendar and the reminders a new event and a new all-day event start
+  with, each calendar's all-day reminder, whether a reminder fills the screen, whether the screen
+  turns with the phone, the two lock-screen switches, and whether the DuraSpeed note has been seen.
+- `dark_mode` (`ui/DarkMode.kt`): whether dark mode is on, whether the app's own switch holds
+  over the phone's and Home's, and Home's switch as last heard, with Home's stamp for it.
+- `all_day_state` (`alerts/AllDayReminders.kt`): which all-day reminders have rung and which are
+  snoozed, each known by its calendar, a hash of the event's UID or title, its day and its kind,
+  and forgotten once its day is over.
+- `subscriptions`: the followed calendar links, described above.
+
+An event being written when the phone stops the app in the background is kept in the app's
+saved screen state, which Android holds for it, so it comes back as it was (`data/EditorState.kt`).
 
 If Home is installed, the app asks it whether its dark mode is on, and sends it nothing.
 
