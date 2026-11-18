@@ -8,6 +8,7 @@ package com.wanderwildwood.davsync.servicedetection
 
 import at.bitfire.dav4jvm.Property
 import at.bitfire.dav4jvm.ktor.DavResource
+import at.bitfire.dav4jvm.ktor.Response
 import at.bitfire.dav4jvm.ktor.exception.HttpException
 import at.bitfire.dav4jvm.ktor.exception.UnauthorizedException
 import at.bitfire.dav4jvm.ktor.resolve
@@ -17,6 +18,7 @@ import at.bitfire.dav4jvm.property.caldav.CalDAV
 import at.bitfire.dav4jvm.property.caldav.CalendarHomeSet
 import at.bitfire.dav4jvm.property.carddav.AddressbookHomeSet
 import at.bitfire.dav4jvm.property.carddav.CardDAV
+import at.bitfire.dav4jvm.property.webdav.ResourceType
 import at.bitfire.dav4jvm.property.webdav.WebDAV
 import com.wanderwildwood.davsync.model.Collection
 import com.wanderwildwood.davsync.servicedetection.DavResourceFinder.Service
@@ -47,43 +49,85 @@ class CollectionLister(
     }
 
     /** The calendars or address books in [homeSet]. A home set the server refuses (403/404/410) gives none. */
-    suspend fun collections(homeSet: Url, service: Service): List<Collection> {
+    suspend fun collections(homeSet: Url, service: Service): List<Collection> =
+        collectionsOrNull(homeSet, service)?.collections.orEmpty()
+
+    /**
+     * As [collections], but null for a home set the server refused, and [Found.whole] false when
+     * one of its answers could not be read, so a listing can tell it is partial.
+     */
+    private suspend fun collectionsOrNull(homeSet: Url, service: Service): Found? {
         val type = if (service == Service.CARDDAV) Collection.TYPE_ADDRESSBOOK else Collection.TYPE_CALENDAR
-        val found = mutableListOf<Collection>()
+        val responses = mutableListOf<Response>()
         try {
             DavResource(httpClient, homeSet, logger).propfind(1, *collectionQueryProperties(service))
                 .responses()
-                .collect { response ->
-                    if (!response.isSuccess()) return@collect
-                    val collection = Collection.fromDavResponse(response) ?: return@collect
-                    if (collection.type == type)
-                        found += collection
-                }
+                .collect { responses += it }
         } catch (e: HttpException) {
             if (e is UnauthorizedException) throw e
             if (e.statusCode !in arrayOf(403, 404, 410)) throw e
             logger.log(Level.INFO, "Home set $homeSet not accessible", e)
+            return null
         }
+        val found = read(responses, type)
+        if (!found.whole)
+            logger.log(Level.INFO, "Home set $homeSet: an answer could not be read, the listing is partial")
         return found
     }
+
+    /** The collections of one home set, and whether every answer in it could be read. */
+    internal class Found(val collections: List<Collection>, val whole: Boolean)
 
     /**
      * Everything for [service] from a finished discovery: the collections in each home set, plus
      * any collection the typed address pointed at directly.
      */
-    suspend fun all(info: DavResourceFinder.Configuration.ServiceInfo, service: Service): List<Collection> {
+    suspend fun all(info: DavResourceFinder.Configuration.ServiceInfo, service: Service): List<Collection> =
+        listing(info, service).collections
+
+    /**
+     * As [all], and whether every home set answered. A listing with a home set refused is only
+     * part of the list: a collection missing from it may still be on the server.
+     */
+    suspend fun listing(info: DavResourceFinder.Configuration.ServiceInfo, service: Service): Listing {
         val homeSets = info.homeSets.toMutableSet()
         info.principal?.let { homeSets += homeSets(it, service) }
         val byUrl = LinkedHashMap<Url, Collection>()
-        for (homeSet in homeSets)
-            for (c in collections(homeSet, service))
+        var complete = true
+        for (homeSet in homeSets) {
+            val found = collectionsOrNull(homeSet, service)
+            if (found == null || !found.whole) complete = false
+            for (c in found?.collections.orEmpty())
                 byUrl[c.url] = c
+        }
         for ((url, c) in info.collections)
             byUrl.putIfAbsent(url, c)
-        return byUrl.values.toList()
+        return Listing(byUrl.values.toList(), complete)
     }
 
+    class Listing(val collections: List<Collection>, val complete: Boolean)
+
     companion object {
+        /**
+         * The [type] collections among a home set's [responses]. An answer that failed, or that
+         * does not say what kind of resource it is, could be a book or calendar the phone already
+         * has, so it makes the result not whole. A plain folder or a file is read and left out.
+         */
+        internal fun read(responses: List<Response>, type: String): Found {
+            val found = mutableListOf<Collection>()
+            var whole = true
+            for (response in responses) {
+                if (!response.isSuccess() || response[ResourceType::class.java] == null) {
+                    whole = false
+                    continue
+                }
+                val collection = Collection.fromDavResponse(response) ?: continue
+                if (collection.type == type)
+                    found += collection
+            }
+            return Found(found, whole)
+        }
+
         fun collectionQueryProperties(service: Service): Array<Property.Name> =
             arrayOf(
                 WebDAV.CurrentUserPrivilegeSet,

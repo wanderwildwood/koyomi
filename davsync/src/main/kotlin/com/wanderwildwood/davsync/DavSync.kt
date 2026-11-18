@@ -16,15 +16,16 @@ class DavSync(context: Context) {
 
     val context: Context = context.applicationContext
     val logger: Logger = Logger.getLogger("davsync")
-    val accounts = AccountStore(this.context)
 
     init {
-        // A release build logs warnings only: the sync's progress lines name the account and the
-        // events, and the system log is not a place for either.
+        // A released build writes nothing of the sync to the system log: the lines name the
+        // account, its calendars and address books, and whole events and cards. Every logger
+        // here (davsync, dav4jvm, synctools) has no level of its own, so they all take the root's.
         if (this.context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE == 0) {
-            quiet.forEach { it.level = Level.WARNING }
+            Logger.getLogger("").level = Level.OFF
         }
     }
+    val accounts = AccountStore(this.context)
     val ioDispatcher = Dispatchers.IO
 
     private val appName: String = this.context.getString(R.string.davsync_product_name)
@@ -40,9 +41,6 @@ class DavSync(context: Context) {
     val vCardProdId = "$appName/$versionName ez-vcard"
 
     companion object {
-        /** The roots of the sync code's loggers, held so their level is not lost with them. */
-        private val quiet = listOf("davsync", "at.bitfire", "at.techbee").map { Logger.getLogger(it) }
-
         /** At most two multigets at once, across collections (DAVx5's SyncMultigetSemaphore). */
         val multigetSemaphore = Semaphore(2)
     }

@@ -97,11 +97,12 @@ class AccountStore(context: Context) {
     /**
      * Saves a fresh list from the server, keeping each known collection's id and sync choice
      * (matched by address), so local calendars and address books stay tied to the same ones.
+     * See [refreshed] for when a known one missing from the list is kept.
      */
-    fun refreshCollections(account: Account, found: List<Collection>) {
-        val known = collections(account).associateBy { it.url }
-        val merged = found.map { c -> known[c.url]?.let { old -> c.copy(id = old.id, sync = old.sync, forceReadOnly = old.forceReadOnly) } ?: c.copy(id = 0) }
-        save(account, numbered(merged, from = known.values.maxOfOrNull { it.id } ?: 0))
+    fun refreshCollections(account: Account, found: List<Collection>, complete: Boolean = true) {
+        val known = collections(account)
+        val list = refreshed(known, found, complete)
+        if (list != known) save(account, list)
     }
 
     fun setSync(account: Account, id: Long, sync: Boolean) =
@@ -109,12 +110,6 @@ class AccountStore(context: Context) {
 
     private fun save(account: Account, list: List<Collection>) =
         manager.setUserData(account, KEY_COLLECTIONS, Collection.toJson(list))
-
-    /** Gives a new id to every collection still at 0. */
-    private fun numbered(list: List<Collection>, from: Long = 0): List<Collection> {
-        var next = maxOf(from, list.maxOfOrNull { it.id } ?: 0)
-        return list.map { if (it.id == 0L) it.copy(id = ++next) else it }
-    }
 
     /** Turns syncing of [authority] on for [account], with a periodic sync at the account's interval. */
     fun enableSync(account: Account, authority: String) {
@@ -214,6 +209,26 @@ class AccountStore(context: Context) {
     }
 
     companion object {
+        /**
+         * [known] after a listing [found] from the server. A collection missing from the list
+         * leaves the phone at the next sync, with any change not yet sent, so it is dropped
+         * only when the list is whole: every home set answered ([complete]) and it named
+         * something. A partial or empty list only adds what is new.
+         */
+        internal fun refreshed(known: List<Collection>, found: List<Collection>, complete: Boolean): List<Collection> {
+            val byUrl = known.associateBy { it.url }
+            val merged = found.map { c -> byUrl[c.url]?.let { old -> c.copy(id = old.id, sync = old.sync, forceReadOnly = old.forceReadOnly) } ?: c.copy(id = 0) }
+            val seen = found.map { it.url }.toSet()
+            val kept = if (complete && found.isNotEmpty()) emptyList() else known.filter { it.url !in seen }
+            return numbered(merged + kept, from = known.maxOfOrNull { it.id } ?: 0)
+        }
+
+        /** Gives a new id to every collection still at 0. */
+        internal fun numbered(list: List<Collection>, from: Long = 0): List<Collection> {
+            var next = maxOf(from, list.maxOfOrNull { it.id } ?: 0)
+            return list.map { if (it.id == 0L) it.copy(id = ++next) else it }
+        }
+
         private const val KEY_LAST_GOOD = "davsync_last_good"
         private const val KEY_LAST_PROBLEM = "davsync_last_problem"
         private const val KEY_LAST_DETAIL = "davsync_last_detail"

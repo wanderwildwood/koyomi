@@ -55,8 +55,8 @@ object CollectionMaker {
                 else
                     "MKCOL" to addressBookXml(name)
                 DavResource(client, url, davSync.logger).mkCol(body, method) { }
-                val found = lister.all(info, service)
-                davSync.accounts.refreshCollections(account, found)
+                val found = lister.listing(info, service)
+                davSync.accounts.refreshCollections(account, found.collections, found.complete)
                 val made = davSync.accounts.collections(account).firstOrNull { it.url == url }
                     ?: davSync.accounts.collections(account).firstOrNull { it.url.encodedPath == url.encodedPath }
                     ?: return@withClient Result.Refused("")
@@ -72,8 +72,8 @@ object CollectionMaker {
     suspend fun refresh(davSync: DavSync, account: Account, service: Service): Result =
         withContext(davSync.ioDispatcher) {
             withClient(davSync, account, service) { client, info ->
-                val found = CollectionLister(client, davSync.logger).all(info, service)
-                if (found.isNotEmpty()) davSync.accounts.refreshCollections(account, found)
+                val found = CollectionLister(client, davSync.logger).listing(info, service)
+                davSync.accounts.refreshCollections(account, found.collections, found.complete)
                 Result.Made(0)
             }
         }
