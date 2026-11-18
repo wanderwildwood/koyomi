@@ -56,6 +56,7 @@
     <string name="event_open_in">In %1$s öffnen</string>
     <string name="event_app_failed">Diese App konnte ihn nicht öffnen.</string>
     <string name="event_not_deleted">Der Kalender hat das Löschen nicht angenommen.</string>
+    <string name="alert_left_for_editor">Die Erinnerung ist weggelegt, und der Termin, den du schreibst, bleibt offen.</string>
 
     <!-- Delete choices, asked in a dialog from the Delete button -->
     <string name="cd_delete">Löschen</string>

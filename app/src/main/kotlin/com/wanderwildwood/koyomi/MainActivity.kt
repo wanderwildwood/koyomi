@@ -124,8 +124,14 @@ class MainActivity : ComponentActivity() {
         if (id < 0) return
         val begin = intent!!.getLongExtra(Alerts.EXTRA_BEGIN, 0)
         val end = intent.getLongExtra(Alerts.EXTRA_END, 0)
-        model.popAll()
-        model.push(Screen.Event(id, begin, end))
+        if (model.stack.any { it is Screen.Edit || it is Screen.Repeat }) {
+            // An event is being written: the app comes up on it, as it was, and the reminder
+            // goes. Opening the reminder's event over it would throw away what was typed.
+            com.wanderwildwood.koyomi.ui.Notice.say(this, R.string.alert_left_for_editor)
+        } else {
+            model.popAll()
+            model.push(Screen.Event(id, begin, end))
+        }
         val kind = com.wanderwildwood.koyomi.data.AllDayKind.of(intent.getIntExtra(Alerts.EXTRA_KIND, 0))
         val key = intent.getStringExtra(Alerts.EXTRA_ALL_DAY_KEY)
         thread { Alerts.dismiss(applicationContext, id, begin, kind, key) }
