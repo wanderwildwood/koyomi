@@ -617,9 +617,13 @@ class AppModel(app: Application) : AndroidViewModel(app) {
         val result = withContext(Dispatchers.IO) {
             var added = 0
             var had = 0
-            for (e in events) {
+            for (read in events) {
+                // An edited occurrence goes in under a UID of its own (Ics.importUid). One added
+                // before that, under the series' UID, is still known by its start.
+                val e = read.copy(uid = Ics.importUid(read))
                 val there = e.uid != null && runCatching {
-                    if (e.recurrenceId != null) store.hasUidAt(calendarId, e.uid, e.startMillis) else store.hasUid(calendarId, e.uid)
+                    store.hasUid(calendarId, e.uid) ||
+                        (read.recurrenceId != null && read.uid != null && store.hasUidAt(calendarId, read.uid, read.startMillis))
                 }.getOrDefault(false)
                 if (there) {
                     had++

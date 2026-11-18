@@ -151,6 +151,19 @@ object Ics {
     }
 
     /**
+     * The UID an event from a file is added under. An edited occurrence is added as an event of
+     * its own, and under its series' UID a server sync would take it for the series: both would
+     * be sent as the same file, and the second would be refused and dropped from the phone. So
+     * it takes the series' UID with its RECURRENCE-ID after it, which is the same each time the
+     * same file is opened and never the series' own.
+     */
+    fun importUid(event: IcsEvent): String? {
+        val uid = event.uid ?: return null
+        val at = event.recurrenceId?.filter { it.isLetterOrDigit() }?.ifEmpty { null } ?: return uid
+        return "$uid-$at"
+    }
+
+    /**
      * Turns a TZID into a zone: [zoneOf] first, then the file's VTIMEZONE of that name, read
      * at [at] since the guess depends on the year.
      */

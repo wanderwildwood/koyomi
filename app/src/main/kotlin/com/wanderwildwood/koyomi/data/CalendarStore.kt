@@ -702,7 +702,7 @@ class CalendarStore(private val context: Context) {
         put(Events.HAS_ATTENDEE_DATA, 1)
     }
 
-    /** As [hasUid], for an edited occurrence: its UID is the series', so it is told apart by its start. */
+    /** As [hasUid], for an edited occurrence added before it had a UID of its own: it had the series', so it is told apart by its start. */
     fun hasUidAt(calendarId: Long, uid: String, start: Long): Boolean = resolver.query(
         Events.CONTENT_URI,
         arrayOf(Events._ID),

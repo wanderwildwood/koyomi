@@ -306,6 +306,24 @@ class IcsTest {
     }
 
     @Test
+    fun anEditedOccurrenceIsAddedUnderAUidOfItsOwnNeverTheSeries() {
+        val e = Ics.parse(
+            cal(
+                "BEGIN:VEVENT", "UID:r1@example.org", "SUMMARY:Choir", "DTSTART;TZID=America/Chicago:20261007T190000",
+                "DTEND;TZID=America/Chicago:20261007T203000", "RRULE:FREQ=WEEKLY;BYDAY=WE;COUNT=10", "END:VEVENT",
+                "BEGIN:VEVENT", "UID:r1@example.org", "RECURRENCE-ID;TZID=America/Chicago:20261014T190000", "SUMMARY:Choir (moved)",
+                "DTSTART;TZID=America/Chicago:20261015T190000", "DTEND;TZID=America/Chicago:20261015T203000", "END:VEVENT",
+            ),
+            phone,
+        )
+        val uids = e.map { Ics.importUid(it) }
+        assertEquals("r1@example.org", uids[0])
+        assertEquals("r1@example.org-20261014T190000", uids[1])
+        assertEquals(2, uids.toSet().size)
+        assertNull(Ics.importUid(e[0].copy(uid = null)))
+    }
+
+    @Test
     fun untilWrittenInLocalTimeBecomesUtc() {
         val e = Ics.parse(
             cal(
