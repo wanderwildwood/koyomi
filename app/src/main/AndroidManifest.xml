@@ -183,6 +183,15 @@
             </intent-filter>
         </activity>
 
+        <!-- A pressed reminder: puts it away, then opens the event. Shows nothing itself. -->
+        <activity
+            android:name=".alerts.OpenReminderActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.NoDisplay" />
+
         <activity
             android:name=".alerts.AlertActivity"
             android:exported="false"

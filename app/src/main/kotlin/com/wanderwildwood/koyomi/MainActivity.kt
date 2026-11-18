@@ -118,13 +118,15 @@ class MainActivity : ComponentActivity() {
         model.refreshSubscriptions()
     }
 
-    /** A reminder that was pressed opens its event. */
+    /**
+     * A reminder that was pressed opens its event. Only that: this screen is open to every app,
+     * so the reminder is put away before it gets here (OpenReminderActivity, AlertActivity).
+     */
     private fun openFrom(intent: Intent?) {
         val id = intent?.getLongExtra(Alerts.EXTRA_EVENT, -1) ?: -1
         if (id < 0) return
         val begin = intent!!.getLongExtra(Alerts.EXTRA_BEGIN, 0)
         val end = intent.getLongExtra(Alerts.EXTRA_END, 0)
-        val kind = com.wanderwildwood.koyomi.data.AllDayKind.of(intent.getIntExtra(Alerts.EXTRA_KIND, 0))
         val key = intent.getStringExtra(Alerts.EXTRA_ALL_DAY_KEY)
         if (model.stack.any { it is Screen.Edit || it is Screen.Repeat }) {
             // An event is being written: the app comes up on it, as it was, and the reminder
@@ -134,7 +136,6 @@ class MainActivity : ComponentActivity() {
             model.popAll()
             model.push(Screen.Event(id, begin, end, key))
         }
-        thread { Alerts.dismiss(applicationContext, id, begin, kind, key) }
         intent.removeExtra(Alerts.EXTRA_EVENT)
     }
 }

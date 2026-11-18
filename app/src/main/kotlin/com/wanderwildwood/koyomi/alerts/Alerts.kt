@@ -11,7 +11,6 @@ import android.content.Intent
 import android.provider.CalendarContract.CalendarAlerts
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import com.wanderwildwood.koyomi.MainActivity
 import com.wanderwildwood.koyomi.R
 import com.wanderwildwood.koyomi.data.AllDayKind
 import com.wanderwildwood.koyomi.data.CalendarStore
@@ -257,7 +256,7 @@ object Alerts {
 
         val open = PendingIntent.getActivity(
             context, id,
-            extras(Intent(context, MainActivity::class.java)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
+            extras(Intent(context, OpenReminderActivity::class.java)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
         val snooze = PendingIntent.getBroadcast(
