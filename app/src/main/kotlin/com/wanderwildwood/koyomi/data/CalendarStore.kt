@@ -154,9 +154,13 @@ class CalendarStore(private val context: Context) {
      * A large feed is more than one call to the provider can carry, so the new events go in a
      * chunk at a time, each marked with this refresh's own mark, and only once all of them are in
      * are the old ones (every event without the mark) deleted, in one small call. If a chunk is
-     * refused, the new events already in are deleted again and the old copy stays whole.
+     * refused, the new events already in are deleted again and the old copy stays whole. Two
+     * swaps of one calendar never overlap ([swapLocks]).
      */
-    fun replaceSubscriptionEvents(calendarId: Long, events: List<IcsEvent>): Boolean {
+    fun replaceSubscriptionEvents(calendarId: Long, events: List<IcsEvent>): Boolean =
+        synchronized(swapLocks.computeIfAbsent(calendarId) { Any() }) { swap(calendarId, events) }
+
+    private fun swap(calendarId: Long, events: List<IcsEvent>): Boolean {
         if (!canWrite()) return false
         val account = accountOf(calendarId) ?: return false
         val uri = asSyncAdapter(Events.CONTENT_URI, account)
@@ -811,6 +815,13 @@ class CalendarStore(private val context: Context) {
 
         /** A sync adapter's own column, used on a followed calendar's events to tell this refresh's from the last one's. */
         private const val REFRESH_MARK = Events.SYNC_DATA1
+
+        /**
+         * One swap at a time for each followed calendar. The background fetch and the app's own
+         * can come together, and each swap deletes every event that is not its own: two at
+         * once would each delete the other's new events and leave the calendar empty.
+         */
+        private val swapLocks = java.util.concurrent.ConcurrentHashMap<Long, Any>()
 
         fun toLocal(ms: Long, allDay: Boolean, zone: ZoneId): LocalDateTime =
             if (allDay) {
