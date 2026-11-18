@@ -164,6 +164,11 @@ saving a changed occurrence of one, this follows. The repeat-rule parser
 (`com.android.calendar.calendarcommon2`) is carried unchanged from Etar and is the Android
 Open Source Project's, Apache License 2.0.
 
+The sync with your own server is adapted from [DAVx5](https://github.com/bitfireAT/davx5-ose)
+by bitfire web engineering and the DAVx5 contributors, GPL-3.0-or-later (in `davsync/`), and
+carries their dav4jvm (MPL-2.0, in `dav4jvm/`) and synctools (GPL-3.0, in `synctools/`)
+libraries, each with its own license file.
+
 The interface is Jetpack Compose against [MMD](https://github.com/mudita/MMD), Mudita's
 E Ink component library, including its date picker and time input.
 
@@ -173,7 +178,9 @@ Icons are [Material Symbols](https://fonts.google.com/icons), Apache License 2.0
 
 **GNU General Public License, version 3 only (GPL-3.0-only).** See [LICENSE](LICENSE).
 
-Both projects this derives from are published under the GPL version 3.
+KompaktCalendar, Etar and DAVx5, the projects this derives from, are published under the GPL
+version 3; dav4jvm keeps its own Mozilla Public License 2.0.
 
-Copyright © wander wildwood, © David Anderlohr, and © the Etar and Android Open Source
-Project authors for the parts that are theirs.
+Copyright © wander wildwood, © David Anderlohr, © the Etar and Android Open Source Project
+authors, and © bitfire web engineering and the DAVx5 contributors, for the parts that are
+theirs.
