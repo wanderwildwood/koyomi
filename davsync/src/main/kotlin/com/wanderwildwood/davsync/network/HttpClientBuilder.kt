@@ -4,15 +4,15 @@
  * timeouts, gzip, no automatic redirects. Left out: OAuth, client certificates, proxy, custom
  * trust (the system's CAs only), traffic logging.
  * Added here: the login goes only over https, or over plain http to a home or VPN address
- * and then only once that server has asked for it (SchemeGuard), and never to "any domain" when the account's host is not known. An account's
+ * and then only once that server has asked for it (SchemeGuard), and never to "any domain" when the account's host is not known.
+ * The server's domain keeps one label more under suffixes strangers share, such as ts.net,
+ * duckdns.org or co.uk (LoginDomainGuard), so a neighbor's host never gets the login. An account's
  * client sends nothing at all over plain http to a host away from home (PlainHttpGuard): the
  * request stops with [PlainHttpRefused], so the user is told the real reason.
  */
 package com.wanderwildwood.davsync.network
 
-import at.bitfire.dav4jvm.ktor.DomainAuthProvider
 import at.bitfire.dav4jvm.ktor.PreemptiveBasicDigestAuthProvider
-import at.bitfire.dav4jvm.ktor.UrlUtils
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.api.createClientPlugin
 import io.ktor.client.engine.okhttp.OkHttp
@@ -60,13 +60,13 @@ object HttpClientBuilder {
         HttpClient(OkHttp) {
             // Redirects are not followed automatically: it would break PROPFIND handling (DAVx5).
             followRedirects = false
-            // No host, no login: DomainAuthProvider reads a missing domain as "every domain".
+            // No host, no login: the login goes only to the server's own domain (LoginDomainGuard).
             if (credentials != null && !host.isNullOrBlank()) {
                 install(PlainHttpGuard)
                 install(Auth) {
                     providers.add(
                         SchemeGuard(
-                            DomainAuthProvider(UrlUtils.hostToDomain(host), PreemptiveBasicDigestAuthProvider(credentials.username, credentials.password))
+                            LoginDomainGuard(host, PreemptiveBasicDigestAuthProvider(credentials.username, credentials.password))
                         )
                     )
                 }
