@@ -50,9 +50,12 @@ fun EventScreen(model: AppModel, screen: Screen.Event) {
     // and one tap there must not be enough to lose an event.
     var askDelete by remember { mutableStateOf(false) }
 
-    // Reloads when the store changes under it, so an edit shows once it is saved.
+    // Reloads when the store changes under it, so an edit shows once it is saved, and a
+    // followed calendar fetched again while it is open keeps showing its event.
+    var known by remember(screen) { mutableStateOf<EventRecord?>(null) }
     LaunchedEffect(screen, model.occurrences) {
-        record = model.load(screen.eventId)
+        record = model.loadAgain(screen, known)
+        record?.let { known = it }
         loaded = true
     }
 

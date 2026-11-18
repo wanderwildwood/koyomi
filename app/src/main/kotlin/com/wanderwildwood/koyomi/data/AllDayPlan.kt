@@ -104,6 +104,15 @@ object AllDayPlan {
         listOfNotNull(uid?.takeIf { it.isNotBlank() }?.let { "u:$it" }, "t:$title")
             .map { "$calendarId:${digest(it)}:$begin:${kind.code}" }
 
+    /** The calendar and the kind a key from [keys] was made for, or null for any other text. */
+    fun calendarAndKind(key: String): Pair<Long, AllDayKind>? {
+        val parts = key.split(':')
+        if (parts.size != 4) return null
+        val calendarId = parts[0].toLongOrNull() ?: return null
+        val kind = parts[3].toIntOrNull()?.let { AllDayKind.of(it) } ?: return null
+        return calendarId to kind
+    }
+
     /** The key used before [keys], by row id: read only so what was shown then is not shown again. */
     fun legacyKey(eventId: Long, begin: Long, kind: AllDayKind): String = "$eventId:$begin:${kind.code}"
 

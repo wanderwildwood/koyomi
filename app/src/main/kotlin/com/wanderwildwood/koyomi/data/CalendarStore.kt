@@ -298,6 +298,7 @@ class CalendarStore(private val context: Context) {
                 Events.EXDATE,
                 Events.CUSTOM_APP_PACKAGE,
                 Events.CUSTOM_APP_URI,
+                Events.UID_2445,
             ),
             null, null, null,
         )?.use { c ->
@@ -322,6 +323,7 @@ class CalendarStore(private val context: Context) {
                 exdate = c.getString(15)?.takeIf { it.isNotBlank() },
                 appPackage = c.getString(16)?.takeIf { it.isNotBlank() },
                 appUri = c.getString(17)?.takeIf { it.isNotBlank() },
+                uid = c.getString(18)?.takeIf { it.isNotBlank() },
             )
         }
         return null
@@ -343,6 +345,48 @@ class CalendarStore(private val context: Context) {
         )?.use { return it.count > 0 }
         return false
     }
+
+    /**
+     * The row that now holds an occurrence known from before: in [calendarId], starting at
+     * [begin], with [uid] or, when there is none, [title]. A followed calendar is fetched again
+     * every few hours and each fetch puts every event back under a new row id, so an event open
+     * on the screen, or a reminder, would otherwise lose its event to the next fetch.
+     */
+    fun findAgain(calendarId: Long, uid: String?, title: String, begin: Long): Long? =
+        rowsAt(calendarId, begin).firstOrNull { (id, t) -> if (uid != null) uidOf(id) == uid else t == title }?.first
+
+    /** As [findAgain], for a reminder of this app's own for an all-day event, known by its key ([AllDayPlan.keys]). */
+    fun findByAllDayKey(key: String, begin: Long): Long? {
+        val (calendarId, kind) = AllDayPlan.calendarAndKind(key) ?: return null
+        return rowsAt(calendarId, begin).firstOrNull { (id, title) ->
+            key in AllDayPlan.keys(calendarId, uidOf(id), title, begin, kind)
+        }?.first
+    }
+
+    /** The row id and title of each occurrence in [calendarId] that starts at [begin]. */
+    private fun rowsAt(calendarId: Long, begin: Long): List<Pair<Long, String>> {
+        if (!canRead()) return emptyList()
+        val uri = Instances.CONTENT_URI.buildUpon().also {
+            ContentUris.appendId(it, begin - 1)
+            ContentUris.appendId(it, begin + 1)
+        }.build()
+        val out = mutableListOf<Pair<Long, String>>()
+        runCatching {
+            resolver.query(
+                uri,
+                arrayOf(Instances.EVENT_ID, Instances.TITLE),
+                "${Instances.CALENDAR_ID} = ? AND ${Instances.BEGIN} = ?",
+                arrayOf(calendarId.toString(), begin.toString()),
+                null,
+            )?.use { c -> while (c.moveToNext()) out += c.getLong(0) to c.getString(1).orEmpty() }
+        }
+        return out
+    }
+
+    private fun uidOf(eventId: Long): String? = resolver.query(
+        ContentUris.withAppendedId(Events.CONTENT_URI, eventId),
+        arrayOf(Events.UID_2445), null, null, null,
+    )?.use { c -> if (c.moveToFirst()) c.getString(0)?.takeIf { it.isNotBlank() } else null }
 
     // ------------------------------------------------------------------------------------
     // Writing

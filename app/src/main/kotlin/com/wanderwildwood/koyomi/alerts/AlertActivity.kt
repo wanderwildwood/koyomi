@@ -60,7 +60,11 @@ class AlertActivity : ComponentActivity() {
         val end = intent.getLongExtra(Alerts.EXTRA_END, -1)
         val kind = AllDayKind.of(intent.getIntExtra(Alerts.EXTRA_KIND, 0))
         val key = intent.getStringExtra(Alerts.EXTRA_ALL_DAY_KEY)
-        val record = CalendarStore(this).event(eventId)
+        // A followed calendar fetched again since the reminder was posted has new row ids; the
+        // reminder's key still finds its event.
+        val store = CalendarStore(this)
+        val record = store.event(eventId)
+            ?: key?.let { k -> runCatching { store.findByAllDayKey(k, begin) }.getOrNull()?.let { store.event(it) } }
         if (record == null) {
             finish()
             return

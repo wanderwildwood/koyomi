@@ -50,7 +50,11 @@ import java.time.temporal.TemporalAdjusters
 
 /** A screen laid over the four views. The views themselves are the bottom of the stack. */
 sealed interface Screen {
-    data class Event(val eventId: Long, val begin: Long, val end: Long) : Screen
+    /**
+     * [allDayKey] is set when it was opened from a reminder of the app's own for an all-day
+     * event, and finds the event again if a followed calendar's fetch gave it a new row id.
+     */
+    data class Event(val eventId: Long, val begin: Long, val end: Long, val allDayKey: String? = null) : Screen
 
     /** [record] is null for a new event. */
     data class Edit(val record: EventRecord?, val begin: Long, val end: Long, val scope: Scope) : Screen
@@ -545,6 +549,20 @@ class AppModel(app: Application) : AndroidViewModel(app) {
     }
 
     suspend fun load(eventId: Long): EventRecord? = withContext(Dispatchers.IO) { store.event(eventId) }
+
+    /**
+     * The event [screen] shows. A followed calendar's every fetch puts each event back under a
+     * new row id, so one whose row has gone is looked for again by what it was: [known], the
+     * record last shown, or the all-day reminder it was opened from ([CalendarStore.findAgain]).
+     */
+    suspend fun loadAgain(screen: Screen.Event, known: EventRecord?): EventRecord? = withContext(Dispatchers.IO) {
+        listOfNotNull(known?.id, screen.eventId).distinct().firstNotNullOfOrNull { store.event(it) }
+            ?: runCatching {
+                val id = known?.let { store.findAgain(it.calendarId, it.uid, it.title, screen.begin) }
+                    ?: screen.allDayKey?.let { store.findByAllDayKey(it, screen.begin) }
+                id?.let { store.event(it) }
+            }.getOrNull()
+    }
 
     suspend fun search(query: String): List<Occurrence> = withContext(Dispatchers.IO) {
         val today = LocalDate.now()

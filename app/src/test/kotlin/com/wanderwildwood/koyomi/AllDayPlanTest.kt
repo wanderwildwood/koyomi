@@ -6,6 +6,7 @@ import com.wanderwildwood.koyomi.data.AllDayPlan
 import com.wanderwildwood.koyomi.data.AllDaySetting
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Instant
@@ -189,6 +190,14 @@ class AllDayPlanTest {
         // The row-id key of earlier versions is read once, to not ring again after the update.
         assertEquals("7:1000:1", AllDayPlan.legacyKey(7, 1000, AllDayKind.EVENING))
         assertTrue(AllDayPlan.keys(7, null, "1000", 1, AllDayKind.EVENING).none { it == AllDayPlan.legacyKey(7, 1000, AllDayKind.EVENING) })
+    }
+
+    @Test fun aKeyNamesItsCalendarAndKindSoTheEventCanBeFoundAgain() {
+        // A followed calendar fetched again gives every event a new row id; the key outlives it.
+        val key = AllDayPlan.keys(12, "bins-42@example.org", "Bins", 1000, AllDayKind.MORNING).first()
+        assertEquals(12L to AllDayKind.MORNING, AllDayPlan.calendarAndKind(key))
+        assertNull(AllDayPlan.calendarAndKind(AllDayPlan.legacyKey(7, 1000, AllDayKind.EVENING)))
+        assertNull(AllDayPlan.calendarAndKind("nonsense"))
     }
 
     @Test fun aSettingSurvivesBeingStored() {

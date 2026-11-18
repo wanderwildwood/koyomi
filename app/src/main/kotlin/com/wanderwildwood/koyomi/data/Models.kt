@@ -79,4 +79,6 @@ data class EventRecord(
     val accountType: String,
     val appPackage: String? = null,
     val appUri: String? = null,
+    /** UID_2445: the event's iCalendar UID, which outlives a followed calendar's new row ids. */
+    val uid: String? = null,
 )
