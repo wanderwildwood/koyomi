@@ -26,6 +26,7 @@ import com.wanderwildwood.koyomi.MainActivity
 import com.wanderwildwood.koyomi.R
 import com.wanderwildwood.koyomi.data.AllDayKind
 import com.wanderwildwood.koyomi.data.CalendarStore
+import com.wanderwildwood.koyomi.data.EventRecord
 import com.wanderwildwood.koyomi.ui.Dates
 import com.wanderwildwood.koyomi.ui.houseTypography
 import com.wanderwildwood.koyomi.ui.monochrome
@@ -60,15 +61,22 @@ class AlertActivity : ComponentActivity() {
         val end = intent.getLongExtra(Alerts.EXTRA_END, -1)
         val kind = AllDayKind.of(intent.getIntExtra(Alerts.EXTRA_KIND, 0))
         val key = intent.getStringExtra(Alerts.EXTRA_ALL_DAY_KEY)
+        // The event is read off the main thread: the screen that wakes the phone must not wait
+        // on a calendar store a sync may be busy with. It is drawn once the event is in.
         // A followed calendar fetched again since the reminder was posted has new row ids; the
         // reminder's key still finds its event.
-        val store = CalendarStore(this)
-        val record = store.event(eventId)
-            ?: key?.let { k -> runCatching { store.findByAllDayKey(k, begin) }.getOrNull()?.let { store.event(it) } }
-        if (record == null) {
-            finish()
-            return
+        val store = CalendarStore(applicationContext)
+        thread {
+            val record = runCatching { store.event(eventId) }.getOrNull()
+                ?: key?.let { k -> runCatching { store.findByAllDayKey(k, begin) }.getOrNull()?.let { runCatching { store.event(it) }.getOrNull() } }
+            runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+                if (record == null) finish() else show(record, eventId, begin, end, kind, key)
+            }
         }
+    }
+
+    private fun show(record: EventRecord, eventId: Long, begin: Long, end: Long, kind: AllDayKind?, key: String?) {
         val zone = ZoneId.systemDefault()
         val start = CalendarStore.toLocal(begin, record.allDay, zone)
         val finish = CalendarStore.toLocal(end, record.allDay, zone)
