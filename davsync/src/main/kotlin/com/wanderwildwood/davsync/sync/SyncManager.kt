@@ -815,7 +815,7 @@ abstract class SyncManager<LocalType : LocalResource>(
                 present above). Don't download them because without ETag, we would have to re-download them at every
                 sync. Also don't notify the user, since it's a server issue */
                 member.eTag == null -> {
-                    logger.warning("Server didn't provide ETag for ${member.href}, ignoring")
+                    logger.warning("Server didn't provide ETag for ${member.fileName}, ignoring")
                     false
                 }
 

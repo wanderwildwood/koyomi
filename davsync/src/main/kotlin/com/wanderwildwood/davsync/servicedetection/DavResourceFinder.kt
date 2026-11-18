@@ -307,7 +307,7 @@ class DavResourceFinder(
             if (providesService(it, serviceType))
                 config.principal = principal
             else
-                log.warning("Principal $principal doesn't provide $serviceType service")
+                log.warning("Principal doesn't provide $serviceType service")
         }
     }
 
@@ -327,7 +327,7 @@ class DavResourceFinder(
                 (service == Service.CALDAV && capabilities.contains("calendar-access")))
                 provided = true
         } catch (e: Exception) {
-            log.log(Level.SEVERE, "Couldn't detect services on $url", e)
+            log.log(Level.SEVERE, "Couldn't detect services (${e.javaClass.simpleName})")
             if (e !is HttpException && e !is DavException)
                 throw e
         }
@@ -362,7 +362,7 @@ class DavResourceFinder(
 
                     // service check
                     if (service != null && !providesService(resolved, service))
-                        log.warning("Principal $resolved doesn't provide $service service")
+                        log.warning("Principal doesn't provide $service service")
                     else
                         principal = resolved
                 }

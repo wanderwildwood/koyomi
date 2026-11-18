@@ -112,7 +112,7 @@ class SyncAdapterImpl(context: Context) : AbstractThreadedSyncAdapter(context, t
     }
 
     override fun onSecurityException(account: Account, extras: Bundle, authority: String, syncResult: SyncResult) {
-        DavSync(context).logger.warning("Security exception for $account/$authority")
+        DavSync(context).logger.warning("Security exception for $authority")
     }
 }
 

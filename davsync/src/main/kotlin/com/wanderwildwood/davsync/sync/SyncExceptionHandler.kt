@@ -245,6 +245,7 @@ class SyncExceptionHandler(
         collectionId: Long,
         remote: Url?
     ) {
-        logger.log(Level.WARNING, "Ignoring invalid resource $remote", exception)
+        // The name and the kind of failure only: a URL holds the user name, and the message may hold the event.
+        logger.warning("Ignoring invalid resource ${remote?.segments?.lastOrNull()} (${exception.javaClass.simpleName})")
     }
 }

@@ -31,7 +31,7 @@ fun Flow<MultiStatusItem.Response>.filterMembers(): Flow<MultiStatusItem.Respons
     filter { item ->
         val isMember = item.relation == Response.HrefRelation.MEMBER
         if (!isMember)
-            logger.warning("Ignoring non-member response: ${item.response.href}")
+            logger.warning("Ignoring non-member response: ${item.response.hrefName()}")
         isMember
     }
 
@@ -53,7 +53,7 @@ fun Flow<MultiStatusItem.Response>.filterSuccessful(): Flow<MultiStatusItem.Resp
     filter { item ->
         val isSuccess = item.response.isSuccess()
         if (!isSuccess)
-            logger.warning("Ignoring non-successful (${item.response.status}) response: ${item.response.href}")
+            logger.warning("Ignoring non-successful (${item.response.status}) response: ${item.response.hrefName()}")
         isSuccess
     }
 
@@ -80,7 +80,7 @@ fun Flow<MultiStatusItem.Response>.filterSuccessful(onGone: suspend (Url) -> Uni
                 false
             }
             else -> {
-                logger.warning("Ignoring non-successful (${response.status}) response: ${response.href}")
+                logger.warning("Ignoring non-successful (${response.status}) response: ${response.hrefName()}")
                 false
             }
         }

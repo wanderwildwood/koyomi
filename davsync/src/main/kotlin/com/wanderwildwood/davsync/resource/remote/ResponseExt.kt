@@ -34,13 +34,13 @@ suspend fun Response.asMultiGetItem(getContent: (Response) -> String?): WebDavCo
         of throwing, so that a single broken resource doesn't abort the sync of the whole collection. */
         val content = getContent(response)
         if (content == null) {
-            logger.warning("Ignoring multi-get response without data: ${response.href}")
+            logger.warning("Ignoring multi-get response without data: ${response.hrefName()}")
             return@withExceptionContext null
         }
         // ETag is required by RFC 4791 5.3.4 / RFC 6352 6.3.2; without it, we couldn't detect changes later (#2934)
         val eTag = response[GetETag::class.java]?.eTag
         if (eTag == null) {
-            logger.warning("Ignoring multi-get response without ETag: ${response.href}")
+            logger.warning("Ignoring multi-get response without ETag: ${response.hrefName()}")
             return@withExceptionContext null
         }
         WebDavCollection.MultiGetItem(

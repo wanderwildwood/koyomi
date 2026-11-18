@@ -54,7 +54,7 @@ abstract class Syncer<StoreType : LocalDataStore<CollectionType>, CollectionType
         }
         if (davSync.accounts.credentials(accountId) == null) {
             // the Keystore key is gone (a restore onto another phone): the user signs in again
-            logger.warning("No usable password for $accountId")
+            logger.warning("No usable password for the account")
             syncResult.authenticationFailed = true
             syncResult.hardError = true
             return

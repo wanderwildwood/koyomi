@@ -571,7 +571,7 @@ class AppModel(app: Application, private val saved: SavedStateHandle) : AndroidV
                 } else {
                     store.update(screen.record, screen.begin, screen.end, d, screen.scope)
                 }
-            }.onFailure { Log.w(TAG, "Save refused", it) }.getOrDefault(false)
+            }.onFailure { Log.w(TAG, "Save refused: ${it.javaClass.simpleName}") }.getOrDefault(false)
         }
         if (ok) {
             reload()
@@ -583,7 +583,7 @@ class AppModel(app: Application, private val saved: SavedStateHandle) : AndroidV
     suspend fun delete(record: EventRecord, begin: Long, end: Long, scope: Scope): Boolean {
         val ok = withContext(Dispatchers.IO) {
             runCatching { store.delete(record, begin, end, scope) }
-                .onFailure { Log.w(TAG, "Delete refused", it) }.getOrDefault(false)
+                .onFailure { Log.w(TAG, "Delete refused: ${it.javaClass.simpleName}") }.getOrDefault(false)
         }
         if (ok) reload()
         return ok
@@ -669,7 +669,7 @@ class AppModel(app: Application, private val saved: SavedStateHandle) : AndroidV
                 buffer.copyOf(n)
             }
             Ics.parse(String(bytes, Charsets.UTF_8), ZoneId.systemDefault())
-        }.onFailure { Log.w(TAG, "Could not read a calendar file", it) }.getOrNull()
+        }.onFailure { Log.w(TAG, "Could not read a calendar file: ${it.javaClass.simpleName}") }.getOrNull()
     }
 
     /**
@@ -696,7 +696,7 @@ class AppModel(app: Application, private val saved: SavedStateHandle) : AndroidV
                 }
                 val reminders = listOfNotNull(if (e.allDay) allDayReminder else reminder)
                 runCatching { store.insertImported(e, calendarId, reminders) }
-                    .onFailure { Log.w(TAG, "Import refused", it) }
+                    .onFailure { Log.w(TAG, "Import refused: ${it.javaClass.simpleName}") }
                     .getOrNull()?.let { added++ }
             }
             added to had

@@ -130,14 +130,14 @@ abstract class BaseWebDavCollection(
                             CollectionSyncItem.RemovedMember(response.href.omitTrailingSlash())
 
                         else -> {
-                            logger.warning("Ignoring response for ${response.href} (${response.status})")
+                            logger.warning("Ignoring response for ${response.hrefName()} (${response.status})")
                             null
                         }
                     }
                 }
 
                 else -> {
-                    logger.warning("Unexpected sync-collection response: ${item.response}")
+                    logger.warning("Unexpected sync-collection response: ${item.javaClass.simpleName}")
                     null
                 }
             }
