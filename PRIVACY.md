@@ -87,6 +87,13 @@ them. It answers Glance alone, through a provider any other app is refused by
 (`glance/GlanceProvider.kt`), and hands over nothing while **Settings → Today's events on the
 lock screen** is off. Nothing leaves the phone.
 
+A reminder's notification follows the phone's own lock-screen setting: if the phone hides
+notification content while locked, a locked phone shows only "Reminder" and the time, not the
+event's name or place. While **Settings → Reminders fill the screen** is on (it starts on), a
+reminder that falls due lights the screen with the event's name, time and place over the lock
+screen, where anyone holding the phone can read it. Switch it off to keep reminders to the
+notification alone.
+
 ## No analytics
 
 No crash reporting, no telemetry, no advertising identifier, no third-party SDK. The

@@ -321,6 +321,8 @@
     <string name="alert_today">Today: %1$s</string>
     <string name="alert_dismiss">Dismiss</string>
     <string name="alert_open">Open the event</string>
+    <!-- A reminder on a locked phone set to hide notification content: the event's name is left out, only the time shows -->
+    <string name="alert_hidden">Reminder</string>
 
     <!-- ============================================================ -->
     <!-- About dialog. Keep the names of the app, people, projects and licences as they are -->
