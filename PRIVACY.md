@@ -41,7 +41,10 @@ password; an app password made for this phone is best, where the server has them
 kept until the server has answered. The password is then sealed with a key in the phone's
 keystore, which cannot be exported, and kept only in the phone's own account store, which no
 other app can read; it is sent only to that server's domain, and over `https://` unless the
-address is on your home network or a VPN (a private or Tailscale address). The account appears
+address is on your home network or a VPN (a private or Tailscale address). Over plain `http://`
+the password is not encrypted, and it goes, once asked for, to whatever machine answers at that
+address on the network the phone is on: away from home, that may not be your server. Use
+`https://` where you can. The account appears
 in the phone's settings under Accounts, and Remove account takes it and its calendars off the
 phone; the server keeps everything.
 

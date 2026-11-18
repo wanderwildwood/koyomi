@@ -4,7 +4,7 @@
  * timeouts, gzip, no automatic redirects. Left out: OAuth, client certificates, proxy, custom
  * trust (the system's CAs only), traffic logging.
  * Added here: the login goes only over https, or over plain http to a home or VPN address
- * (SchemeGuard), and never to "any domain" when the account's host is not known. An account's
+ * and then only once that server has asked for it (SchemeGuard), and never to "any domain" when the account's host is not known. An account's
  * client sends nothing at all over plain http to a host away from home (PlainHttpGuard): the
  * request stops with [PlainHttpRefused], so the user is told the real reason.
  */
@@ -99,10 +99,25 @@ internal fun mayCarryLogin(address: String): Boolean =
     address.startsWith("https://", ignoreCase = true) ||
         (address.startsWith("http://", ignoreCase = true) && SignIn.plainHttpAllowed(address))
 
-/** Lets [inner] add the login only where [mayCarryLogin] allows it. */
+/**
+ * Lets [inner] add the login only where [mayCarryLogin] allows it. Over https the login goes with
+ * the first request. Over plain http it waits until the server has asked for it (a 401 challenge):
+ * a home address can be some other machine on another network, and one that never asks for a
+ * login is never handed it. Once asked, this client sends it straight away for the rest of its
+ * life (one sync), so only the first request is made twice.
+ */
 private class SchemeGuard(private val inner: AuthProvider) : AuthProvider by inner {
-    override fun sendWithoutRequest(request: HttpRequestBuilder): Boolean =
-        mayCarryLogin(request.url.buildString()) && inner.sendWithoutRequest(request)
+    @Volatile
+    private var challenged = false
+
+    override fun sendWithoutRequest(request: HttpRequestBuilder): Boolean {
+        val address = request.url.buildString()
+        val preemptive = challenged || address.startsWith("https://", ignoreCase = true)
+        return preemptive && mayCarryLogin(address) && inner.sendWithoutRequest(request)
+    }
+
+    override fun isApplicable(auth: HttpAuthHeader): Boolean =
+        inner.isApplicable(auth).also { if (it) challenged = true }
 
     override suspend fun addRequestHeaders(request: HttpRequestBuilder, authHeader: HttpAuthHeader?) {
         if (mayCarryLogin(request.url.buildString())) inner.addRequestHeaders(request, authHeader)
