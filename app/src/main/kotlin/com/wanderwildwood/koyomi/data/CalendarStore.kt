@@ -148,23 +148,40 @@ class CalendarStore(private val context: Context) {
     }
 
     /**
-     * Swaps every event of a subscribed calendar for [events], in one transaction: the provider
-     * runs a batch inside a single database transaction, so a refusal leaves the old copy whole.
-     * Nothing is merged. Only [calendarId]'s events are touched.
+     * Swaps every event of a subscribed calendar for [events]. Nothing is merged, and only
+     * [calendarId]'s events are touched.
+     *
+     * A large feed is more than one call to the provider can carry, so the new events go in a
+     * chunk at a time, each marked with this refresh's own mark, and only once all of them are in
+     * are the old ones (every event without the mark) deleted, in one small call. If a chunk is
+     * refused, the new events already in are deleted again and the old copy stays whole.
      */
     fun replaceSubscriptionEvents(calendarId: Long, events: List<IcsEvent>): Boolean {
         if (!canWrite()) return false
         val account = accountOf(calendarId) ?: return false
-        val ops = ArrayList<android.content.ContentProviderOperation>(events.size + 1)
-        ops += android.content.ContentProviderOperation
-            .newDelete(asSyncAdapter(Events.CONTENT_URI, account))
-            .withSelection("${Events.CALENDAR_ID} = ?", arrayOf(calendarId.toString()))
-            .build()
-        val insert = asSyncAdapter(Events.CONTENT_URI, account)
-        for (e in events) {
-            ops += android.content.ContentProviderOperation.newInsert(insert).withValues(eventValues(e, calendarId, subscription = true)).build()
+        val uri = asSyncAdapter(Events.CONTENT_URI, account)
+        val mark = "refresh-" + java.util.UUID.randomUUID().toString()
+        val inserts = events.map { e ->
+            android.content.ContentProviderOperation.newInsert(uri)
+                .withValues(eventValues(e, calendarId, subscription = true).apply { put(REFRESH_MARK, mark) })
+                .build()
         }
-        return runCatching { resolver.applyBatch(CalendarContract.AUTHORITY, ops); true }.getOrDefault(false)
+        val calendar = calendarId.toString()
+        val allIn = inChunks(inserts, FEED_CHUNK, { it is android.os.TransactionTooLargeException }) { chunk ->
+            resolver.applyBatch(CalendarContract.AUTHORITY, ArrayList(chunk))
+        }
+        if (!allIn) {
+            android.util.Log.w("Datebook", "A followed calendar could not be saved whole; the old copy is kept")
+            runCatching { resolver.delete(uri, "${Events.CALENDAR_ID} = ? AND $REFRESH_MARK = ?", arrayOf(calendar, mark)) }
+            return false
+        }
+        return runCatching {
+            resolver.delete(uri, "${Events.CALENDAR_ID} = ? AND ($REFRESH_MARK IS NULL OR $REFRESH_MARK != ?)", arrayOf(calendar, mark))
+            true
+        }.getOrElse {
+            android.util.Log.w("Datebook", "The old copy of a followed calendar could not be cleared", it)
+            false
+        }
     }
 
     /** Removes the calendar made for a link, and with it its events and nothing else. */
@@ -744,6 +761,12 @@ class CalendarStore(private val context: Context) {
     }
 
     companion object {
+        /** Events of a followed calendar go to the provider this many at a time, fewer if too many for one call. */
+        private const val FEED_CHUNK = 200
+
+        /** A sync adapter's own column, used on a followed calendar's events to tell this refresh's from the last one's. */
+        private const val REFRESH_MARK = Events.SYNC_DATA1
+
         fun toLocal(ms: Long, allDay: Boolean, zone: ZoneId): LocalDateTime =
             if (allDay) {
                 LocalDateTime.ofInstant(Instant.ofEpochMilli(ms), ZoneOffset.UTC)
