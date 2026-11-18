@@ -62,7 +62,7 @@ two years ahead.
 phone's own dark setting.
 
 **Repeats of every ordinary shape.** Every so many days, weeks, months or years; chosen days
-of the week; the 25th of the month or the fourth Friday or the last one; for ever, until a
+of the week; the 25th of the month or the fourth Friday or the last one; forever, until a
 date, or a number of times. "Every 10 days, 5 times" is one screen. The rule is written and
 read by Etar's own parser, so what comes from the server is read the way Etar reads it.
 
@@ -125,9 +125,9 @@ Datebook is at risk, its **Settings** shows a row saying so, with **Open DuraSpe
 the phone:
 
 1. Tap **Open** on DuraSpeed's App info page.
-2. Switch **Datebook** on in the list: the one whose icon has no box round it, since Mudita's own
+2. Switch **Datebook** on in the list: the one whose icon has no box around it, since Mudita's own
    calendar is listed as Calendar too. **On means allowed** to run in the background, which is
-   easy to read the wrong way round. Switching DuraSpeed off at the top works too, for every app.
+   easy to read the wrong way around. Switching DuraSpeed off at the top works too, for every app.
 3. Back in Datebook, tap **It's switched on**. Datebook cannot read DuraSpeed's list, so this is
    how it knows; if DuraSpeed shuts it down anyway, the row comes back.
 
