@@ -8,6 +8,10 @@ class HomeLinkTest {
     fun shownWithoutTheScheme() {
         assertEquals("ada" to "cloud.example.org", HomeLink.shown(HomeAccount.who("https://cloud.example.org/", "ada")))
         assertEquals("ada" to "example.org/nextcloud", HomeLink.shown(HomeAccount.who("https://example.org/nextcloud", "ada")))
+        // Without the scheme, http or https; a port that is not the default stays.
+        assertEquals("ada" to "cloud.example.org", HomeLink.shown(HomeAccount.who("https://Cloud.Example.org:443", "ada")))
+        assertEquals("ada" to "10.0.2.2:8080", HomeLink.shown(HomeAccount.who("http://10.0.2.2:8080/", "ada")))
+        assertEquals("ada" to "cloud.example.org:8443", HomeLink.shown(HomeAccount.who("https://cloud.example.org:8443", "ada")))
     }
 
     @Test

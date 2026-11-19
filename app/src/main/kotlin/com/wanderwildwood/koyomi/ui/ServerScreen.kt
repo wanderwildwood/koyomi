@@ -21,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -358,8 +359,18 @@ private fun SignInForm(davSync: DavSync, modifier: Modifier, homeRow: (@Composab
 
     val ready = address.isNotBlank() && user.isNotBlank() && password.isNotEmpty() && !busy
 
+    // The Home row comes in at the top once Home has answered, after the list is drawn. A keyed
+    // list keeps its place on the row that was first, so the new row would sit above the page:
+    // while the person is still at the top, go back up to show it.
+    val listState = rememberLazyListState()
+    val hasHomeRow = homeRow != null
+    LaunchedEffect(hasHomeRow) {
+        if (hasHomeRow && listState.firstVisibleItemIndex <= 1) listState.scrollToItem(0)
+    }
+
     PagedColumn(
         modifier = modifier.fillMaxSize(),
+        state = listState,
         contentPadding = PaddingValues(start = 20.dp, end = 12.dp),
         showCutRow = true,
     ) {
