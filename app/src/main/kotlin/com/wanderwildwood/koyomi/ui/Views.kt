@@ -45,6 +45,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -84,7 +85,7 @@ fun ViewsScreen(model: AppModel) {
     val title = when (model.view) {
         View.MONTH -> Dates.month(YearMonth.from(model.anchor))
         View.WEEK -> "${Dates.short(from)} – ${Dates.short(to)}"
-        View.DAY -> if (sideways) Dates.medium(model.anchor) else Dates.dayTitle(model.anchor)
+        View.DAY -> Dates.medium(model.anchor)
         View.AGENDA -> stringResource(R.string.agenda_from, Dates.medium(model.anchor))
     }
 
@@ -168,7 +169,13 @@ fun ViewsScreen(model: AppModel) {
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             TopAppBarMMD(
-                title = { TextMMD(text = title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                title = {
+                    if (model.view == View.DAY) {
+                        DayTitle(full = Dates.dayTitle(model.anchor), short = title)
+                    } else {
+                        TextMMD(text = title, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                },
                 actions = {
                     BarButton(Icons.Search, stringResource(R.string.cd_search)) { model.push(Screen.Search) }
                     BarButton(Icons.Settings, stringResource(R.string.cd_settings)) { model.push(Screen.Settings) }
@@ -182,6 +189,21 @@ fun ViewsScreen(model: AppModel) {
             HorizontalDividerMMD(thickness = 1.dp)
             Foot(model)
         }
+    }
+}
+
+/**
+ * The Day view's title: the whole date ("Thursday, November 19") when it fits beside the two
+ * buttons, otherwise the short one ("Thu, Nov 19"), never a date cut off by "...". Measured
+ * before drawing, so e-ink is not drawn twice.
+ */
+@Composable
+private fun DayTitle(full: String, short: String) {
+    val measurer = rememberTextMeasurer()
+    val style = LocalTextStyle.current
+    BoxWithConstraints {
+        val fits = measurer.measure(full, style, maxLines = 1, softWrap = false).size.width <= constraints.maxWidth
+        TextMMD(text = if (fits) full else short, style = style, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
