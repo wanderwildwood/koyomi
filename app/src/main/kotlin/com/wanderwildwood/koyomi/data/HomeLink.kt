@@ -19,9 +19,10 @@ import java.util.concurrent.Executors
  * This app keeps only the choice: whose account it took from Home ([Choice.who], server and
  * user), the stamp it last took, and the name of the sync account made for it. The sync account
  * holds the password sealed, because the sync code reads it there; it is only a copy of Home's.
- * It is written from Home on each resume, before each sync and on each change notice, and its
- * password goes as soon as Home signs out, is gone, or holds another account. The calendars stay
- * on the phone, and the same account comes back on its own when Home has it again.
+ * It is written from Home on each resume, before each sync and on each change notice while the
+ * app is in front, and its password goes the next time the app opens or syncs after Home signs
+ * out, is gone, or holds another account. The calendars stay on the phone, and the same account
+ * comes back on its own when Home has it again.
  *
  * Kept in its own preferences file; the app is left out of backups (allowBackup="false").
  */
@@ -50,9 +51,18 @@ object HomeLink {
 
     private fun prefs(context: Context) = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
+    /**
+     * The choice, or null for none. When its sync account was removed (in Android's settings,
+     * say), the choice is forgotten here, so an own account signed in later under the same name
+     * is never taken for Home's.
+     */
     fun choice(context: Context): Choice? {
         val p = prefs(context)
         val account = p.getString(ACCOUNT, null)?.takeIf { it.isNotEmpty() } ?: return null
+        if (AccountStore(context).accounts().none { it.name == account }) {
+            save(context, null)
+            return null
+        }
         return Choice(p.getString(WHO, "").orEmpty(), p.getString(STAMP, "").orEmpty(), account)
     }
 
@@ -74,7 +84,10 @@ object HomeLink {
         }
     }
 
-    /** Asks Home and does what [HomeAccount.follow] says. Not on the main thread. */
+    /**
+     * Asks Home and does what [HomeAccount.follow] says. Not on the main thread. A choice whose
+     * sync account is gone is forgotten first ([choice]), even when Home holds another account.
+     */
     fun follow(context: Context) {
         val app = context.applicationContext
         val before = choice(app) ?: return
@@ -137,22 +150,51 @@ object HomeLink {
         object NotKept : Taken()
     }
 
+    /** The account signed in here as [who] (the same user on the same server), if any. */
+    private fun same(store: AccountStore, who: String): Account? = store.accounts().firstOrNull { a ->
+        val server = store.server(a)?.toString() ?: return@firstOrNull false
+        val user = store.user(a) ?: return@firstOrNull false
+        HomeAccount.who(server, user) == who
+    }
+
+    /**
+     * The accounts that taking Home's account [who] removes: the app's own sign-ins on the same
+     * server, and the one made from Home's before. Accounts on other servers stay. The one of the
+     * same person on the same server is not among them: it is kept, with Home's password.
+     */
+    fun replaced(context: Context, store: AccountStore, who: String): List<Account> {
+        val server = who.substringBefore('\n')
+        val same = same(store, who)
+        val before = choice(context)?.account
+        return store.accounts().filter { a ->
+            a != same && (a.name == before || store.server(a)?.toString()?.let { sameServer(it, server) } == true)
+        }
+    }
+
+    /** Whether two server addresses are the same server: the same host and port. */
+    fun sameServer(a: String, b: String): Boolean {
+        fun hostPort(s: String): Pair<String, Int>? = runCatching {
+            val uri = java.net.URI(s.trim())
+            val host = uri.host?.lowercase()?.trimEnd('.') ?: return@runCatching null
+            val port = if (uri.port != -1) uri.port else if (uri.scheme.equals("http", ignoreCase = true)) 80 else 443
+            host to port
+        }.getOrNull()
+        val x = hostPort(a) ?: return false
+        return x == hostPort(b)
+    }
+
     /**
      * Switches to Home's account: asks Home, checks the account with the server, and makes the
-     * sync account for it, in place of the app's own sign-ins, which are removed. An own account
-     * of the same person on the same server is kept, with Home's password, so its calendars and
-     * choices stay. Not on the main thread.
+     * sync account for it, in place of the app's own sign-ins on that server, which are removed
+     * once it is made ([replaced]). An own account of the same person on the same server is kept,
+     * with Home's password, so its calendars and choices stay. Not on the main thread.
      */
     suspend fun take(context: Context): Taken {
         val app = context.applicationContext
         val held = HomeAccount.read(app) ?: return Taken.NoAccount
         val davSync = DavSync(app)
         val store = davSync.accounts
-        val same = store.accounts().firstOrNull { a ->
-            val server = store.server(a)?.toString() ?: return@firstOrNull false
-            val user = store.user(a) ?: return@firstOrNull false
-            HomeAccount.who(server, user) == held.who
-        }
+        val same = same(store, held.who)
         val good = if (same == null) {
             when (val result = SignIn.check(davSync, held.server, held.user, held.password, DavResourceFinder.Service.CALDAV)) {
                 is SignInResult.Good -> result
@@ -160,13 +202,19 @@ object HomeLink {
             }
         } else null
         synchronized(lock) {
-            for (other in store.accounts()) if (other != same) store.remove(other)
+            val replaced = replaced(app, store, held.who)
+            // Made first, so nothing is removed when it cannot be kept.
             val account = if (same != null) {
                 if (!store.updatePassword(same, held.password)) return Taken.NotKept
                 same
             } else {
-                SignIn.keep(davSync, good!!) ?: return Taken.NotKept
+                // One being replaced may hold the new account's name (the same user on another
+                // path of that server): that one goes first, or the new one cannot be made.
+                val name = "${good!!.credentials.username}@${good.server.host}"
+                replaced.firstOrNull { it.name == name }?.let { store.remove(it) }
+                SignIn.keep(davSync, good) ?: return Taken.NotKept
             }
+            for (other in replaced) if (other != account && store.exists(other)) store.remove(other)
             save(app, Choice(held.who, held.stamp, account.name))
             store.enableSync(account, AUTHORITY)
             SyncNotice.clear(app, account)

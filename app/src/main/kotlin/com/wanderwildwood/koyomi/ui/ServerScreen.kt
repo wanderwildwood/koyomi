@@ -110,6 +110,10 @@ fun ServerScreen(model: AppModel) {
     }
     // The row shows while Home has an account for this app and it is not in use here.
     val offerHome = homeWho != null && home?.inUse != true
+    // Taking it asks for a second tap only when it removes accounts (those on Home's server).
+    val homeArmed = remember(version, homeWho) {
+        homeWho?.let { HomeLink.replaced(context, davSync.accounts, it).isNotEmpty() } == true
+    }
     // Calendars made or removed in Nextcloud since: read the list again each time the page opens.
     LaunchedEffect(accounts.size) {
         for (account in accounts)
@@ -138,7 +142,7 @@ fun ServerScreen(model: AppModel) {
         if (accounts.isEmpty() || adding) {
             SignInForm(
                 davSync, Modifier.padding(padding),
-                homeRow = if (offerHome) ({ HomeUseRow(homeForm, armed = accounts.isNotEmpty(), screenScope) { adding = false; version++ } }) else null,
+                homeRow = if (offerHome) ({ HomeUseRow(homeForm, armed = homeArmed, screenScope) { adding = false; version++ } }) else null,
             ) { account ->
                 davSync.accounts.enableSync(account, CalendarContract.AUTHORITY)
                 davSync.accounts.requestSync(account, CalendarContract.AUTHORITY)
@@ -161,10 +165,11 @@ fun ServerScreen(model: AppModel) {
                     }
                     val fromHome = home?.account == account.name
                     if (fromHome && !home!!.inUse) {
-                        // Home signed out (or holds another account): no sync, no error, only this.
+                        // Home signed out, or holds another account now: no sync, no error, only this.
                         item(key = "home-out-${account.name}") {
+                            val said = if (home!!.who.isEmpty()) R.string.home_account_other else R.string.home_account_signed_out
                             TextMMD(
-                                text = stringResource(R.string.home_account_signed_out, stringResource(R.string.home_account_what)),
+                                text = stringResource(said, stringResource(R.string.home_account_what)),
                                 style = MaterialTheme.typography.bodySmall,
                                 modifier = Modifier.padding(bottom = 8.dp),
                             )
@@ -299,7 +304,7 @@ fun ServerScreen(model: AppModel) {
                     }
                 }
                 if (offerHome) item(key = "home-use") {
-                    HomeUseRow(homeForm, armed = accounts.any { it.name != home?.account } || home?.who != homeWho, screenScope) { version++ }
+                    HomeUseRow(homeForm, armed = homeArmed, screenScope) { version++ }
                 }
                 item(key = "add") {
                     SettingRow(stringResource(R.string.server_add), null) { adding = true }

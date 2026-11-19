@@ -460,6 +460,7 @@
     <string name="home_account_in_use">%1$s auf %2$s, aus Home.</string>
     <string name="home_account_stop">Nicht mehr verwenden</string>
     <string name="home_account_signed_out">Home ist von Nextcloud abgemeldet, also auch diese App. Deine %1$s bleiben auf dem Telefon.</string>
+    <string name="home_account_other">Home hat jetzt ein anderes Nextcloud-Konto, darum synchronisiert dieses nicht mehr. Deine %1$s bleiben auf dem Telefon.</string>
     <string name="home_account_what">Kalender</string>
     <string name="davsync_use_app" tools:ignore="ExtraTranslation">Bitte füge das Konto in der App selbst hinzu.</string>
     <string name="davsync_conflict_copy" tools:ignore="ExtraTranslation">%1$s (Kopie vom Telefon)</string>

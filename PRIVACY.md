@@ -54,7 +54,8 @@ signing in here. The app makes sure Home is the real one (its package and signin
 before it asks. It keeps only the choice: which user on which server, and Home's stamp for the
 password. The password itself is copied, sealed as above, into the sync account only while Home
 has it: it is read from Home again when the app comes to the front, before each sync and when
-Home says it changed, and taken off as soon as Home signs out, is gone, or holds another account.
+Home says it changed while the app is in front, and taken off the next time the app opens or
+syncs after Home signs out, is gone, or holds another account.
 Then nothing syncs, and the calendars stay on the phone. "Stop using it" removes the account and
 its calendars from the phone (the server keeps them). The app sends Home nothing.
 

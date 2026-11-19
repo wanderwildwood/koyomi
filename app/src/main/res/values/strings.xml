@@ -463,6 +463,8 @@
     <string name="home_account_stop">Stop using it</string>
     <!-- %1$s is home_account_what -->
     <string name="home_account_signed_out">Home is signed out of Nextcloud, so this app is too. Your %1$s stay on the phone.</string>
+    <!-- %1$s is home_account_what -->
+    <string name="home_account_other">Home now holds another Nextcloud account, so this one does not sync. Your %1$s stay on the phone.</string>
     <string name="home_account_what">calendars</string>
     <!-- shared-about: contact row + privacy section (edit in /opt/projects/shared-about) -->
     <string name="about_write_to">Write to %1$s</string>
