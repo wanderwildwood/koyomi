@@ -417,9 +417,9 @@ private fun MonthWeek(
                             if (col < 6) {
                                 drawLine(Color.Black, Offset(size.width, 0f), Offset(size.width, size.height), strokeWidth = 0.5.dp.toPx())
                             }
-                            // Today's whole cell in a solid frame, so it stands out on a busy month.
+                            // Today's whole cell in a solid frame, heavy enough to be found at a glance on e-ink (2dp read as one more line).
                             if (date == today) {
-                                val w = 2.dp.toPx()
+                                val w = 4.dp.toPx()
                                 drawRect(Color.Black, topLeft = Offset(w / 2, w / 2), size = Size(size.width - w, size.height - w), style = Stroke(width = w))
                             }
                         }
