@@ -452,18 +452,15 @@ private fun MonthWeek(
                         .padding(horizontal = 2.dp),
                 ) {
                     Row(Modifier.height(numberRow), verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .background(if (date == today) Color.Black else Color.White, RoundedCornerShape(5.dp))
-                                .padding(horizontal = 3.dp),
-                        ) {
+                        // Today's number plain, like every other day's: its heavy frame already marks it.
+                        Box(modifier = Modifier.padding(horizontal = 3.dp)) {
                             TextMMD(
                                 text = date.dayOfMonth.toString(),
                                 style = lineStyle.copy(fontSize = 14.sp),
                                 // The month's own days in bold; the neighbours' plain, since
                                 // there is no grey to set them back with.
                                 fontWeight = if (inMonth || date == today) FontWeight.Bold else FontWeight.Normal,
-                                color = if (date == today) Color.White else Color.Black,
+                                color = Color.Black,
                             )
                         }
                         // A cell with no line to spare (the month on its side) still says how
