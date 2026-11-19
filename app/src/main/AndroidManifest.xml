@@ -48,7 +48,8 @@
     <!-- Lets the text-selection menu see other apps' text actions, such as Define from the
          Dictionary, beside Copy. Without it Android 11+ hides them from this app. -->
     <queries>
-        <!-- Home, whose dark mode switch this app follows when Home is installed. -->
+        <!-- Home, whose dark mode switch this app follows when Home is installed, and whose
+             Nextcloud account it may use for the calendar server (data/HomeAccount.kt). -->
         <package android:name="com.wanderwildwood.iori" />
         <!-- Files (Cabinet): opens and saves files on e-ink screens when it is there. -->
         <package android:name="com.wanderwildwood.tana" />

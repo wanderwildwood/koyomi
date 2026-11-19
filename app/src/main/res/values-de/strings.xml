@@ -456,6 +456,11 @@
     <string name="server_remove">Konto entfernen</string>
     <string name="server_remove_armed">Noch einmal tippen: entfernt seine Kalender von diesem Telefon (der Server behält sie)</string>
     <string name="server_add">Weiteren Server hinzufügen</string>
+    <string name="home_account_use">Das Nextcloud-Konto des Telefons verwenden</string>
+    <string name="home_account_in_use">%1$s auf %2$s, aus Home.</string>
+    <string name="home_account_stop">Nicht mehr verwenden</string>
+    <string name="home_account_signed_out">Home ist von Nextcloud abgemeldet, also auch diese App. Deine %1$s bleiben auf dem Telefon.</string>
+    <string name="home_account_what">Kalender</string>
     <string name="davsync_use_app" tools:ignore="ExtraTranslation">Bitte füge das Konto in der App selbst hinzu.</string>
     <string name="davsync_conflict_copy" tools:ignore="ExtraTranslation">%1$s (Kopie vom Telefon)</string>
     <string name="davsync_kind" tools:ignore="ExtraTranslation">Art des Servers</string>

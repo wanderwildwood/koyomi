@@ -21,7 +21,9 @@ on Android reads. It can also sync with your own calendar server by itself: unde
 Calendar server, pick Nextcloud, iCloud, Zoho or another CalDAV server, sign in with an app
 password, and choose which calendars to keep here, or make a new one there. It syncs every 15
 minutes, hour or 4 hours, as you choose (on Wi-Fi only, if you like), and after each change,
-and when an event was changed on both sides it keeps both. It reaches the network only for that
+and when an event was changed on both sides it keeps both. If Home, the launcher, is signed in to a
+Nextcloud, the same screen offers "Use the phone's Nextcloud account": no second sign-in, and
+when Home signs out, Datebook stops syncing too and keeps the calendars on the phone. It reaches the network only for that
 sync and to fetch the calendar links you add yourself (below), and uses the camera only while the
 QR scanner is open.
 

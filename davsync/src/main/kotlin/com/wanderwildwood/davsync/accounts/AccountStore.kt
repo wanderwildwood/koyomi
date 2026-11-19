@@ -86,6 +86,19 @@ class AccountStore(context: Context) {
         return true
     }
 
+    /** Takes the sealed password off [account], leaving the account, its calendars and its choices. */
+    fun forgetPassword(account: Account) {
+        manager.setUserData(account, KEY_PASSWORD, null)
+    }
+
+    /** Turns [account]'s syncing of [authority] off: no sync on its own, none waiting. What is on the phone stays. */
+    fun disableSync(account: Account, authority: String) {
+        ContentResolver.setSyncAutomatically(account, authority, false)
+        for (old in ContentResolver.getPeriodicSyncs(account, authority))
+            ContentResolver.removePeriodicSync(account, authority, old.extras)
+        ContentResolver.cancelSync(account, authority)
+    }
+
     fun collections(account: Account): List<Collection> =
         Collection.fromJson(manager.getUserData(account, KEY_COLLECTIONS))
 

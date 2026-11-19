@@ -56,8 +56,13 @@ import com.wanderwildwood.davsync.signin.SignIn
 import com.wanderwildwood.davsync.signin.SignInResult
 import com.wanderwildwood.koyomi.AppModel
 import com.wanderwildwood.koyomi.R
+import com.wanderwildwood.koyomi.data.HomeAccount
+import com.wanderwildwood.koyomi.data.HomeLink
+import androidx.compose.runtime.collectAsState
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Settings > Calendar server: Datebook's own sync with a CalDAV server, in place of DAVx5.
@@ -68,6 +73,11 @@ import kotlinx.coroutines.launch
  * Once signed in, the account's calendars are listed, each with its own switch; Sync now asks
  * the phone to sync, and Remove takes the account and its calendars off the phone (the server
  * keeps everything).
+ *
+ * When Home (the launcher) holds the phone's Nextcloud account and hands it to this app, a row
+ * offers to use it in place of a sign-in here (data/HomeLink.kt). While it is in use the account
+ * says so, and "Stop using it" lets it go; when Home signs out the account shows signed out and
+ * does not sync, and it comes back on its own when Home has the same account again.
  */
 @Composable
 fun ServerScreen(model: AppModel) {
@@ -86,10 +96,25 @@ fun ServerScreen(model: AppModel) {
     val screenScope = rememberCoroutineScope()
     // Calendars DAVx5 (or any other account) already syncs here, by address.
     val elsewhere = remember(version) { Elsewhere.calendars(context, davSync.accounts.accountType) }
+    // Home's account: the choice to use it, and whose account Home has for this app now (asked
+    // off the main thread when the page opens and after each look at Home; null for none).
+    val home = remember(version) { HomeLink.choice(context) }
+    val homeTick by HomeLink.changes.collectAsState()
+    var homeWho by remember { mutableStateOf<String?>(null) }
+    val homeForm = remember { HomeForm() }
+    LaunchedEffect(homeTick) {
+        version++
+        homeWho = withContext(Dispatchers.IO) {
+            (HomeAccount.ask(context) as? HomeAccount.Answer.Has)?.held?.who
+        }
+    }
+    // The row shows while Home has an account for this app and it is not in use here.
+    val offerHome = homeWho != null && home?.inUse != true
     // Calendars made or removed in Nextcloud since: read the list again each time the page opens.
     LaunchedEffect(accounts.size) {
         for (account in accounts)
-            CollectionMaker.refresh(davSync, account, DavResourceFinder.Service.CALDAV)
+            if (home?.account != account.name || home.inUse)
+                CollectionMaker.refresh(davSync, account, DavResourceFinder.Service.CALDAV)
         version++
     }
     // The framework runs the sync; its start and end redraw the "last synced" line.
@@ -111,7 +136,10 @@ fun ServerScreen(model: AppModel) {
         },
     ) { padding ->
         if (accounts.isEmpty() || adding) {
-            SignInForm(davSync, Modifier.padding(padding)) { account ->
+            SignInForm(
+                davSync, Modifier.padding(padding),
+                homeRow = if (offerHome) ({ HomeUseRow(homeForm, armed = accounts.isNotEmpty(), screenScope) { adding = false; version++ } }) else null,
+            ) { account ->
                 davSync.accounts.enableSync(account, CalendarContract.AUTHORITY)
                 davSync.accounts.requestSync(account, CalendarContract.AUTHORITY)
                 adding = false
@@ -129,6 +157,32 @@ fun ServerScreen(model: AppModel) {
                             text = account.name,
                             style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),
+                        )
+                    }
+                    val fromHome = home?.account == account.name
+                    if (fromHome && !home!!.inUse) {
+                        // Home signed out (or holds another account): no sync, no error, only this.
+                        item(key = "home-out-${account.name}") {
+                            TextMMD(
+                                text = stringResource(R.string.home_account_signed_out, stringResource(R.string.home_account_what)),
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(bottom = 8.dp),
+                            )
+                        }
+                        item(key = "home-stop-${account.name}") {
+                            ArmedRow(stringResource(R.string.home_account_stop), stringResource(R.string.server_remove_armed)) {
+                                HomeLink.stop(context)
+                                version++
+                            }
+                        }
+                        continue
+                    }
+                    if (fromHome) item(key = "home-in-use-${account.name}") {
+                        val (user, server) = HomeLink.shown(home!!.who)
+                        TextMMD(
+                            text = stringResource(R.string.home_account_in_use, user, server),
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(bottom = 4.dp),
                         )
                     }
                     val calendars = davSync.accounts.collections(account, Collection.TYPE_CALENDAR).filter { it.supportsVEVENT != false }
@@ -213,6 +267,16 @@ fun ServerScreen(model: AppModel) {
                             davSync.accounts.requestSync(account, CalendarContract.AUTHORITY)
                         }
                     }
+                    if (fromHome) {
+                        // The password is Home's: there is none to change here, and letting go is "Stop using it".
+                        item(key = "home-stop-${account.name}") {
+                            ArmedRow(stringResource(R.string.home_account_stop), stringResource(R.string.server_remove_armed)) {
+                                HomeLink.stop(context)
+                                version++
+                            }
+                        }
+                        continue
+                    }
                     item(key = "password-${account.name}") {
                         if (changing == account.name)
                             ChangePassword(davSync, account, passwordForm, screenScope) { saved ->
@@ -234,6 +298,9 @@ fun ServerScreen(model: AppModel) {
                         }
                     }
                 }
+                if (offerHome) item(key = "home-use") {
+                    HomeUseRow(homeForm, armed = accounts.any { it.name != home?.account } || home?.who != homeWho, screenScope) { version++ }
+                }
                 item(key = "add") {
                     SettingRow(stringResource(R.string.server_add), null) { adding = true }
                 }
@@ -243,7 +310,7 @@ fun ServerScreen(model: AppModel) {
 }
 
 @Composable
-private fun SignInForm(davSync: DavSync, modifier: Modifier, onSignedIn: (Account) -> Unit) {
+private fun SignInForm(davSync: DavSync, modifier: Modifier, homeRow: (@Composable () -> Unit)? = null, onSignedIn: (Account) -> Unit) {
     val scope = rememberCoroutineScope()
     var address by remember { mutableStateOf("") }
     var user by remember { mutableStateOf("") }
@@ -279,19 +346,7 @@ private fun SignInForm(davSync: DavSync, modifier: Modifier, onSignedIn: (Accoun
                         null
                     } else R.string.server_not_kept
                 } else R.string.server_good
-                is SignInResult.Bad -> when (result.problem) {
-                    Problem.BAD_ADDRESS -> R.string.server_bad_address
-                    Problem.PLAIN_HTTP -> R.string.server_plain_http
-                    Problem.PLAIN_HTTP_LINK -> R.string.server_plain_http_link
-                    Problem.NOT_FOUND -> R.string.server_not_found
-                    Problem.UNREACHABLE -> R.string.server_unreachable
-                    Problem.CERTIFICATE -> R.string.server_certificate
-                    Problem.WRONG_PASSWORD -> R.string.server_wrong_password
-                    Problem.NO_SERVICE -> R.string.server_no_caldav
-                    Problem.NOTHING_FOUND -> R.string.server_no_calendars
-                    Problem.KEYSTORE -> R.string.server_not_kept
-                    Problem.OTHER -> R.string.server_other
-                }
+                is SignInResult.Bad -> problemText(result.problem)
             }
         }
     }
@@ -303,6 +358,7 @@ private fun SignInForm(davSync: DavSync, modifier: Modifier, onSignedIn: (Accoun
         contentPadding = PaddingValues(start = 20.dp, end = 12.dp),
         showCutRow = true,
     ) {
+        if (homeRow != null) item(key = "home-use") { homeRow() }
         item(key = "why") {
             TextMMD(
                 text = stringResource(R.string.server_why),
@@ -405,6 +461,74 @@ private fun SignInForm(davSync: DavSync, modifier: Modifier, onSignedIn: (Accoun
                     TextMMD(text = stringResource(R.string.server_test))
                 }
             }
+        }
+    }
+}
+
+/** What the server's answer to a sign-in comes to, in this app's words. */
+private fun problemText(problem: Problem): Int = when (problem) {
+    Problem.BAD_ADDRESS -> R.string.server_bad_address
+    Problem.PLAIN_HTTP -> R.string.server_plain_http
+    Problem.PLAIN_HTTP_LINK -> R.string.server_plain_http_link
+    Problem.NOT_FOUND -> R.string.server_not_found
+    Problem.UNREACHABLE -> R.string.server_unreachable
+    Problem.CERTIFICATE -> R.string.server_certificate
+    Problem.WRONG_PASSWORD -> R.string.server_wrong_password
+    Problem.NO_SERVICE -> R.string.server_no_caldav
+    Problem.NOTHING_FOUND -> R.string.server_no_calendars
+    Problem.KEYSTORE -> R.string.server_not_kept
+    Problem.OTHER -> R.string.server_other
+}
+
+/** What the "Use the phone's Nextcloud account" row holds while Home's account is checked (held above the row). */
+private class HomeForm {
+    var busy by mutableStateOf(false)
+    var status by mutableStateOf<Int?>(null)
+    var said by mutableStateOf("")
+}
+
+/**
+ * "Use the phone's Nextcloud account": takes Home's account in place of a sign-in here, once the
+ * server has answered. [armed] when that removes accounts signed in here (and their calendars on
+ * this phone): then it takes a second tap, as Remove account does.
+ */
+@Composable
+private fun HomeUseRow(form: HomeForm, armed: Boolean, scope: CoroutineScope, onDone: () -> Unit) {
+    val context = LocalContext.current
+    val use = {
+        if (!form.busy) {
+            form.busy = true
+            form.status = R.string.server_checking
+            form.said = ""
+            scope.launch {
+                val taken = withContext(Dispatchers.IO) { HomeLink.take(context) }
+                form.busy = false
+                form.status = when (taken) {
+                    HomeLink.Taken.Done -> null
+                    HomeLink.Taken.NoAccount -> {
+                        // Home let it go in the meantime: ask again, and the row goes.
+                        HomeLink.changes.value++
+                        null
+                    }
+                    HomeLink.Taken.NotKept -> R.string.server_not_kept
+                    is HomeLink.Taken.Refused -> {
+                        form.said = taken.bad.detail
+                        problemText(taken.bad.problem)
+                    }
+                }
+                if (taken == HomeLink.Taken.Done) onDone()
+            }
+        }
+    }
+    Column(Modifier.padding(top = 8.dp)) {
+        if (armed) ArmedRow(stringResource(R.string.home_account_use), stringResource(R.string.server_remove_armed)) { use() }
+        else SettingRow(stringResource(R.string.home_account_use), null) { use() }
+        form.status?.let { s ->
+            TextMMD(
+                text = stringResource(s) + if (form.said.isNotBlank()) "\n" + stringResource(DavR.string.davsync_said, form.said.take(300)) else "",
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(bottom = 8.dp),
+            )
         }
     }
 }

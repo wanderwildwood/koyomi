@@ -26,6 +26,8 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.mudita.mmd.ThemeMMD
 import com.wanderwildwood.koyomi.alerts.Alerts
+import com.wanderwildwood.koyomi.data.HomeAccount
+import com.wanderwildwood.koyomi.data.HomeLink
 import com.wanderwildwood.koyomi.ui.EditScreen
 import com.wanderwildwood.koyomi.ui.EventScreen
 import com.wanderwildwood.koyomi.ui.ImportScreen
@@ -43,6 +45,8 @@ class KoyomiApp : Application() {
     override fun onCreate() {
         super.onCreate()
         Alerts.createChannel(this)
+        // Before each sync of the calendar server account made from Home's, ask Home first.
+        com.wanderwildwood.davsync.sync.SyncGate.check = { context, account -> HomeLink.maySync(context, account) }
     }
 }
 
@@ -94,6 +98,8 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         model.permissionsChanged()
+        // Home's Nextcloud account, if the calendar server uses it: still the same, a new password, or gone.
+        HomeLink.refresh(this)
         turner.resume()
     }
 
@@ -105,7 +111,12 @@ class MainActivity : ComponentActivity() {
     /** When the app was last left; 0 while it is in front. */
     private var leftAt = 0L
 
+    /** Stops listening for Home's change notices; set while the app is in front. */
+    private var stopWatchingHome: (() -> Unit)? = null
+
     override fun onStop() {
+        stopWatchingHome?.invoke()
+        stopWatchingHome = null
         super.onStop()
         leftAt = SystemClock.elapsedRealtime()
     }
@@ -114,6 +125,8 @@ class MainActivity : ComponentActivity() {
     // as it does after a fresh start. A quick look elsewhere and back keeps the place.
     override fun onStart() {
         super.onStart()
+        stopWatchingHome?.invoke()
+        stopWatchingHome = HomeAccount.observe(this) { HomeLink.refresh(this) }
         if (leftAt > 0 && SystemClock.elapsedRealtime() - leftAt >= AWAY_MS) model.reopen()
         leftAt = 0L
         // Followed calendars are fetched again when the app opens; there is no background fetching.

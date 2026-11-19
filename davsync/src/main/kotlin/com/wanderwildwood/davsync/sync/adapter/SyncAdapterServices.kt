@@ -21,6 +21,7 @@ import com.wanderwildwood.davsync.resource.local.AddressBookAccountProperties
 import com.wanderwildwood.davsync.sync.AddressBookSyncer
 import com.wanderwildwood.davsync.sync.CalendarSyncer
 import com.wanderwildwood.davsync.sync.SyncDataType
+import com.wanderwildwood.davsync.sync.SyncGate
 import com.wanderwildwood.davsync.sync.SyncNow
 import com.wanderwildwood.davsync.sync.SyncPolicy
 import com.wanderwildwood.davsync.network.Networks
@@ -71,6 +72,7 @@ class SyncAdapterImpl(context: Context) : AbstractThreadedSyncAdapter(context, t
         when (SyncDataType.fromAuthority(authority)) {
             SyncDataType.EVENTS -> {
                 if (!davSync.accounts.exists(account)) return result
+                if (!SyncGate.allows(context, account)) return result
                 if (waitsForWifi(davSync, account, manual)) return result
                 CalendarSyncer(davSync, account, null, result).use { it() }
                 davSync.accounts.record(account, result)
@@ -88,6 +90,7 @@ class SyncAdapterImpl(context: Context) : AbstractThreadedSyncAdapter(context, t
                     }
                     return result
                 }
+                if (!SyncGate.allows(context, main)) return result
                 if (waitsForWifi(davSync, main, manual)) return result
                 SyncNow.contactsLock.withLock {
                     AddressBookSyncer(davSync, main, null, upload, result).use { it() }

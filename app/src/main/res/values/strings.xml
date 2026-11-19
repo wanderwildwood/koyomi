@@ -456,6 +456,14 @@
     <string name="server_remove">Remove account</string>
     <string name="server_remove_armed">Tap again: removes its calendars from this phone (the server keeps them)</string>
     <string name="server_add">Add another server</string>
+    <!-- Calendar server: the Nextcloud account Home (the launcher) holds for the whole phone. -->
+    <string name="home_account_use">Use the phone\'s Nextcloud account</string>
+    <!-- %1$s is the user name, %2$s the server without https:// -->
+    <string name="home_account_in_use">%1$s on %2$s, from Home.</string>
+    <string name="home_account_stop">Stop using it</string>
+    <!-- %1$s is home_account_what -->
+    <string name="home_account_signed_out">Home is signed out of Nextcloud, so this app is too. Your %1$s stay on the phone.</string>
+    <string name="home_account_what">calendars</string>
     <!-- shared-about: contact row + privacy section (edit in /opt/projects/shared-about) -->
     <string name="about_write_to">Write to %1$s</string>
     <string name="about_no_mail_app">No email app is installed. The address is %1$s.</string>

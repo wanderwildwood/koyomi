@@ -48,6 +48,16 @@ address on the network the phone is on: away from home, that may not be your ser
 in the phone's settings under Accounts, and Remove account takes it and its calendars off the
 phone; the server keeps everything.
 
+**Home's Nextcloud account.** If Home (the launcher) is signed in to a Nextcloud and gives its
+account to this app, Calendar server offers "Use the phone's Nextcloud account" in place of
+signing in here. The app makes sure Home is the real one (its package and signing certificate)
+before it asks. It keeps only the choice: which user on which server, and Home's stamp for the
+password. The password itself is copied, sealed as above, into the sync account only while Home
+has it: it is read from Home again when the app comes to the front, before each sync and when
+Home says it changed, and taken off as soon as Home signs out, is gone, or holds another account.
+Then nothing syncs, and the calendars stay on the phone. "Stop using it" removes the account and
+its calendars from the phone (the server keeps them). The app sends Home nothing.
+
 The sync code is DAVx5's (bitfire, GPL-3.0), copied into this app in `dav4jvm/`, `synctools/`
 and `davsync/`, not a separate app or service. If an event was changed on the phone and on the
 server at once, the server's version is kept and the phone's is saved beside it as "(phone's
