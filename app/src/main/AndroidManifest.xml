@@ -57,6 +57,8 @@
         <package android:name="com.mediatek.duraspeed" />
         <!-- Glance, which shows today's events on the lock screen: only to say whether it is there. -->
         <package android:name="com.wanderwildwood.hitome" />
+        <!-- Atlas, the map: a tap on an event's place searches for it there. -->
+        <package android:name="com.wanderwildwood.chizu" />
         <!-- The sync library's task apps: Datebook syncs no tasks. -->
         <package android:name="at.techbee.jtx" tools:node="remove" />
         <package android:name="org.dmfs.tasks" tools:node="remove" />

@@ -103,6 +103,9 @@ saved screen state, which Android holds for it, so it comes back as it was (`dat
 
 If Home is installed, the app asks it whether its dark mode is on, and sends it nothing.
 
+If Atlas, the map app, is installed, a tap on an event's place hands the words of that place to
+Atlas to search for. Nothing goes to Atlas until you tap it.
+
 ## The lock screen
 
 If the Glance app is installed and its lock-screen panel is on, Datebook hands it today's events

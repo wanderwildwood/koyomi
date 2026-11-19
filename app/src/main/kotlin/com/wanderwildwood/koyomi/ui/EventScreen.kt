@@ -2,6 +2,7 @@ package com.wanderwildwood.koyomi.ui
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.provider.CalendarContract
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -24,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.mudita.mmd.components.buttons.OutlinedButtonMMD
 import com.mudita.mmd.components.text.TextMMD
@@ -63,6 +65,10 @@ fun EventScreen(model: AppModel, screen: Screen.Event) {
     // is the next move from such an event, so it is a button under the title, on those events
     // only and only while that app is on the phone to answer.
     val link = remember(record, screen.begin) { record?.let { appLink(context, it, screen.begin) } }
+
+    // The place opens in Atlas, the map, when it is on the phone (GitHub #4): a tap on the
+    // place itself, underlined so it reads as a link, and nothing new on the screen otherwise.
+    val place = remember(record) { record?.location?.let { atlasLink(context, it) } }
 
     val writable = record?.let { r -> model.calendars.firstOrNull { it.id == r.calendarId }?.writable } ?: false
 
@@ -134,7 +140,19 @@ fun EventScreen(model: AppModel, screen: Screen.Event) {
                 item { Detail(stringResource(R.string.event_repeats), RepeatText.of(context.resources, r.rrule, start.toLocalDate(), r.allDay)) }
             }
             // The place can be selected too, like the notes below: Copy, Define, Translate.
-            r.location?.let { item { Detail(stringResource(R.string.event_where), it, selectable = true) } }
+            r.location?.let {
+                item {
+                    Detail(stringResource(R.string.event_where), it, selectable = true, open = place?.let { (label, intent) ->
+                        stringResource(R.string.event_open_in, label) to {
+                            try {
+                                context.startActivity(intent)
+                            } catch (_: Exception) {
+                                Notice.say(context, R.string.event_app_failed)
+                            }
+                        }
+                    })
+                }
+            }
             if (r.reminders.isNotEmpty()) {
                 item {
                     Detail(
@@ -224,6 +242,19 @@ private fun appLink(context: Context, r: EventRecord, begin: Long): Pair<String,
     return found.activityInfo.applicationInfo.loadLabel(pm).toString() to intent
 }
 
+/** Atlas's own name and the search for [place] in it, or null while Atlas is not on the phone. */
+private fun atlasLink(context: Context, place: String): Pair<String, Intent>? {
+    // A place written over several lines (street, town) is searched as one line.
+    val query = place.lines().map { it.trim() }.filter { it.isNotEmpty() }.joinToString(", ")
+    if (query.isEmpty()) return null
+    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=" + Uri.encode(query))).setPackage(ATLAS)
+    val pm = context.packageManager
+    val found = pm.resolveActivity(intent, 0) ?: return null
+    return found.activityInfo.applicationInfo.loadLabel(pm).toString() to intent
+}
+
+private const val ATLAS = "com.wanderwildwood.chizu"
+
 @Composable
 fun ChoiceRow(label: String, bold: Boolean = false, onClick: () -> Unit) {
     Column(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 12.dp)) {
@@ -236,12 +267,18 @@ fun ChoiceRow(label: String, bold: Boolean = false, onClick: () -> Unit) {
 }
 
 @Composable
-private fun Detail(label: String, value: String, selectable: Boolean = false) {
+private fun Detail(label: String, value: String, selectable: Boolean = false, open: Pair<String, () -> Unit>? = null) {
     Column(Modifier.fillMaxWidth().padding(top = 14.dp)) {
         TextMMD(text = label, style = MaterialTheme.typography.labelSmall)
         if (selectable) {
             SelectionContainer(Modifier.textActions()) {
-                TextMMD(text = value, style = MaterialTheme.typography.bodyMedium)
+                // A tap opens it in [open]'s app; a long press still selects it, as before.
+                TextMMD(
+                    text = value,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textDecoration = if (open != null) TextDecoration.Underline else null,
+                    modifier = if (open != null) Modifier.clickable(onClickLabel = open.first, onClick = open.second) else Modifier,
+                )
             }
         } else {
             TextMMD(text = value, style = MaterialTheme.typography.bodyMedium)

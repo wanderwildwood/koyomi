@@ -93,7 +93,9 @@ what the other app sent â€” title, time or all day, place, notes, and a repeat â
 is saved until you press Save. "Show this event" from another app opens the event. An event
 that came from an app able to show what it was made from - a ticket added from
 [Wallet](https://github.com/wanderwildwood/satsuire) - has an "Open in Wallet" button
-under its title, while that app is on the phone.
+under its title, while that app is on the phone. An event's place, tapped, opens in
+[Atlas](https://github.com/wanderwildwood/chizu) to find it on the map; it is underlined
+while Atlas is on the phone, and a long press still selects it.
 
 **Calendar files open here.** An .ics file, from a mail attachment, a download or a file
 manager, lists the events in it with their dates, times and places; choose the calendar and
