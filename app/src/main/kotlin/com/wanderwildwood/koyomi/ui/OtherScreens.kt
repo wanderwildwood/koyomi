@@ -473,7 +473,16 @@ private fun LazyListScope.calendarSwitches(model: AppModel, links: LinkFiles) {
     }
     local.forEach { c ->
         item(key = "c${c.id}") {
-            SwitchRow(c.name, c.visible, note = stringResource(R.string.calendars_local), compact = true) { model.setVisible(c, it) }
+            // A calendar made for a link (account "link-…") that is no longer followed: its link
+            // was lost (reinstall, cleared data), so nothing else can remove it.
+            if (c.accountName.startsWith("link-")) {
+                Column {
+                    SwitchRow(c.name, c.visible, note = stringResource(R.string.calendars_local), compact = true) { model.setVisible(c, it) }
+                    ArmedRow(stringResource(R.string.link_remove), stringResource(R.string.link_remove_armed)) { model.removeLeftoverLinkCalendar(c) }
+                }
+            } else {
+                SwitchRow(c.name, c.visible, note = stringResource(R.string.calendars_local), compact = true) { model.setVisible(c, it) }
+            }
         }
     }
     // Calendars followed by a link: read only, fetched again when the app opens and on a pull
