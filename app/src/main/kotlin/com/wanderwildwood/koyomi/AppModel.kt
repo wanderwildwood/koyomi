@@ -506,6 +506,20 @@ class AppModel(app: Application, private val saved: SavedStateHandle) : AndroidV
         }
     }
 
+    /**
+     * Removes a link's calendar whose link was lost (the app was reinstalled or its data cleared,
+     * which forgets the addresses but leaves the calendars in the phone's store). Only a local
+     * calendar made for a link can go this way, and only it and its events are deleted.
+     */
+    fun removeLeftoverLinkCalendar(calendar: CalendarInfo) {
+        if (calendar.accountType != CalendarContract.ACCOUNT_TYPE_LOCAL || !calendar.accountName.startsWith("link-")) return
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) { store.deleteSubscriptionCalendar(calendar.id) }
+            calendars = withContext(Dispatchers.IO) { store.calendars() }
+            reload()
+        }
+    }
+
     fun setVisible(calendar: CalendarInfo, visible: Boolean) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) { store.setVisible(calendar.id, visible) }
