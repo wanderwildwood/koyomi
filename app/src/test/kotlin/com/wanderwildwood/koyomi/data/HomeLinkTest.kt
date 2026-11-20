@@ -1,5 +1,6 @@
 package com.wanderwildwood.koyomi.data
 
+import io.ktor.http.Url
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -27,5 +28,15 @@ class HomeLinkTest {
         assertEquals(false, HomeLink.sameServer("https://caldav.icloud.com/", "https://cloud.example.org"))
         assertEquals(false, HomeLink.sameServer("https://cloud.example.org:8443/", "https://cloud.example.org"))
         assertEquals(false, HomeLink.sameServer("not a url", "https://cloud.example.org"))
+    }
+
+    @Test
+    fun homesAccountIsNamedWithOneAtAndThePortWhenNotUsual() {
+        assertEquals("ada@cloud.example.org", HomeLink.accountName("ada", Url("https://cloud.example.org/remote.php/dav/")))
+        assertEquals("ada@cloud.example.org", HomeLink.accountName("ada", Url("https://cloud.example.org:443/nextcloud/")))
+        assertEquals("ada@10.0.2.2:8080", HomeLink.accountName("ada", Url("http://10.0.2.2:8080/remote.php/dav/")))
+        assertEquals("ada@nas.local", HomeLink.accountName("ada", Url("http://nas.local/")))
+        assertEquals("ada@example.org on 10.0.2.2:8080", HomeLink.accountName("ada@example.org", Url("http://10.0.2.2:8080/")))
+        assertEquals("ada@example.org on cloud.example.org", HomeLink.accountName("ada@example.org", Url("https://cloud.example.org/")))
     }
 }

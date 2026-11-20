@@ -9,6 +9,7 @@ import com.wanderwildwood.davsync.servicedetection.DavResourceFinder
 import com.wanderwildwood.davsync.signin.SignIn
 import com.wanderwildwood.davsync.signin.SignInResult
 import com.wanderwildwood.davsync.sync.SyncNotice
+import io.ktor.http.Url
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.concurrent.Executors
 
@@ -210,9 +211,11 @@ object HomeLink {
             } else {
                 // One being replaced may hold the new account's name (the same user on another
                 // path of that server): that one goes first, or the new one cannot be made.
-                val name = "${good!!.credentials.username}@${good.server.host}"
+                val name = accountName(good!!.credentials.username, good.server)
                 replaced.firstOrNull { it.name == name }?.let { store.remove(it) }
-                SignIn.keep(davSync, good) ?: return Taken.NotKept
+                // As SignIn.keep, under that name: nothing turned on until the user picks.
+                store.create(name, good.server, good.credentials, good.collections.map { it.copy(sync = false) })
+                    ?: return Taken.NotKept
             }
             for (other in replaced) if (other != account && store.exists(other)) store.remove(other)
             save(app, Choice(held.who, held.stamp, account.name))
@@ -239,6 +242,18 @@ object HomeLink {
             save(app, null)
         }
         changes.value++
+    }
+
+    /**
+     * The name of the sync account made from Home's: "user@host" as an own sign-in's
+     * ([SignIn.keep]), with the port when it is not the usual one, and "user on host" when the
+     * user is an email address, so the name never has two @. Only an account made from now on
+     * gets it; one made before keeps its name, since its calendars and the choice are kept
+     * under that name.
+     */
+    fun accountName(user: String, server: Url): String {
+        val host = if (server.port != server.protocol.defaultPort) "${server.host}:${server.port}" else server.host
+        return if ('@' in user) "$user on $host" else "$user@$host"
     }
 
     /** "user" and "server" (without https://) for "<user> on <server>, from Home." */
