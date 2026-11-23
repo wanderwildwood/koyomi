@@ -104,7 +104,11 @@ fun EventScreen(model: AppModel, screen: Screen.Event) {
         val finish = CalendarStore.toLocal(screen.end, r.allDay, zone)
         val calendar = model.calendars.firstOrNull { it.id == r.calendarId }
 
-        PagedColumn(Modifier.fillMaxSize().padding(padding), contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 12.dp), showCutRow = true) {
+        // A long description in rows of whole lines, so a turn never opens on half a line.
+        val fit = rememberWholeLineFit()
+        val body = MaterialTheme.typography.bodyMedium
+        val notesLabel = stringResource(R.string.event_notes)
+        PagedColumn(Modifier.fillMaxSize().padding(padding).wholeLinePage(fit), contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 12.dp), showCutRow = true) {
             item {
                 Spacer(Modifier.height(16.dp))
                 TextMMD(
@@ -164,7 +168,11 @@ fun EventScreen(model: AppModel, screen: Screen.Event) {
             calendar?.let { item { Detail(stringResource(R.string.event_calendar), it.name) } }
             // The notes can be selected, for Copy and for Define and the other apps that act on
             // text; see TextActions.
-            r.description?.let { item { Detail(stringResource(R.string.event_notes), it, selectable = true) } }
+            r.description?.let { text ->
+                wholeLineItems("notes", text, body, fit, gap = 40.dp) { run, part, textModifier ->
+                    Detail(if (part == 0) notesLabel else null, run, selectable = true, textModifier = textModifier)
+                }
+            }
             item {
                 Spacer(Modifier.height(18.dp))
                 OutlinedButtonMMD(
@@ -267,9 +275,10 @@ fun ChoiceRow(label: String, bold: Boolean = false, onClick: () -> Unit) {
 }
 
 @Composable
-private fun Detail(label: String, value: String, selectable: Boolean = false, open: Pair<String, () -> Unit>? = null) {
-    Column(Modifier.fillMaxWidth().padding(top = 14.dp)) {
-        TextMMD(text = label, style = MaterialTheme.typography.labelSmall)
+private fun Detail(label: String?, value: String, selectable: Boolean = false, open: Pair<String, () -> Unit>? = null, textModifier: Modifier = Modifier) {
+    // A null label is a later run of a cut text (wholeLineItems): no label, no top gap.
+    Column(Modifier.fillMaxWidth().padding(top = if (label != null) 14.dp else 0.dp)) {
+        if (label != null) TextMMD(text = label, style = MaterialTheme.typography.labelSmall)
         if (selectable) {
             SelectionContainer(Modifier.textActions()) {
                 // A tap opens it in [open]'s app; a long press still selects it, as before.
@@ -277,11 +286,11 @@ private fun Detail(label: String, value: String, selectable: Boolean = false, op
                     text = value,
                     style = MaterialTheme.typography.bodyMedium,
                     textDecoration = if (open != null) TextDecoration.Underline else null,
-                    modifier = if (open != null) Modifier.clickable(onClickLabel = open.first, onClick = open.second) else Modifier,
+                    modifier = (if (open != null) Modifier.clickable(onClickLabel = open.first, onClick = open.second) else Modifier).then(textModifier),
                 )
             }
         } else {
-            TextMMD(text = value, style = MaterialTheme.typography.bodyMedium)
+            TextMMD(text = value, style = MaterialTheme.typography.bodyMedium, modifier = textModifier)
         }
     }
 }
