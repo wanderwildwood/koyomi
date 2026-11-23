@@ -142,7 +142,7 @@ fun SettingsScreen(model: AppModel) {
     }
     // The lock-screen switch only means something with Glance there to show it; it stays in
     // sight while on, so it can still be turned off after Glance is gone.
-    val glanceInstalled = remember(checks) {
+    val glanceHere = remember(checks) {
         context.packageManager.getLaunchIntentForPackage(com.wanderwildwood.koyomi.glance.GlanceProvider.READER) != null
     }
     val duraSpeedRisk = remember(checks, v) { com.wanderwildwood.koyomi.data.DuraSpeed.atRisk(context, s) }
@@ -214,7 +214,9 @@ fun SettingsScreen(model: AppModel) {
             // and this row only asks it to do that work now. A reader on a long sync interval
             // who has just changed something elsewhere wants to be sure before looking, and
             // should not have to open the syncing app to say so. Asked on the forum.
-            item {
+            // Only once some calendar belongs to an account that something syncs: with the
+            // phone's own calendars alone there is nothing for it to ask.
+            if (model.calendars.any { it.accountType != CalendarContract.ACCOUNT_TYPE_LOCAL }) item {
                 // "Asked" stays until the next press, not for six seconds: on this panel a
                 // line on a timer could be gone before it had been read.
                 var askedAt by remember { mutableStateOf(-1) }
@@ -305,7 +307,7 @@ fun SettingsScreen(model: AppModel) {
                     DarkMode.set(context, it)
                 }
             }
-            if (glanceInstalled || lockScreen) {
+            if (glanceHere || lockScreen) {
                 item {
                     SwitchRow(stringResource(R.string.settings_lock_screen), lockScreen) {
                         s.lockScreen = it
