@@ -53,6 +53,8 @@ import java.time.LocalTime
 import java.time.ZoneOffset
 import java.time.temporal.WeekFields
 import java.util.Locale
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.fillMaxHeight
 
 /**
  * Mudita's own date picker. It steps a month at a time rather than sliding, which is why it
@@ -122,28 +124,56 @@ private fun DateDialogBody(
                 window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
             }
         }
+        val ok = {
+            state.selectedDateMillis?.let {
+                onPick(Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate())
+            }
+            onDismiss()
+        }
         Surface(color = MaterialTheme.colorScheme.surface, modifier = Modifier.fillMaxSize()) {
-            Column(Modifier.fillMaxSize().padding(vertical = 16.dp)) {
-                CompositionLocalProvider(LocalConfiguration provides pickerConfiguration) {
-                    DatePickerMMD(
-                        state = state,
-                        dateFormatter = UtcDateFormatter,
-                        title = null,
-                        headline = null,
-                        showModeToggle = false,
-                    )
+            if (pickerConfiguration.screenWidthDp > pickerConfiguration.screenHeightDp) {
+                // Turned sideways the screen is too low for the calendar and the buttons under
+                // it, so the buttons stand beside it; the calendar scrolls if it is still taller.
+                Row(Modifier.fillMaxSize().padding(vertical = 8.dp)) {
+                    Column(Modifier.width(360.dp).verticalScroll(rememberScrollState())) {
+                        CompositionLocalProvider(LocalConfiguration provides pickerConfiguration) {
+                            DatePickerMMD(
+                                state = state,
+                                dateFormatter = UtcDateFormatter,
+                                title = null,
+                                headline = null,
+                                showModeToggle = false,
+                            )
+                        }
+                    }
+                    Column(
+                        Modifier.weight(1f).fillMaxHeight().padding(horizontal = 20.dp),
+                        verticalArrangement = Arrangement.Center,
+                    ) {
+                        ButtonMMD(onClick = ok, modifier = Modifier.fillMaxWidth().height(48.dp)) {
+                            TextMMD(text = stringResource(R.string.ok), style = MaterialTheme.typography.bodySmall)
+                        }
+                        Spacer(Modifier.height(16.dp))
+                        OutlinedButtonMMD(onClick = onDismiss, modifier = Modifier.fillMaxWidth().height(48.dp)) {
+                            TextMMD(text = stringResource(R.string.cancel), style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
                 }
-                Spacer(Modifier.weight(1f))
-                Box(Modifier.padding(horizontal = 20.dp)) {
-                    DialogButtons(
-                        onCancel = onDismiss,
-                        onOk = {
-                            state.selectedDateMillis?.let {
-                                onPick(Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate())
-                            }
-                            onDismiss()
-                        },
-                    )
+            } else {
+                Column(Modifier.fillMaxSize().padding(vertical = 16.dp)) {
+                    CompositionLocalProvider(LocalConfiguration provides pickerConfiguration) {
+                        DatePickerMMD(
+                            state = state,
+                            dateFormatter = UtcDateFormatter,
+                            title = null,
+                            headline = null,
+                            showModeToggle = false,
+                        )
+                    }
+                    Spacer(Modifier.weight(1f))
+                    Box(Modifier.padding(horizontal = 20.dp)) {
+                        DialogButtons(onCancel = onDismiss, onOk = ok)
+                    }
                 }
             }
         }
