@@ -81,8 +81,18 @@ class CalendarStore(private val context: Context) {
                 )
             }
         }
-        return out
+        return SpareCalendar.withoutSpare(out, ::hasNoEvents)
     }
+
+    /** Whether calendar [id] holds no event at all, deleted ones not counted. */
+    private fun hasNoEvents(id: Long): Boolean =
+        resolver.query(
+            Events.CONTENT_URI,
+            arrayOf(Events._ID),
+            "${Events.CALENDAR_ID} = ? AND ${Events.DELETED} = 0",
+            arrayOf(id.toString()),
+            null,
+        )?.use { it.count == 0 } ?: false
 
     /**
      * A calendar kept on this phone alone, named [name], for a phone with no calendar that can be
